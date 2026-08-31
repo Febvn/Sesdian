@@ -1,0 +1,10 @@
+{
+  "name": "sesdian",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "SESDIAN asset management — static frontend + Neon-backed serverless API",
+  "dependencies": {
+    "@neondatabase/serverless": "^0.10.4"
+  }
+}
