@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SESDIAN — Asset Management</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <style>
+    html,body{height:100%;margin:0;background:#0f172a;
+      font-family:'Plus Jakarta Sans',system-ui,sans-serif}
+    .boot{height:100%;display:flex;align-items:center;justify-content:center;color:#94a3b8}
+  </style>
+  <script>
+    // Root bootstrap: send authenticated users to the dashboard, others to login.
+    try {
+      var u = localStorage.getItem('sesdian_user');
+      location.replace(u ? 'dashboard.html' : 'login.html');
+    } catch (e) {
+      location.replace('login.html');
+    }
+  </script>
+</head>
+<body>
+  <div class="boot">Memuat SESDIAN…</div>
+</body>
+</html>
