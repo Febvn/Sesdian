@@ -9,3 +9,6 @@ node_modules/
 
 # Vercel
 .vercel/
+
+# stray binaries (not part of this project)
+*.exe
