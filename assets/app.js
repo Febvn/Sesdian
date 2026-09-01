@@ -141,7 +141,7 @@
     if (!tpl) return;
     var container = tpl.parentNode;
     var src = tpl.cloneNode(true);
-    ['data-template', 'data-monitor-template', 'data-recent-template'].forEach(function (a) { src.removeAttribute(a); });
+    ['data-template', 'data-monitor-template', 'data-recent-template', 'data-asset-template'].forEach(function (a) { src.removeAttribute(a); });
     container.innerHTML = '';
     if (!records.length) { appendEmpty(container); return; }
     records.forEach(function (rec) { var n = src.cloneNode(true); applyBinds(n, rec); if (fill) fill(n, rec); container.appendChild(n); });
@@ -171,11 +171,18 @@
         var counts = { pending: 0, approved: 0, borrowed: 0, returned: 0 };
         bs.forEach(function (b) { if (counts[b.status] != null) counts[b.status]++; });
         Object.keys(counts).forEach(function (k) { var el = $('[data-count="' + k + '"]'); if (el) el.textContent = counts[k]; });
+        if ($('[data-asset-template]')) {                       // populate the "Ajukan" modal options
+          renderList('[data-asset-template]', await DB.assets(), function (n, r) {
+            var cb = $('[data-asset-checkbox]', n) || $('input[type="checkbox"]', n);
+            if (cb) cb.value = String(r.id);
+          });
+        }
       } else if (p === 'ajukanpinjam') {
         renderList('[data-template]', await DB.assets(), function (n, r) {
-          var cb = $('[data-asset-checkbox]', n) || $('input[type="checkbox"]', n);
-          if (cb) cb.value = String(r.id);
+          n.setAttribute('data-asset-id', r.id);
+          n.setAttribute('data-status', r.stock_available > 0 ? 'available' : 'unavailable');
         });
+        wireAssetSelect();                                      // re-wire after re-render
       }
     } catch (e) {
       if (e && e.status === 401) { location.replace('login.html'); return; }
@@ -246,19 +253,52 @@
     });
   }
 
+  /* ---------------- modal open/close ---------------- */
+  function showModal(name, on) { var m = $('[data-modal="' + name + '"]'); if (m) m.style.display = on ? 'flex' : 'none'; }
+  function wireModal() {
+    $$('[data-modal-open]').forEach(function (b) { b.addEventListener('click', function (e) { e.preventDefault(); showModal(b.getAttribute('data-modal-open'), true); }); });
+    $$('[data-modal-close]').forEach(function (b) { b.addEventListener('click', function (e) { e.preventDefault(); showModal(b.getAttribute('data-modal-close'), false); }); });
+    $$('[data-modal]').forEach(function (m) { m.addEventListener('click', function (e) { if (e.target === m) m.style.display = 'none'; }); });
+  }
+
+  /* ---------------- asset card selection (ajukan page) ---------------- */
+  function wireAssetSelect() {
+    var cards = $$('[data-asset-select]');
+    if (!cards.length) return;
+    var submit = $('[data-action="submit-pinjam"]');
+    function refresh() {
+      var any = $$('[data-asset-select].sesd-selected').length > 0;
+      if (!submit) return;
+      if (any) { submit.removeAttribute('disabled'); submit.style.background = 'linear-gradient(135deg, rgb(16, 185, 129), rgb(5, 150, 105))'; submit.style.color = 'rgb(255,255,255)'; submit.style.cursor = 'pointer'; submit.textContent = 'Ajukan Peminjaman'; }
+      else { submit.setAttribute('disabled', ''); submit.style.background = 'rgb(226, 232, 240)'; submit.style.color = 'rgb(148, 163, 184)'; submit.style.cursor = 'not-allowed'; submit.textContent = 'Pilih aset yang tersedia'; }
+    }
+    cards.forEach(function (card) {
+      if (card._wired) return; card._wired = true;
+      card.addEventListener('click', function () {
+        var box = $('[data-select-box]', card);
+        var sel = card.classList.toggle('sesd-selected');
+        if (sel) { card.style.border = '2px solid var(--primary)'; if (box) { box.style.background = 'var(--primary)'; box.style.borderColor = 'var(--primary)'; box.textContent = '✓'; } }
+        else { card.style.border = '2px solid var(--border)'; if (box) { box.style.background = 'transparent'; box.style.borderColor = 'var(--border)'; box.textContent = ''; } }
+        refresh();
+      });
+    });
+    refresh();
+  }
+
   /* ---------------- ajukan pinjam submit ---------------- */
   async function submitPinjam() {
-    var boxes = $$('input[type="checkbox"]');
-    var checked = boxes.filter(function (c) { return c.checked; });
-    if (boxes.length && !checked.length) { toast('Pilih minimal satu aset', 'error'); return; }
+    var ids = [];
+    $$('input[type="checkbox"]').forEach(function (c) { if (c.checked) { var v = parseInt(c.value, 10); if (v) ids.push(v); } });
+    $$('[data-asset-select].sesd-selected').forEach(function (el) { var v = parseInt(el.getAttribute('data-asset-id'), 10); if (v) ids.push(v); });
+    var hasSelectionUI = $$('input[type="checkbox"]').length > 0 || $$('[data-asset-select]').length > 0;
+    if (hasSelectionUI && !ids.length) { toast('Pilih minimal satu aset', 'error'); return; }
     var date = val('date') || ($('input[type="date"]') || {}).value || '';
     if ($('input[type="date"]') && !date) { toast('Pilih tanggal kembali', 'error'); return; }
     var notes = val('notes');
     if (REAL) {
       try {
-        for (var i = 0; i < checked.length; i++) {
-          var id = parseInt(checked[i].value, 10);
-          if (id) await DB.requestBorrowing({ assetId: id, qty: 1, dueDate: date || null, notes: notes });
+        for (var i = 0; i < ids.length; i++) {
+          await DB.requestBorrowing({ assetId: ids[i], qty: 1, dueDate: date || null, notes: notes });
         }
         toast('Pengajuan peminjaman berhasil dikirim', 'success');
         setTimeout(go('daftarpinjam.html'), 900);
@@ -311,7 +351,7 @@
     if (g.redirect) return;
     if (REAL) await loadAndRender(page());
     fillIdentity(g.user);
-    wireActions(); wireNav(); wireSearch(); wireFilters(); fallbacks(); setupNotice();
+    wireActions(); wireNav(); wireModal(); wireSearch(); wireFilters(); wireAssetSelect(); fallbacks(); setupNotice();
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
