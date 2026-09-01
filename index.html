@@ -13,8 +13,9 @@
   <script>
     // Root bootstrap: send authenticated users to the dashboard, others to login.
     try {
-      var u = localStorage.getItem('sesdian_user');
-      location.replace(u ? 'dashboard.html' : 'login.html');
+      // 'sesdian_token' = real (Neon) session; 'sesdian_user' = demo session
+      var signedIn = localStorage.getItem('sesdian_token') || localStorage.getItem('sesdian_user');
+      location.replace(signedIn ? 'dashboard.html' : 'login.html');
     } catch (e) {
       location.replace('login.html');
     }
