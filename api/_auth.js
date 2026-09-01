@@ -3,7 +3,13 @@
 //   - sessions:  compact HS256 JWT signed with JWT_SECRET
 import crypto from 'node:crypto';
 
-const SECRET = process.env.JWT_SECRET || 'sesdian-dev-secret-change-me';
+// Fail closed: never sign/verify with a predictable key. JWT_SECRET must be set
+// (Vercel env var). Without it, token ops throw and endpoints return 500.
+function secret() {
+  var s = process.env.JWT_SECRET;
+  if (!s) throw new Error('JWT_SECRET belum diset (Vercel env var).');
+  return s;
+}
 
 /* ---------- passwords ---------- */
 export function hashPassword(pw) {
@@ -25,19 +31,19 @@ export function signToken(payload, days = 7) {
   const header = b64(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
   const body = b64(JSON.stringify({ ...payload, exp: Math.floor(Date.now() / 1000) + days * 86400 }));
   const data = header + '.' + body;
-  const sig = crypto.createHmac('sha256', SECRET).update(data).digest('base64url');
+  const sig = crypto.createHmac('sha256', secret()).update(data).digest('base64url');
   return data + '.' + sig;
 }
 export function verifyToken(token) {
   const parts = String(token || '').split('.');
   if (parts.length !== 3) return null;
   const data = parts[0] + '.' + parts[1];
-  const expected = crypto.createHmac('sha256', SECRET).update(data).digest('base64url');
+  const expected = crypto.createHmac('sha256', secret()).update(data).digest('base64url');
   const a = Buffer.from(parts[2]); const b = Buffer.from(expected);
   if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) return null;
   let payload;
   try { payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString()); } catch (e) { return null; }
-  if (payload.exp && payload.exp < Math.floor(Date.now() / 1000)) return null;
+  if (typeof payload.exp !== 'number' || payload.exp < Math.floor(Date.now() / 1000)) return null; // require valid, unexpired exp
   return payload;
 }
 
@@ -55,6 +61,12 @@ export function getAuth(req) {
 export function requireAuth(req, res) {
   const u = getAuth(req);
   if (!u) { send(res, 401, { error: 'Unauthorized' }); return null; }
+  return u;
+}
+export function requireAdmin(req, res) {
+  const u = getAuth(req);
+  if (!u) { send(res, 401, { error: 'Unauthorized' }); return null; }
+  if (u.role !== 'admin') { send(res, 403, { error: 'Akses admin diperlukan' }); return null; }
   return u;
 }
 export async function readJson(req) {

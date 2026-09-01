@@ -15,7 +15,7 @@ create table users (
   id            bigserial primary key,
   nip           text unique not null,
   name          text not null,
-  role          text not null default 'user',
+  role          text not null default 'user',   -- 'user' | 'admin'; the FIRST account to register becomes admin (see /api/register)
   password_hash text not null,            -- scrypt: "<saltHex>:<hashHex>" (set by /api/register)
   created_at    timestamptz not null default now()
 );

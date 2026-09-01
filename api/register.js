@@ -12,9 +12,13 @@ export default async function handler(req, res) {
     const exists = await sql`select id from users where nip = ${String(nip).trim()}`;
     if (exists.length) return send(res, 409, { error: 'NIP sudah terdaftar' });
 
+    // bootstrap: the very first account created becomes the admin — derived
+    // atomically in one statement so concurrent registrations can't both win.
     const rows = await sql`
       insert into users (nip, name, role, password_hash)
-      values (${String(nip).trim()}, ${String(name)}, 'user', ${hashPassword(password)})
+      values (${String(nip).trim()}, ${String(name)},
+              case when not exists (select 1 from users) then 'admin' else 'user' end,
+              ${hashPassword(password)})
       returning id, nip, name, role`;
     const u = rows[0];
     const token = signToken({ sub: u.id, nip: u.nip, name: u.name, role: u.role });

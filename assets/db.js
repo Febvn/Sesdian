@@ -1,8 +1,9 @@
 /* ============================================================
-   SESDIAN — data layer (talks to the Neon-backed /api endpoints)
-   Exposes window.SESDIAN_DB. Auth uses a JWT stored in localStorage;
-   the token is decoded client-side for identity (no network needed for
-   the route guard) and sent as a Bearer header on data requests.
+   SESDIAN — data layer
+   Real mode: talks to the Neon-backed /api endpoints (JWT auth).
+   Demo mode (config.BACKEND==='demo' / no backend): an in-memory
+   dataset with the same API, so every page renders from JS in BOTH
+   modes — the static HTML never shows hardcoded data first.
    ============================================================ */
 (function () {
   'use strict';
@@ -12,22 +13,17 @@
   var TKEY = 'sesdian_token';
   var demo = CFG.BACKEND === 'demo';
 
-  function url(path) { return BASE + '/api/' + path; }
+  function url(p) { return BASE + '/api/' + p; }
   function token() { try { return localStorage.getItem(TKEY) || ''; } catch (e) { return ''; } }
   function setToken(t) { try { localStorage.setItem(TKEY, t); } catch (e) {} }
   function clearToken() { try { localStorage.removeItem(TKEY); } catch (e) {} }
 
-  async function req(path, opts) {
+  async function req(p, opts) {
     opts = opts || {};
     var headers = { 'Content-Type': 'application/json' };
     var t = token(); if (t) headers['Authorization'] = 'Bearer ' + t;
-    var res = await fetch(url(path), {
-      method: opts.method || 'GET',
-      headers: headers,
-      body: opts.body ? JSON.stringify(opts.body) : undefined,
-    });
-    var data = null;
-    try { data = await res.json(); } catch (e) {}
+    var res = await fetch(url(p), { method: opts.method || 'GET', headers: headers, body: opts.body ? JSON.stringify(opts.body) : undefined });
+    var data = null; try { data = await res.json(); } catch (e) {}
     if (res.status === 401) { clearToken(); var err = new Error('Unauthorized'); err.status = 401; throw err; }
     if (!res.ok) throw new Error((data && data.error) || ('HTTP ' + res.status));
     return data;
@@ -36,12 +32,26 @@
   function decode(t) {
     try {
       var p = t.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
-      while (p.length % 4) p += '=';                 // restore base64 padding
+      while (p.length % 4) p += '=';
       return JSON.parse(decodeURIComponent(escape(atob(p))));
     } catch (e) { return null; }
   }
 
-  /* ---------------- auth ---------------- */
+  /* ====================== DEMO in-memory store ====================== */
+  var DEMO = {
+    seq: 100,
+    categories: [['Elektronik', '💻'], ['Furnitur', '🪑'], ['Kendaraan', '🚗'], ['Peralatan', '🔧'], ['Dokumen', '📄'], ['Lain-lain', '📦']].map(function (c, i) { return { id: i + 1, name: c[0], icon: c[1] }; }),
+    rooms: [['Ruang Kepala', 'RK-01'], ['Ruang Tata Usaha', 'TU-01'], ['Ruang Rapat', 'RR-01'], ['Ruang Pelayanan', 'RP-01'], ['Gudang', 'GD-01'], ['Laboratorium', 'LB-01']].map(function (r, i) { return { id: i + 1, name: r[0], code: r[1], pic: '' }; }),
+    assets: [{ id: 1, code: '123', name: 'Laptop', category_id: 1, brand: 'Acer', room_id: 2, year: 2024, condition: 'Baik', type: 'BMN', asset_type: 'Fixed Asset', stock_total: 14, stock_available: 9, stock_borrowed: 5, image: null }],
+    borrowings: [{ id: 1, asset_id: 1, borrower_name: 'Adi Septriansyah', qty: 1, status: 'pending', due_date: '2026-06-18', created_at: '2026-06-15T08:00:00Z' }],
+    users: [{ id: 1, nip: '123456789012345678', name: 'Adi Septriansyah', role: 'admin' }, { id: 2, nip: '987654321098765432', name: 'Budi Santoso', role: 'user' }],
+  };
+  var catName = function (id) { var c = DEMO.categories.filter(function (x) { return x.id == id; })[0]; return c ? c.name : ''; };
+  var roomName = function (id) { var r = DEMO.rooms.filter(function (x) { return x.id == id; })[0]; return r ? r.name : ''; };
+  function demoAsset(a) { return Object.assign({}, a, { category: catName(a.category_id), room: roomName(a.room_id) }); }
+  var P = function (v) { return Promise.resolve(v); };
+
+  /* ====================== auth ====================== */
   var auth = {
     async signUp(o) { var d = await req('register', { method: 'POST', body: { nip: o.nip, name: o.name, password: o.password } }); setToken(d.token); return d; },
     async signIn(o) { var d = await req('login', { method: 'POST', body: { nip: o.nip, password: o.password } }); setToken(d.token); return d; },
@@ -50,14 +60,14 @@
       var t = token(); if (!t) return null;
       var p = decode(t); if (!p) return null;
       if (p.exp && p.exp < Math.floor(Date.now() / 1000)) { clearToken(); return null; }
-      return { nip: p.nip, name: p.name, role: p.role };
+      return { nip: p.nip, name: p.name, role: p.role || 'user' };
     },
   };
 
-  /* ---------------- data ---------------- */
-  async function categories() { return (await req('categories')).categories; }
-  async function rooms() { return (await req('rooms')).rooms; }
-  async function assets() { return (await req('assets')).assets; }
+  /* ====================== reads ====================== */
+  async function categories() { return demo ? P(DEMO.categories.slice()) : (await req('categories')).categories; }
+  async function rooms() { return demo ? P(DEMO.rooms.slice()) : (await req('rooms')).rooms; }
+  async function assets() { return demo ? P(DEMO.assets.map(demoAsset)) : (await req('assets')).assets; }
 
   function fmtBorrow(b) {
     var d = b.created_at ? new Date(b.created_at) : null;
@@ -68,31 +78,96 @@
       request_date: d ? (d.getDate() + '/' + (d.getMonth() + 1) + '/' + d.getFullYear()) : '',
     };
   }
-  async function borrowings() { return (await req('borrowings')).borrowings.map(fmtBorrow); }
+  async function borrowings() {
+    if (demo) {
+      return P(DEMO.borrowings.slice().sort(function (a, b) { return b.id - a.id; }).map(function (b) {
+        var a = DEMO.assets.filter(function (x) { return x.id === b.asset_id; })[0] || {};
+        return fmtBorrow(Object.assign({}, b, { asset_name: a.name, asset_code: a.code }));
+      }));
+    }
+    return (await req('borrowings')).borrowings.map(fmtBorrow);
+  }
 
   async function dashboard() {
-    var as = await assets();
-    var bs = await borrowings();
+    var as = await assets(); var bs = await borrowings();
     var sum = function (k) { return as.reduce(function (t, a) { return t + (a[k] || 0); }, 0); };
     return {
-      stats: {
-        total_assets: as.length, total_stock: sum('stock_total'),
-        stock_available: sum('stock_available'), stock_borrowed: sum('stock_borrowed'),
-        pending: bs.filter(function (b) { return b.status === 'pending'; }).length,
-      },
+      stats: { total_assets: as.length, total_stock: sum('stock_total'), stock_available: sum('stock_available'), stock_borrowed: sum('stock_borrowed'), pending: bs.filter(function (b) { return b.status === 'pending'; }).length },
       monitor: as.map(function (a) { return { name: a.name, code: a.code, available: a.stock_available, total: a.stock_total }; }),
       recent: bs.slice(0, 5),
     };
   }
 
   async function requestBorrowing(o) {
+    if (demo) {
+      var q = Math.max(1, parseInt(o.qty || 1, 10));
+      var a = DEMO.assets.filter(function (x) { return x.id == o.assetId; })[0];
+      if (!a || a.stock_available < q) return Promise.reject(new Error('Stok tidak mencukupi'));
+      a.stock_available -= q; a.stock_borrowed += q;
+      var b = { id: ++DEMO.seq, asset_id: a.id, borrower_name: 'Pengguna Demo', qty: q, status: 'pending', due_date: o.dueDate || null, created_at: new Date(2026, 5, 18).toISOString() };
+      DEMO.borrowings.push(b); return P(b);
+    }
     return (await req('borrowings', { method: 'POST', body: { assetId: o.assetId, qty: o.qty || 1, dueDate: o.dueDate || null, notes: o.notes || null } })).borrowing;
+  }
+
+  /* ====================== admin: users ====================== */
+  async function users() { return demo ? P(DEMO.users.slice()) : (await req('users')).users; }
+  async function setUserRole(id, role) {
+    if (demo) { var u = DEMO.users.filter(function (x) { return x.id == id; })[0]; if (u) u.role = role; return P(u); }
+    return (await req('users', { method: 'PATCH', body: { id: id, role: role } })).user;
+  }
+
+  /* ====================== admin: assets ====================== */
+  async function createAsset(d) {
+    if (demo) { var a = Object.assign({ id: ++DEMO.seq, stock_borrowed: 0 }, d); a.stock_total = parseInt(d.stock_total || 1, 10); a.stock_available = a.stock_total; DEMO.assets.push(a); return P(a); }
+    return req('assets', { method: 'POST', body: d });
+  }
+  async function updateAsset(id, d) {
+    if (demo) { var a = DEMO.assets.filter(function (x) { return x.id == id; })[0]; if (a) { Object.assign(a, d); a.stock_total = parseInt(d.stock_total != null ? d.stock_total : a.stock_total, 10); a.stock_available = Math.max(0, a.stock_total - a.stock_borrowed); } return P(a); }
+    return req('assets', { method: 'PATCH', body: Object.assign({ id: id }, d) });
+  }
+  async function deleteAsset(id) {
+    if (demo) { DEMO.assets = DEMO.assets.filter(function (x) { return x.id != id; }); return P({ ok: true }); }
+    return req('assets', { method: 'DELETE', body: { id: id } });
+  }
+
+  /* ====================== admin: categories ====================== */
+  async function createCategory(d) { if (demo) { var c = { id: ++DEMO.seq, name: d.name, icon: d.icon || '📦' }; DEMO.categories.push(c); return P(c); } return req('categories', { method: 'POST', body: d }); }
+  async function updateCategory(id, d) { if (demo) { var c = DEMO.categories.filter(function (x) { return x.id == id; })[0]; if (c) Object.assign(c, d); return P(c); } return req('categories', { method: 'PATCH', body: Object.assign({ id: id }, d) }); }
+  async function deleteCategory(id) { if (demo) { DEMO.categories = DEMO.categories.filter(function (x) { return x.id != id; }); return P({ ok: true }); } return req('categories', { method: 'DELETE', body: { id: id } }); }
+
+  /* ====================== admin: rooms ====================== */
+  async function createRoom(d) { if (demo) { var r = { id: ++DEMO.seq, name: d.name, code: d.code || '', pic: d.pic || '' }; DEMO.rooms.push(r); return P(r); } return req('rooms', { method: 'POST', body: d }); }
+  async function updateRoom(id, d) { if (demo) { var r = DEMO.rooms.filter(function (x) { return x.id == id; })[0]; if (r) Object.assign(r, d); return P(r); } return req('rooms', { method: 'PATCH', body: Object.assign({ id: id }, d) }); }
+  async function deleteRoom(id) { if (demo) { DEMO.rooms = DEMO.rooms.filter(function (x) { return x.id != id; }); return P({ ok: true }); } return req('rooms', { method: 'DELETE', body: { id: id } }); }
+
+  /* ====================== admin: borrowings status ====================== */
+  async function updateBorrowingStatus(id, status) {
+    if (demo) {
+      var b = DEMO.borrowings.filter(function (x) { return x.id == id; })[0];
+      if (b) {
+        var RES = ['pending', 'approved', 'borrowed'];
+        var wasOut = RES.indexOf(b.status) !== -1, nowOut = RES.indexOf(status) !== -1;
+        var a = DEMO.assets.filter(function (x) { return x.id === b.asset_id; })[0];
+        if (a) {
+          if (wasOut && !nowOut) { a.stock_available += b.qty; a.stock_borrowed = Math.max(0, a.stock_borrowed - b.qty); }
+          else if (!wasOut && nowOut) { if (a.stock_available < b.qty) return Promise.reject(new Error('Stok tidak mencukupi')); a.stock_available -= b.qty; a.stock_borrowed += b.qty; }
+        }
+        b.status = status;
+      }
+      return P({ ok: true });
+    }
+    return req('borrowings', { method: 'PATCH', body: { id: id, status: status } });
   }
 
   window.SESDIAN_DB = {
     configured: !demo, backend: demo ? 'demo' : 'api',
     auth: auth,
-    categories: categories, rooms: rooms, assets: assets,
-    borrowings: borrowings, dashboard: dashboard, requestBorrowing: requestBorrowing,
+    categories: categories, rooms: rooms, assets: assets, borrowings: borrowings, dashboard: dashboard, requestBorrowing: requestBorrowing,
+    users: users, setUserRole: setUserRole,
+    createAsset: createAsset, updateAsset: updateAsset, deleteAsset: deleteAsset,
+    createCategory: createCategory, updateCategory: updateCategory, deleteCategory: deleteCategory,
+    createRoom: createRoom, updateRoom: updateRoom, deleteRoom: deleteRoom,
+    updateBorrowingStatus: updateBorrowingStatus,
   };
 })();
