@@ -12,7 +12,7 @@ export default async function handler(req, res) {
     const exists = await sql`select id from users where nip = ${String(nip).trim()}`;
     if (exists.length) return send(res, 409, { error: 'NIP sudah terdaftar' });
 
-    // bootstrap: the very first account created becomes the admin — derived
+    // bootstrap: the very first account created becomes the admin - derived
     // atomically in one statement so concurrent registrations can't both win.
     const rows = await sql`
       insert into users (nip, name, role, password_hash)

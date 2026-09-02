@@ -13,8 +13,14 @@ export default async function handler(req, res) {
       return send(res, 401, { error: 'NIP atau password salah' });
     }
     const u = rows[0];
-    const token = signToken({ sub: u.id, nip: u.nip, name: u.name, role: u.role });
-    return send(res, 200, { token, user: { nip: u.nip, name: u.name, role: u.role } });
+    let role = u.role;
+    // bootstrap: if the system has no admin yet, the first account to log in is promoted
+    if (role !== 'admin') {
+      const adminExists = await sql`select 1 from users where role = 'admin' limit 1`;
+      if (!adminExists.length) { await sql`update users set role = 'admin' where id = ${u.id}`; role = 'admin'; }
+    }
+    const token = signToken({ sub: u.id, nip: u.nip, name: u.name, role: role });
+    return send(res, 200, { token, user: { nip: u.nip, name: u.name, role: role } });
   } catch (e) {
     return send(res, 500, { error: e.message });
   }

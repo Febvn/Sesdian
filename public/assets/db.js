@@ -1,9 +1,9 @@
 /* ============================================================
-   SESDIAN — data layer
+   SESDIAN - data layer
    Real mode: talks to the Neon-backed /api endpoints (JWT auth).
    Demo mode (config.BACKEND==='demo' / no backend): an in-memory
    dataset with the same API, so every page renders from JS in BOTH
-   modes — the static HTML never shows hardcoded data first.
+   modes - the static HTML never shows hardcoded data first.
    ============================================================ */
 (function () {
   'use strict';
@@ -45,6 +45,7 @@
     assets: [{ id: 1, code: '123', name: 'Laptop', category_id: 1, brand: 'Acer', room_id: 2, year: 2024, condition: 'Baik', type: 'BMN', asset_type: 'Fixed Asset', stock_total: 14, stock_available: 9, stock_borrowed: 5, image: null }],
     borrowings: [{ id: 1, asset_id: 1, borrower_name: 'Adi Septriansyah', qty: 1, status: 'pending', due_date: '2026-06-18', created_at: '2026-06-15T08:00:00Z' }],
     users: [{ id: 1, nip: '123456789012345678', name: 'Adi Septriansyah', role: 'admin' }, { id: 2, nip: '987654321098765432', name: 'Budi Santoso', role: 'user' }],
+    settings: { wa_number: '' },
   };
   var catName = function (id) { var c = DEMO.categories.filter(function (x) { return x.id == id; })[0]; return c ? c.name : ''; };
   var roomName = function (id) { var r = DEMO.rooms.filter(function (x) { return x.id == id; })[0]; return r ? r.name : ''; };
@@ -72,8 +73,8 @@
   function fmtBorrow(b) {
     var d = b.created_at ? new Date(b.created_at) : null;
     return {
-      id: b.id, asset_name: b.asset_name || '—', asset_code: b.asset_code || '',
-      borrower: b.borrower_name || '—', qty: b.qty, status: b.status,
+      id: b.id, asset_name: b.asset_name || '-', asset_code: b.asset_code || '',
+      borrower: b.borrower_name || '-', qty: b.qty, status: b.status,
       due_date: b.due_date ? String(b.due_date).slice(0, 10) : '',
       request_date: d ? (d.getDate() + '/' + (d.getMonth() + 1) + '/' + d.getFullYear()) : '',
     };
@@ -160,8 +161,14 @@
     return req('borrowings', { method: 'PATCH', body: { id: id, status: status } });
   }
 
+  /* ====================== settings (WhatsApp) ====================== */
+  function normWa(n) { var d = String(n || '').replace(/\D/g, ''); if (d.charAt(0) === '0') d = '62' + d.slice(1); return d; }
+  async function getSettings() { return demo ? P({ wa_number: DEMO.settings.wa_number, wa_auto: false }) : req('settings'); }
+  async function setWaNumber(n) { if (demo) { DEMO.settings.wa_number = normWa(n); return P({ wa_number: DEMO.settings.wa_number, wa_auto: false }); } return req('settings', { method: 'PATCH', body: { wa_number: n } }); }
+
   window.SESDIAN_DB = {
     configured: !demo, backend: demo ? 'demo' : 'api',
+    getSettings: getSettings, setWaNumber: setWaNumber,
     auth: auth,
     categories: categories, rooms: rooms, assets: assets, borrowings: borrowings, dashboard: dashboard, requestBorrowing: requestBorrowing,
     users: users, setUserRole: setUserRole,

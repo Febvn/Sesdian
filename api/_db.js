@@ -1,5 +1,5 @@
 // Neon serverless Postgres client (server-side only).
-// DATABASE_URL is set as a Vercel Environment Variable — never exposed to the browser.
+// DATABASE_URL is set as a Vercel Environment Variable - never exposed to the browser.
 import { neon } from '@neondatabase/serverless';
 
 let _sql;

@@ -1,5 +1,5 @@
 -- ============================================================
---  SESDIAN — Neon (Postgres) schema + seed data
+--  SESDIAN - Neon (Postgres) schema + seed data
 --  Run once in the Neon SQL Editor (or `psql $DATABASE_URL -f neon-schema.sql`).
 --  Auth is handled by the API layer (/api), so this is plain Postgres:
 --  a users table with a password hash, plus the domain tables.
@@ -62,6 +62,13 @@ create table borrowings (
   notes         text,
   created_at    timestamptz not null default now()
 );
+
+-- app settings (key/value): e.g. wa_number = admin WhatsApp for borrow notifications
+create table settings (
+  key   text primary key,
+  value text
+);
+insert into settings (key, value) values ('wa_number', '') on conflict (key) do nothing;
 
 create index on assets (code);
 create index on borrowings (status);

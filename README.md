@@ -1,85 +1,80 @@
-# SESDIAN — Asset Management
+# SESDIAN - Asset Management
 
-Lightweight asset-management app: a **static, zero-build frontend** (vanilla
-HTML/CSS/JS, ~190 KB) backed by a **Neon Postgres database** through small
-**Vercel serverless functions**. The frontend stays instant; the backend gives
-real auth and real data persistence.
+Lightweight asset-management app: a static, zero-build frontend (vanilla
+HTML/CSS/JS) backed by a Neon Postgres database through small Vercel serverless
+functions. The frontend stays instant; the backend gives real auth, roles, and
+data persistence.
 
-> Replaces the original Laravel + React build that shipped a 1.1 MB JS bundle per page.
+> Replaces the original Laravel + React build that shipped a ~1.1 MB JS bundle per page.
 
 ## Architecture
 ```
-Browser ──fetch──▶ /api/* (Vercel Serverless, Node)  ──SQL──▶  Neon Postgres
-  static pages        register · login · me                     users
-  assets/app.js       categories · rooms · assets               categories
-  assets/db.js        borrowings (GET list / POST create)       rooms · assets
-                                                                 borrowings
+Browser  -->  /api/* (Vercel serverless, Node)  -->  Neon Postgres
+ public/        register, login, me, settings        users, settings
+ *.html         categories, rooms, assets            categories, rooms
+ assets/app.js  borrowings (list/create/approve)     assets, borrowings
+ assets/db.js   users (list/role)
 ```
-- **Auth:** JWT (HS256) signed server-side; passwords hashed with scrypt. The
-  token is stored in `localStorage` and sent as `Authorization: Bearer …`.
-- **Security:** the Neon connection string lives only in the Vercel env var
-  `DATABASE_URL` — never in the browser. Every data endpoint requires a valid token.
-- **Dual mode:** if the backend isn't configured (e.g. opened from `file://`, or
-  `assets/config.js` `BACKEND:'demo'`), the UI runs offline on its seed markup with
-  a localStorage stub, so it's always previewable.
+- Auth: JWT (HS256) signed server-side; passwords hashed with scrypt; token in
+  localStorage, sent as a Bearer header. `JWT_SECRET` is required (no fallback).
+- The Neon connection string lives only in the Vercel env var `DATABASE_URL`,
+  never in the browser. Every data endpoint checks the token; writes check admin.
+- DB-first: pages render entirely from the database (or an in-memory demo set);
+  the static templates are hidden, so no seed data flashes before the DB loads.
 
-## Pages
-`index` (router) · `login` · `register` · `dashboard` · `dataaset` ·
-`kategoriaset` · `ruangan` · `daftarpinjam` · `ajukanpinjam` · `users` (admin)
+## Roles
+- First account to log in (when no admin exists yet) becomes the admin; everyone
+  else is a normal user. Admins can promote/demote others on the Kelola User page.
+- User: browse assets/categories/rooms, submit borrowing requests.
+- Admin: approve / reject / lend / return borrowings (stock adjusts automatically),
+  add/edit/delete assets (with image upload), categories and rooms, manage users,
+  and set the WhatsApp notification number.
 
-Asset detail is a dynamic modal rendered from the database (opened by clicking an
-asset card), so there is no separate hardcoded detail page.
+## WhatsApp notifications
+- An admin sets the notification number on the Kelola User page.
+- When a user submits a borrowing request:
+  - If `FONNTE_TOKEN` (a https://fonnte.com gateway token) is set on the server,
+    the API auto-sends a WhatsApp message to the admin number.
+  - Otherwise the app opens a `wa.me` click-to-send link prefilled to the admin.
 
 ## Project layout
 ```
-*.html              static pages (pixel-faithful snapshots + data-* hooks)
-assets/app.css      design tokens + animations
-assets/app.js       runtime: auth, rendering, search/filter, nav, toasts
-assets/db.js        data layer (calls /api, manages the JWT)
-assets/config.js    BACKEND mode + optional API base (no secrets)
-api/*.js            serverless functions (register, login, me, categories,
-                    rooms, assets, borrowings) + _db.js / _auth.js helpers
-neon-schema.sql     database schema + seed data
+public/             the static site (served by Vercel)
+  *.html            pages
+  assets/app.css    design tokens + animations
+  assets/app.js     runtime: auth, rendering, search/filter, admin UI, toasts
+  assets/db.js      data layer (calls /api, manages the JWT, demo dataset)
+  assets/config.js  BACKEND mode + optional API base (no secrets)
+  favicon.svg
+api/                serverless functions
+  register, login, me, categories, rooms, assets, borrowings, users, settings
+  _auth.js _db.js _wa.js   (shared helpers, not routed)
+neon-schema.sql     full schema + seed (fresh install)
+migrate.sql         incremental, non-destructive migration (existing DB)
 package.json        declares @neondatabase/serverless (installed by Vercel)
-vercel.json         clean URLs
+vercel.json         outputDirectory: public, clean URLs
 ```
 
-## Setup (≈5 minutes)
-1. **Create a Neon database** at https://neon.tech → copy the connection string
-   (looks like `postgresql://user:pass@ep-xxx.neon.tech/neondb?sslmode=require`).
-2. **Create the tables**: open Neon's SQL Editor, paste `neon-schema.sql`, Run.
-   (Or `psql "<connection string>" -f neon-schema.sql`.)
-3. **Deploy to Vercel** (import this repo) and add two Environment Variables:
-   - `DATABASE_URL` = your Neon connection string
-   - `JWT_SECRET`   = any long random string (e.g. `openssl rand -hex 32`)
-4. Redeploy. Open the site → **Register** an account → you're live.
-   The **first** account to register automatically becomes the **admin**.
-
-## Roles
-- **User**: browse assets/categories/rooms, submit borrowing requests.
-- **Admin** (additional powers, UI appears automatically when logged in as admin):
-  - **Approve / reject / lend / return** borrowings (Daftar Pinjam) — stock is
-    reserved on request and released on return/reject.
-  - **Add / edit / delete assets** (Data Aset), including an **image upload**
-    (auto-downscaled to a JPEG data URL stored in the DB).
-  - **Add / edit / delete categories** (Kategori Aset) and **rooms** (Ruangan).
-  - **Manage users** (Kelola User, admin-only page): list everyone and
-    promote/demote between user and admin.
-- Bootstrap: the first registered account is admin; admins promote others.
+## Setup
+1. Create a Neon database (https://neon.tech) and copy the connection string.
+2. Fresh DB: run `neon-schema.sql` in the Neon SQL Editor.
+   Existing DB (already has data): run `migrate.sql` instead (it only adds the
+   settings table; it does not drop anything).
+3. Deploy to Vercel and add environment variables:
+   - `DATABASE_URL`  (required) - your Neon connection string
+   - `JWT_SECRET`    (required) - a long random string, e.g. `openssl rand -hex 32`
+   - `FONNTE_TOKEN`  (optional) - enables automatic WhatsApp sending
+4. Log in with your existing account; since it is the only account and there is
+   no admin yet, it is promoted to admin automatically. New sign-ups are users.
 
 ## Local development
-- Full stack: install the [Vercel CLI](https://vercel.com/docs/cli) and run
-  `vercel dev` (set `DATABASE_URL` and `JWT_SECRET` in a `.env` / via the CLI).
-- UI only (no backend): set `BACKEND: 'demo'` in `assets/config.js`, then open
-  `index.html` or run `npx serve .`.
+- Full stack: `vercel dev` (set `DATABASE_URL` and `JWT_SECRET` locally).
+- UI only (no backend): set `BACKEND: 'demo'` in `public/assets/config.js`, then
+  open `public/index.html` or run `npx serve public`. Demo signs you in as an
+  admin so every feature is previewable; data lives in memory for the session.
 
 ## Notes
-- Every page renders from the database (or the in-memory demo set) — the static
-  HTML templates are hidden, so no hardcoded data flashes before the DB loads.
-- Demo/offline mode (`BACKEND:'demo'`) signs you in as an **admin** so all features
-  are previewable without a backend; data lives in memory for the session only.
-- In real mode, accounts are created via **Register** (first = admin).
 - Borrowing is atomic: stock is reserved and the record inserted in a single SQL
-  statement, so concurrent requests can't oversubscribe stock.
+  statement; status changes adjust stock in one statement with a re-reserve guard.
 - Asset images are downscaled client-side (max 800px, JPEG) and stored as a data
   URL in `assets.image`; keep uploads modest (Vercel request body limit ~4.5 MB).

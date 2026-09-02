@@ -1,8 +1,8 @@
 /* ============================================================
-   SESDIAN — frontend config (Neon backend via serverless API)
+   SESDIAN - frontend config (Neon backend via serverless API)
    ------------------------------------------------------------
    The Neon connection string lives ONLY on the server (Vercel env
-   var DATABASE_URL) — never in the browser. The frontend just talks
+   var DATABASE_URL) - never in the browser. The frontend just talks
    to the /api endpoints, so there are no secrets here.
 
      BACKEND : 'api'  -> use the live serverless backend (Neon)

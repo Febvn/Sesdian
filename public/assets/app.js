@@ -1,9 +1,9 @@
 /* ============================================================
-   SESDIAN — shared client runtime (static frontend + Neon backend)
+   SESDIAN - shared client runtime (static frontend + Neon backend)
 
    • Roles: 'user' and 'admin'. Admins get CRUD + approvals (UI injected here).
    • DB-first: every list/stat renders from the data layer (real API or the
-     in-memory demo set) — the static HTML templates are hidden via CSS, so no
+     in-memory demo set) - the static HTML templates are hidden via CSS, so no
      hardcoded data ever flashes before the database loads.
    ============================================================ */
 (function () {
@@ -206,6 +206,7 @@
         wireAssetSelect();
       } else if (p === 'users') {
         await renderUsers();
+        await wireWaSettings();
       }
     } catch (e) {
       if (e && e.status === 401) { location.replace('login.html'); return; }
@@ -392,7 +393,7 @@
     if (rec.status === 'pending') actions = [['Setujui', 'success', 'approved'], ['Tolak', 'danger', 'rejected']];
     else if (rec.status === 'approved') actions = [['Pinjamkan', 'primary', 'borrowed'], ['Tolak', 'danger', 'rejected']];
     else if (rec.status === 'borrowed') actions = [['Kembalikan', 'ghost', 'returned']];
-    else cell.appendChild(el('span', { style: 'color:var(--text-muted);font-size:.78rem' }, '—'));
+    else cell.appendChild(el('span', { style: 'color:var(--text-muted);font-size:.78rem' }, '-'));
     actions.forEach(function (a) {
       var b = el('button', { class: 'sesd-btn sesd-btn-sm sesd-btn-' + a[1] }, a[0]);
       b.addEventListener('click', async function (e) { e.stopPropagation(); try { await DB.updateBorrowingStatus(rec.id, a[2]); toast('Status diperbarui', 'success'); reloadData(); } catch (err) { toast((err && err.message) || 'Gagal', 'error'); } });
@@ -426,6 +427,19 @@
     });
   }
 
+  async function wireWaSettings() {
+    var input = $('[data-wa-input]'), save = $('[data-wa-save]'), status = $('[data-wa-status]');
+    if (!input || !save) return;
+    function note(s) { if (!status) return; status.textContent = s.wa_auto ? 'Auto-kirim via gateway aktif.' : (s.wa_number ? 'Notifikasi dikirim lewat tautan WhatsApp saat user mengajukan.' : 'Belum ada nomor admin.'); }
+    try { var s = await DB.getSettings(); input.value = s.wa_number || ''; note(s); } catch (e) {}
+    save.addEventListener('click', async function () {
+      save.disabled = true;
+      try { var r = await DB.setWaNumber(input.value); toast('Nomor WhatsApp disimpan', 'success'); input.value = r.wa_number || ''; note(r); }
+      catch (e) { toast((e && e.message) || 'Gagal menyimpan', 'error'); }
+      save.disabled = false;
+    });
+  }
+
   function injectAdminNav() {
     if ($('aside a[href="users.html"]')) { markUsersActive(); return; }
     var ref = $('aside a[href="ajukanpinjam.html"]'); if (!ref) return;
@@ -448,9 +462,9 @@
     var content = $$('main > div').pop(); if (!content) return;
     var inner = content.firstElementChild || content;
     function bar(label, onClick) { var b = el('button', { class: 'sesd-btn sesd-btn-primary' }, label); b.addEventListener('click', onClick); var wrap = el('div', { class: 'sesd-admin-bar' }); wrap.appendChild(b); inner.insertBefore(wrap, inner.firstChild); }
-    if (p === 'dataaset') bar('+ Tambah Aset', function () { openAssetForm(null); });
-    else if (p === 'kategoriaset') bar('+ Tambah Kategori', function () { openCategoryForm(null); });
-    else if (p === 'ruangan') bar('+ Tambah Ruangan', function () { openRoomForm(null); });
+    if (p === 'dataaset') bar('Tambah Aset', function () { openAssetForm(null); });
+    else if (p === 'kategoriaset') bar('Tambah Kategori', function () { openCategoryForm(null); });
+    else if (p === 'ruangan') bar('Tambah Ruangan', function () { openRoomForm(null); });
   }
 
   /* ---------------- password toggle ---------------- */
@@ -542,23 +556,30 @@
   }
 
   /* ---------------- ajukan pinjam submit ---------------- */
+  function nameOf(node) { var e = node && node.querySelector ? node.querySelector('[data-bind="name"]') : null; return e ? e.textContent : ''; }
+  async function notifyWa(names, date) {
+    try {
+      var s = await DB.getSettings();
+      if (!s || !s.wa_number || s.wa_auto) return;     // server auto-sends, or no number set
+      var who = (USER && USER.name) || 'pengguna';
+      var msg = 'Halo Admin, saya ' + who + ' mengajukan peminjaman: ' + names.join(', ') + (date ? ('. Jatuh tempo ' + date) : '') + '.';
+      window.open('https://wa.me/' + s.wa_number + '?text=' + encodeURIComponent(msg), '_blank');
+    } catch (e) {}
+  }
   async function submitPinjam() {
-    var ids = [];
-    $$('input[type="checkbox"]').forEach(function (c) { if (c.checked) { var v = parseInt(c.value, 10); if (v) ids.push(v); } });
-    $$('[data-asset-select].sesd-selected').forEach(function (e) { var v = parseInt(e.getAttribute('data-asset-id'), 10); if (v) ids.push(v); });
+    var picked = [];
+    $$('input[type="checkbox"]').forEach(function (c) { if (c.checked) { var v = parseInt(c.value, 10); if (v) picked.push({ id: v, name: nameOf(c.closest('label') || c.parentNode) || ('Aset #' + v) }); } });
+    $$('[data-asset-select].sesd-selected').forEach(function (e) { var v = parseInt(e.getAttribute('data-asset-id'), 10); if (v) picked.push({ id: v, name: nameOf(e) || ('Aset #' + v) }); });
     var hasUI = $$('input[type="checkbox"]').length > 0 || $$('[data-asset-select]').length > 0;
-    if (hasUI && !ids.length) { toast('Pilih minimal satu aset', 'error'); return; }
+    if (hasUI && !picked.length) { toast('Pilih minimal satu aset', 'error'); return; }
     var date = val('date') || ($('input[type="date"]') || {}).value || '';
     if ($('input[type="date"]') && !date) { toast('Pilih tanggal kembali', 'error'); return; }
     var notes = val('notes');
-    if (REAL || DB.requestBorrowing) {
-      try {
-        for (var i = 0; i < ids.length; i++) await DB.requestBorrowing({ assetId: ids[i], qty: 1, dueDate: date || null, notes: notes });
-        toast('Pengajuan peminjaman berhasil dikirim', 'success'); setTimeout(go('daftarpinjam.html'), 900);
-      } catch (e) { if (e && e.status === 401) { location.replace('login.html'); return; } toast((e && e.message) || 'Gagal mengirim pengajuan', 'error'); }
-      return;
-    }
-    toast('Pengajuan peminjaman berhasil dikirim', 'success'); setTimeout(go('daftarpinjam.html'), 900);
+    try {
+      for (var i = 0; i < picked.length; i++) await DB.requestBorrowing({ assetId: picked[i].id, qty: 1, dueDate: date || null, notes: notes });
+      await notifyWa(picked.map(function (p) { return p.name; }), date);
+      toast('Pengajuan peminjaman berhasil dikirim', 'success'); setTimeout(go('daftarpinjam.html'), 900);
+    } catch (e) { if (e && e.status === 401) { location.replace('login.html'); return; } toast((e && e.message) || 'Gagal mengirim pengajuan', 'error'); }
   }
 
   /* ---------------- actions ---------------- */
@@ -588,7 +609,7 @@
   function setupNotice() {
     if (REAL) return;
     if (!(page() === 'login' || page() === 'register')) return;
-    setTimeout(function () { toast('Mode demo — backend Neon aktif setelah deploy ke Vercel + set DATABASE_URL', 'info'); }, 700);
+    setTimeout(function () { toast('Mode demo - backend Neon aktif setelah deploy ke Vercel + set DATABASE_URL', 'info'); }, 700);
   }
 
   /* ---------------- boot ---------------- */

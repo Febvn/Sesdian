@@ -1,5 +1,6 @@
 import { getSql } from './_db.js';
 import { requireAuth, requireAdmin, send, readJson } from './_auth.js';
+import { notifyAdminBorrow } from './_wa.js';
 
 const RESERVED = ['pending', 'approved', 'borrowed']; // stock counted as out while in these states
 const STATUSES = ['pending', 'approved', 'borrowed', 'returned', 'rejected'];
@@ -13,11 +14,11 @@ export default async function handler(req, res) {
     try {
       const rows = auth.role === 'admin'
         ? await sql`select b.id, b.borrower_name, b.qty, b.status, b.due_date, b.created_at,
-               coalesce(a.name,'—') as asset_name, coalesce(a.code,'') as asset_code
+               coalesce(a.name,'-') as asset_name, coalesce(a.code,'') as asset_code
             from borrowings b left join assets a on a.id = b.asset_id
             order by b.created_at desc`
         : await sql`select b.id, b.borrower_name, b.qty, b.status, b.due_date, b.created_at,
-               coalesce(a.name,'—') as asset_name, coalesce(a.code,'') as asset_code
+               coalesce(a.name,'-') as asset_name, coalesce(a.code,'') as asset_code
             from borrowings b left join assets a on a.id = b.asset_id
             where b.user_id = ${auth.sub}
             order by b.created_at desc`;
@@ -52,7 +53,10 @@ export default async function handler(req, res) {
         from upd
         returning *`;
       if (!rows.length) return send(res, 400, { error: 'Stok tidak mencukupi' });
-      return send(res, 200, { borrowing: rows[0] });
+      const arows = await sql`select name from assets where id = ${assetId}`;
+      const assetName = arows.length ? arows[0].name : 'Aset';
+      await notifyAdminBorrow({ assetName: assetName, borrower: borrower, qty: qty, due: dueDate }); // best-effort WA
+      return send(res, 200, { borrowing: rows[0], asset_name: assetName });
     } catch (e) { return send(res, 500, { error: e.message }); }
   }
 
