@@ -8,6 +8,7 @@ import { sendWa, getWaNumber, normalizeWa } from './_wa.js';
 //   kind 'return-request' borrower -> admin: "I have returned it, please verify"
 // Always returns { auto, wa, text } so the client can fall back to a wa.me link.
 export default async function handler(req, res) {
+  if (req.method === 'OPTIONS') return send(res, 204, {});
   if (req.method !== 'POST') return send(res, 405, { error: 'Method not allowed' });
   const auth = getAuth(req);
   if (!auth) return send(res, 401, { error: 'Unauthorized' });

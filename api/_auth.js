@@ -50,6 +50,9 @@ export function verifyToken(token) {
 /* ---------- request/response helpers ---------- */
 export function send(res, status, obj) {
   res.statusCode = status;
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PATCH,DELETE,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization');
   res.setHeader('Content-Type', 'application/json; charset=utf-8');
   res.end(JSON.stringify(obj));
 }
@@ -70,11 +73,21 @@ export function requireAdmin(req, res) {
   return u;
 }
 export async function readJson(req) {
+  const MAX_BODY = 5 * 1024 * 1024; // 5MB
+  if (req.headers['content-length'] && parseInt(req.headers['content-length'], 10) > MAX_BODY) {
+    throw new Error('Payload terlalu besar (Maks 5MB)');
+  }
   if (req.body && typeof req.body === 'object') return req.body;
   if (typeof req.body === 'string') { try { return JSON.parse(req.body); } catch (e) { return {}; } }
-  return await new Promise((resolve) => {
+  return await new Promise((resolve, reject) => {
     let d = '';
-    req.on('data', (c) => (d += c));
+    req.on('data', (c) => {
+      d += c;
+      if (d.length > MAX_BODY) {
+        req.destroy();
+        reject(new Error('Payload terlalu besar (Maks 5MB)'));
+      }
+    });
     req.on('end', () => { try { resolve(d ? JSON.parse(d) : {}); } catch (e) { resolve({}); } });
     req.on('error', () => resolve({}));
   });

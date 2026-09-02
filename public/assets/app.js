@@ -621,27 +621,35 @@
   }
 
   /* ---------------- actions ---------------- */
+  async function withLoading(btnEl, fn) {
+    if (!btnEl || btnEl.tagName !== 'BUTTON') return await fn();
+    var orig = btnEl.innerHTML;
+    btnEl.disabled = true;
+    btnEl.textContent = 'Memproses...';
+    try { await fn(); } finally { btnEl.disabled = false; btnEl.innerHTML = orig; }
+  }
+
   function wireActions() {
     $$('[data-action]').forEach(function (e) {
       var act = e.getAttribute('data-action');
       e.addEventListener('click', function (ev) {
         if (e.tagName === 'A' || e.tagName === 'BUTTON') ev.preventDefault();
-        if (act === 'login') doLogin();
-        else if (act === 'register') doRegister();
-        else if (act === 'logout') doLogout();
+        if (act === 'login') withLoading(e, doLogin);
+        else if (act === 'register') withLoading(e, doRegister);
+        else if (act === 'logout') withLoading(e, doLogout);
         else if (act === 'toggle-password') togglePassword(e);
-        else if (act === 'submit-pinjam') submitPinjam();
+        else if (act === 'submit-pinjam') withLoading(e, submitPinjam);
       });
     });
     if (page() === 'login' || page() === 'register') {
-      $$('input').forEach(function (input) { input.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); page() === 'login' ? doLogin() : doRegister(); } }); });
+      $$('input').forEach(function (input) { input.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); var b = $('[data-action="' + page() + '"]') || byText(page() === 'login' ? /^Masuk/ : /^Daftar/)[0]; if (b) b.click(); else page() === 'login' ? doLogin() : doRegister(); } }); });
     }
   }
 
   function fallbacks() {
-    if (!$('[data-action="logout"]')) byText(/^(Keluar|Logout|Log out)$/i).forEach(function (b) { b.addEventListener('click', function (e) { e.preventDefault(); doLogout(); }); });
-    if (page() === 'login' && !$('[data-action="login"]')) { byText(/^Masuk/).forEach(function (b) { b.addEventListener('click', function (e) { e.preventDefault(); doLogin(); }); }); byText(/👁/).forEach(function (b) { b.addEventListener('click', function (e) { e.preventDefault(); togglePassword(b); }); }); }
-    if (page() === 'register' && !$('[data-action="register"]')) byText(/^Daftar/).forEach(function (b) { b.addEventListener('click', function (e) { e.preventDefault(); doRegister(); }); });
+    if (!$('[data-action="logout"]')) byText(/^(Keluar|Logout|Log out)$/i).forEach(function (b) { b.addEventListener('click', function (e) { e.preventDefault(); withLoading(b, doLogout); }); });
+    if (page() === 'login' && !$('[data-action="login"]')) { byText(/^Masuk/).forEach(function (b) { b.addEventListener('click', function (e) { e.preventDefault(); withLoading(b, doLogin); }); }); byText(/👁/).forEach(function (b) { b.addEventListener('click', function (e) { e.preventDefault(); togglePassword(b); }); }); }
+    if (page() === 'register' && !$('[data-action="register"]')) byText(/^Daftar/).forEach(function (b) { b.addEventListener('click', function (e) { e.preventDefault(); withLoading(b, doRegister); }); });
   }
 
   function setupNotice() {
@@ -650,9 +658,41 @@
     setTimeout(function () { toast('Mode demo - backend Neon aktif setelah deploy ke Vercel + set DATABASE_URL', 'info'); }, 700);
   }
 
+  function setupMobileLayout() {
+    var aside = $('aside');
+    var header = $('main > div');
+    if (!aside || !header) return;
+    var backdrop = el('div', { class: 'sesd-mobile-backdrop' });
+    document.body.appendChild(backdrop);
+    var hamburger = el('button', { class: 'sesd-hamburger' });
+    hamburger.innerHTML = '☰';
+    header.insertBefore(hamburger, header.firstChild);
+    var toggle = function(e) { if (e) e.preventDefault(); aside.classList.toggle('sesd-open'); backdrop.classList.toggle('sesd-open'); };
+    hamburger.addEventListener('click', toggle);
+    backdrop.addEventListener('click', toggle);
+    var closeBtn = byText(/^‹$/, 'aside button')[0];
+    if (closeBtn) closeBtn.addEventListener('click', function(e) { e.preventDefault(); toggle(); });
+  }
+
+  function setupDates() {
+    var now = new Date();
+    var shortDate = now.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+    var longDate = now.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).toUpperCase();
+    byText(/18 Jun 2026/i, 'span, div').forEach(function(e) { e.textContent = shortDate; });
+    byText(/KAMIS, 18 JUNI 2026/i, 'div').forEach(function(e) { e.textContent = longDate; });
+  }
+
+  function translateBreadcrumbs() {
+    var map = { dashboard: 'Dashboard', dataaset: 'Data Aset', kategoriaset: 'Kategori Aset', ruangan: 'Ruangan', daftarpinjam: 'Daftar Pinjam', ajukanpinjam: 'Ajukan Pinjam', users: 'Kelola User' };
+    var p = page();
+    if (map[p]) {
+      byText(new RegExp('^' + p + '$', 'i'), 'span').forEach(function(e) { e.textContent = map[p]; });
+    }
+  }
+
   /* ---------------- boot ---------------- */
   async function boot() {
-    setTimeout(function () { document.body.classList.add('sesd-ready'); }, 8000); // safety: never get stuck on the loader
+    setTimeout(function () { document.body.classList.add('sesd-ready'); }, 4000); // safety: never get stuck on the loader
     prepLoading();
     var g = guard();
     if (g.redirect) return;
@@ -660,6 +700,9 @@
     fillIdentity(USER);
     if (IS_ADMIN) { injectAdminNav(); injectAdminBars(); }
     await loadAndRender(page());
+    setupMobileLayout();
+    setupDates();
+    translateBreadcrumbs();
     document.body.classList.add('sesd-ready');   // reveal once DB data is rendered (no hardcoded flash)
     wireActions(); wireNav(); wireModal(); wireSearch(); wireFilters(); fallbacks(); setupNotice();
     reapplyFilters();

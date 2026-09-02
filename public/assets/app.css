@@ -43,6 +43,37 @@ a{color:var(--primary);text-decoration:none}
 /* ---------- static interactive layer (added) ---------- */
 .sesd-hide{display:none !important}
 
+/* mobile responsiveness */
+@media (max-width: 768px) {
+  aside {
+    position: fixed !important;
+    z-index: 1000 !important;
+    transform: translateX(-100%) !important;
+    transition: transform 0.3s ease !important;
+  }
+  aside.sesd-open {
+    transform: translateX(0) !important;
+  }
+  main {
+    margin-left: 0 !important;
+    width: 100%;
+  }
+  .sesd-hamburger { display: flex !important; }
+  [style*="grid-template-columns: 1fr 340px"] { grid-template-columns: 1fr !important; }
+  .sesd-mobile-backdrop {
+    position: fixed; inset: 0; background: rgba(15,23,42,0.5); z-index: 999;
+    opacity: 0; pointer-events: none; transition: opacity 0.3s;
+  }
+  .sesd-mobile-backdrop.sesd-open {
+    opacity: 1; pointer-events: auto;
+  }
+}
+.sesd-hamburger {
+  display: none;
+  background: transparent; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text);
+  padding: 0 10px;
+}
+
 /* generic clickable affordance for cards wired by app.js */
 [data-action],[data-nav],[data-open-detail]{cursor:pointer}
 

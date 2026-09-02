@@ -2,6 +2,7 @@ import { getSql } from './_db.js';
 import { requireAuth, requireAdmin, send, readJson } from './_auth.js';
 
 export default async function handler(req, res) {
+  if (req.method === 'OPTIONS') return send(res, 204, {});
   const sql = getSql();
 
   if (req.method === 'GET') {

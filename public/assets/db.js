@@ -66,8 +66,16 @@
   };
 
   /* ====================== reads ====================== */
-  async function categories() { return demo ? P(DEMO.categories.slice()) : (await req('categories')).categories; }
-  async function rooms() { return demo ? P(DEMO.rooms.slice()) : (await req('rooms')).rooms; }
+  var CACHE = {};
+  async function cachedReq(key, ttlMs) {
+    if (CACHE[key] && Date.now() - CACHE[key].ts < ttlMs) return CACHE[key].data;
+    var data = await req(key);
+    CACHE[key] = { data: data, ts: Date.now() };
+    return data;
+  }
+
+  async function categories() { return demo ? P(DEMO.categories.slice()) : (await cachedReq('categories', 60000)).categories; }
+  async function rooms() { return demo ? P(DEMO.rooms.slice()) : (await cachedReq('rooms', 60000)).rooms; }
   async function assets() { return demo ? P(DEMO.assets.map(demoAsset)) : (await req('assets')).assets; }
 
   function fmtBorrow(b) {
@@ -90,13 +98,18 @@
   }
 
   async function dashboard() {
-    var as = await assets(); var bs = await borrowings();
-    var sum = function (k) { return as.reduce(function (t, a) { return t + (a[k] || 0); }, 0); };
-    return {
-      stats: { total_assets: as.length, total_stock: sum('stock_total'), stock_available: sum('stock_available'), stock_borrowed: sum('stock_borrowed'), pending: bs.filter(function (b) { return b.status === 'pending'; }).length },
-      monitor: as.map(function (a) { return { name: a.name, code: a.code, available: a.stock_available, total: a.stock_total }; }),
-      recent: bs.slice(0, 5),
-    };
+    if (demo) {
+      var as = await assets(); var bs = await borrowings();
+      var sum = function (k) { return as.reduce(function (t, a) { return t + (a[k] || 0); }, 0); };
+      return {
+        stats: { total_assets: as.length, total_stock: sum('stock_total'), stock_available: sum('stock_available'), stock_borrowed: sum('stock_borrowed'), pending: bs.filter(function (b) { return b.status === 'pending'; }).length },
+        monitor: as.map(function (a) { return { name: a.name, code: a.code, available: a.stock_available, total: a.stock_total }; }),
+        recent: bs.slice(0, 5),
+      };
+    }
+    const data = await req('dashboard');
+    if (data.recent) data.recent = data.recent.map(fmtBorrow);
+    return data;
   }
 
   async function requestBorrowing(o) {

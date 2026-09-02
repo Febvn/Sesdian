@@ -2,14 +2,19 @@ import { getSql } from './_db.js';
 import { requireAdmin, send, readJson } from './_auth.js';
 
 export default async function handler(req, res) {
+  if (req.method === 'OPTIONS') return send(res, 204, {});
   const admin = requireAdmin(req, res);
   if (!admin) return;
   const sql = getSql();
 
   if (req.method === 'GET') {
     try {
-      const rows = await sql`select id, nip, name, role, created_at from users order by role desc, id`;
-      return send(res, 200, { users: rows });
+      const page = parseInt(req.query?.page || 1, 10);
+      const limit = Math.min(parseInt(req.query?.limit || 1000, 10), 1000);
+      const offset = (page - 1) * limit;
+      const rows = await sql`select id, nip, name, role, created_at from users order by role desc, id limit ${limit} offset ${offset}`;
+      const [{ count }] = await sql`select count(*) from users`;
+      return send(res, 200, { users: rows, total: parseInt(count, 10), page, limit });
     } catch (e) { return send(res, 500, { error: e.message }); }
   }
 

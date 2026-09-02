@@ -6,23 +6,33 @@ const RESERVED = ['pending', 'approved', 'borrowed']; // stock counted as out wh
 const STATUSES = ['pending', 'approved', 'borrowed', 'returned', 'rejected'];
 
 export default async function handler(req, res) {
+  if (req.method === 'OPTIONS') return send(res, 204, {});
   const sql = getSql();
 
   // ---------- list (admins see all; users see only their own) ----------
   if (req.method === 'GET') {
     const auth = requireAuth(req, res); if (!auth) return;
     try {
+      const page = parseInt(req.query?.page || 1, 10);
+      const limit = Math.min(parseInt(req.query?.limit || 1000, 10), 1000);
+      const offset = (page - 1) * limit;
+
       const rows = auth.role === 'admin'
         ? await sql`select b.id, b.borrower_name, b.qty, b.status, b.due_date, b.created_at,
                coalesce(a.name,'-') as asset_name, coalesce(a.code,'') as asset_code
             from borrowings b left join assets a on a.id = b.asset_id
-            order by b.created_at desc`
+            order by b.created_at desc limit ${limit} offset ${offset}`
         : await sql`select b.id, b.borrower_name, b.qty, b.status, b.due_date, b.created_at,
                coalesce(a.name,'-') as asset_name, coalesce(a.code,'') as asset_code
             from borrowings b left join assets a on a.id = b.asset_id
             where b.user_id = ${auth.sub}
-            order by b.created_at desc`;
-      return send(res, 200, { borrowings: rows });
+            order by b.created_at desc limit ${limit} offset ${offset}`;
+      
+      const [{ count }] = auth.role === 'admin' 
+        ? await sql`select count(*) from borrowings`
+        : await sql`select count(*) from borrowings where user_id = ${auth.sub}`;
+
+      return send(res, 200, { borrowings: rows, total: parseInt(count, 10), page, limit });
     } catch (e) { return send(res, 500, { error: e.message }); }
   }
 

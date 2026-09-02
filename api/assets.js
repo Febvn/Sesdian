@@ -1,24 +1,30 @@
 import { getSql } from './_db.js';
 import { requireAuth, requireAdmin, send, readJson } from './_auth.js';
 
-const SELECT = (sql) => sql`
-  select a.id, a.code, a.name, coalesce(a.brand,'') as brand, a.year,
-         coalesce(a.condition,'Baik') as condition, coalesce(a.type,'BMN') as type,
-         coalesce(a.asset_type,'') as asset_type,
-         a.stock_total, a.stock_available, a.stock_borrowed,
-         a.category_id, a.room_id, a.image,
-         coalesce(c.name,'') as category, coalesce(r.name,'') as room
-  from assets a
-  left join categories c on c.id = a.category_id
-  left join rooms r on r.id = a.room_id
-  order by a.id`;
-
 export default async function handler(req, res) {
+  if (req.method === 'OPTIONS') return send(res, 204, {});
   const sql = getSql();
 
   if (req.method === 'GET') {
     if (!requireAuth(req, res)) return;
-    try { return send(res, 200, { assets: await SELECT(sql) }); }
+    try {
+      const page = parseInt(req.query?.page || 1, 10);
+      const limit = Math.min(parseInt(req.query?.limit || 1000, 10), 1000); // Default to 1000 to avoid breaking current UI
+      const offset = (page - 1) * limit;
+      const rows = await sql`
+        select a.id, a.code, a.name, coalesce(a.brand,'') as brand, a.year,
+               coalesce(a.condition,'Baik') as condition, coalesce(a.type,'BMN') as type,
+               coalesce(a.asset_type,'') as asset_type,
+               a.stock_total, a.stock_available, a.stock_borrowed,
+               a.category_id, a.room_id, a.image,
+               coalesce(c.name,'') as category, coalesce(r.name,'') as room
+        from assets a
+        left join categories c on c.id = a.category_id
+        left join rooms r on r.id = a.room_id
+        order by a.id limit ${limit} offset ${offset}`;
+      const [{ count }] = await sql`select count(*) from assets`;
+      return send(res, 200, { assets: rows, total: parseInt(count, 10), page, limit });
+    }
     catch (e) { return send(res, 500, { error: e.message }); }
   }
 

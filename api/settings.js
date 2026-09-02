@@ -3,6 +3,7 @@ import { requireAuth, requireAdmin, send, readJson } from './_auth.js';
 import { waEnabled, normalizeWa, ensureSettings } from './_wa.js';
 
 export default async function handler(req, res) {
+  if (req.method === 'OPTIONS') return send(res, 204, {});
   const sql = getSql();
   await ensureSettings(sql);   // create the settings table on first use (self-heal)
 

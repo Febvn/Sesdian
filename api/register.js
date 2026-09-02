@@ -2,6 +2,7 @@ import { getSql } from './_db.js';
 import { hashPassword, signToken, send, readJson } from './_auth.js';
 
 export default async function handler(req, res) {
+  if (req.method === 'OPTIONS') return send(res, 204, {});
   if (req.method !== 'POST') return send(res, 405, { error: 'Method not allowed' });
   try {
     const { nip, name, password, phone } = await readJson(req);
