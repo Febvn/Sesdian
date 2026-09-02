@@ -528,7 +528,7 @@
     var list = $('[data-list="' + group + '"]');
     if (list) { var empty = list.querySelector('.sesd-empty'); if (visible === 0 && items.length) { if (!empty) appendEmpty(list, 'Tidak ada data yang cocok.'); } else if (empty) empty.remove(); }
   }
-  function wireSearch() { $$('[data-search]').forEach(function (input) { var g = input.getAttribute('data-search'); input.addEventListener('input', function () { applyFilters(g); }); }); }
+  function wireSearch() { $$('[data-search]').forEach(function (input) { var g = input.getAttribute('data-search'); if (/<[^>]+>/.test(input.placeholder)) { input.placeholder = '\u{1F50D}  ' + input.placeholder.replace(/<[^>]+>/g, '').trim(); } input.addEventListener('input', function () { applyFilters(g); }); }); }
   function wireFilters() {
     var groups = {};
     $$('[data-filter]').forEach(function (b) { var d = b.getAttribute('data-filter'); (groups[d] = groups[d] || []).push(b); });

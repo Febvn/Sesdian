@@ -89,7 +89,7 @@ a{color:var(--primary);text-decoration:none}
    until app.js finishes rendering DB data (adds body.sesd-ready). This removes
    the hardcoded-then-DB flash entirely. ---------- */
 body[data-auth]:not(.sesd-ready) #root{visibility:hidden}
-body[data-auth]:not(.sesd-ready)::before{content:'';position:fixed;inset:0;background:var(--bg);z-index:9998}
+body[data-auth]:not(.sesd-ready)::before{content:'';position:fixed;inset:0;background:rgba(248,250,255,.45);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:9998}
 body[data-auth]:not(.sesd-ready)::after{content:'';position:fixed;top:50%;left:50%;width:44px;height:44px;margin:-22px 0 0 -22px;border:4px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:spin .8s linear infinite;z-index:9999}
 
 /* inline icons: inherit text colour + size, align with text */
