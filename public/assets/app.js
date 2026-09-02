@@ -26,6 +26,14 @@
     if (text != null) e.textContent = text;
     return e;
   }
+  var ic = function (n) { return window.sesdIcon ? window.sesdIcon(n) : ''; };          // '<span class="ic">svg</span>'
+  var iconFor = function (v) {                                                            // emoji or icon-name -> svg name
+    var E = window.SESDIAN_EMOJI || {}, I = window.SESDIAN_ICONS || {};
+    var key = String(v == null ? '' : v).replace(/️/g, '');
+    if (E[key]) return E[key];
+    if (I[key]) return key;
+    return null;
+  };
 
   var PLACEHOLDER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='130'%3E%3Crect width='200' height='130' fill='%23e0e7ff'/%3E%3Cg fill='none' stroke='%236366f1' stroke-width='4'%3E%3Cpath d='M100 42 72 56v34l28 14 28-14V56z'/%3E%3Cpath d='M72 56l28 14 28-14M100 70v34'/%3E%3C/g%3E%3C/svg%3E";
 
@@ -72,13 +80,13 @@
   }
 
   async function doRegister() {
-    var name = val('name'), nip = val('nip'), pwd = val('password'), confirm = val('confirm');
+    var name = val('name'), nip = val('nip'), pwd = val('password'), confirm = val('confirm'), phone = val('phone');
     if (!name) { toast('Lengkapi nama lengkap', 'error'); return; }
     if (!nip) { toast('Lengkapi NIP', 'error'); return; }
     if (!pwd || pwd.length < 8) { toast('Password minimal 8 karakter', 'error'); return; }
     if (confirm && pwd !== confirm) { toast('Konfirmasi password tidak cocok', 'error'); return; }
     if (REAL) {
-      try { await DB.auth.signUp({ nip: nip, name: name, password: pwd }); toast('Akun berhasil dibuat', 'success'); setTimeout(go('dashboard.html'), 500); }
+      try { await DB.auth.signUp({ nip: nip, name: name, password: pwd, phone: phone }); toast('Akun berhasil dibuat', 'success'); setTimeout(go('dashboard.html'), 500); }
       catch (e) { toast((e && e.message) || 'Gagal mendaftar', 'error'); }
       return;
     }
@@ -107,6 +115,7 @@
     $$('[data-user-name]').forEach(function (e) { e.textContent = user.name; });
     $$('[data-user-initials]').forEach(function (e) { e.textContent = user.initials || initials(user.name); });
     $$('[data-user-firstname]').forEach(function (e) { e.textContent = (user.name || '').split(/\s+/)[0]; });
+    $$('[data-user-role]').forEach(function (e) { e.textContent = user.role || 'user'; });
   }
 
   /* ---------------- rendering ---------------- */
@@ -128,6 +137,7 @@
       if (f === 'stock_bar') { var pct = rec.stock_total ? Math.round((rec.stock_available / rec.stock_total) * 100) : (rec.total ? Math.round(rec.available / rec.total * 100) : 0); e.style.width = pct + '%'; return; }
       if (f === 'status_badge') { setStatusBadge(e, rec.status); return; }
       if (f === 'image') { e.src = rec.image || PLACEHOLDER; return; }
+      if (f === 'icon') { var nm = iconFor(rec.icon); if (nm) { e.innerHTML = window.SESDIAN_ICONS[nm]; e.style.color = 'var(--primary)'; } else { e.textContent = rec.icon || ''; } return; }
       var v = rec[f];
       if (v !== undefined && v !== null) e.textContent = v;
     });
@@ -190,8 +200,8 @@
         renderList('[data-template]', await DB.rooms(), function (n, r) { n.setAttribute('data-id', r.id); if (IS_ADMIN) enhanceSimpleCard(n, r, 'room'); });
       } else if (p === 'daftarpinjam') {
         var bs = await DB.borrowings();
-        if (IS_ADMIN) ensureAksiHeader();
-        renderList('[data-template]', bs, function (n, r) { n.setAttribute('data-status', r.status); if (IS_ADMIN) enhanceBorrowingRow(n, r); });
+        ensureAksiHeader();
+        renderList('[data-template]', bs, function (n, r) { n.setAttribute('data-status', r.status); enhanceBorrowingRow(n, r); });
         var counts = { pending: 0, approved: 0, borrowed: 0, returned: 0 };
         bs.forEach(function (b) { if (counts[b.status] != null) counts[b.status]++; });
         Object.keys(counts).forEach(function (k) { var e = $('[data-count="' + k + '"]'); if (e) e.textContent = counts[k]; });
@@ -335,7 +345,7 @@
     });
     m.appendChild(stock);
     var foot = el('div', { style: 'display:flex;gap:8px' });
-    var ajukan = el('button', { class: 'sesd-btn sesd-btn-success', style: 'flex:1' }, '📋 Ajukan Pinjam');
+    var ajukan = el('button', { class: 'sesd-btn sesd-btn-success', style: 'flex:1', html: ic('clipboard') + ' Ajukan Pinjam' });
     ajukan.addEventListener('click', function () { location.href = 'ajukanpinjam.html'; });
     var close = el('button', { class: 'sesd-btn sesd-btn-ghost' }, 'Tutup');
     close.addEventListener('click', function () { ov.remove(); });
@@ -345,8 +355,8 @@
   }
   function enhanceAssetCard(card, rec) {
     var bar = el('div', { class: 'sesd-admin-actions', style: 'padding:0 1rem 1rem' });
-    var edit = el('button', { class: 'sesd-btn sesd-btn-sm sesd-btn-ghost' }, '✏️ Edit');
-    var del = el('button', { class: 'sesd-btn sesd-btn-sm sesd-btn-danger' }, '🗑️ Hapus');
+    var edit = el('button', { class: 'sesd-btn sesd-btn-sm sesd-btn-ghost', html: ic('pencil') + ' Edit' });
+    var del = el('button', { class: 'sesd-btn sesd-btn-sm sesd-btn-danger', html: ic('trash') + ' Hapus' });
     edit.addEventListener('click', function (e) { e.stopPropagation(); openAssetForm(rec); });
     del.addEventListener('click', function (e) { e.stopPropagation(); confirmDelete('aset "' + rec.name + '"', async function () { await DB.deleteAsset(rec.id); toast('Aset dihapus', 'success'); reloadData(); }); });
     bar.appendChild(edit); bar.appendChild(del); card.appendChild(bar);
@@ -355,7 +365,11 @@
   function openCategoryForm(rec) {
     overlayForm({
       title: rec ? 'Edit Kategori' : 'Tambah Kategori', submitLabel: rec ? 'Simpan' : 'Tambah',
-      fields: [{ name: 'name', label: 'Nama Kategori', value: rec && rec.name }, { name: 'icon', label: 'Ikon (emoji)', value: (rec && rec.icon) || '📦' }],
+      fields: [
+        { name: 'name', label: 'Nama Kategori', value: rec && rec.name },
+        { name: 'icon', label: 'Ikon', type: 'select', value: iconFor(rec && rec.icon) || 'package',
+          options: ['package', 'monitor', 'chair', 'car', 'wrench', 'file', 'tag', 'archive', 'home', 'building', 'phone'].map(function (k) { return { value: k, label: k }; }) },
+      ],
       onSave: async function (v) { if (!v.name) throw new Error('Nama wajib diisi'); if (rec) await DB.updateCategory(rec.id, v); else await DB.createCategory(v); toast('Tersimpan', 'success'); reloadData(); },
     });
   }
@@ -368,8 +382,8 @@
   }
   function enhanceSimpleCard(card, rec, kind) {
     var bar = el('div', { class: 'sesd-admin-actions', style: 'margin-top:10px' });
-    var edit = el('button', { class: 'sesd-btn sesd-btn-sm sesd-btn-ghost' }, '✏️ Edit');
-    var del = el('button', { class: 'sesd-btn sesd-btn-sm sesd-btn-danger' }, '🗑️ Hapus');
+    var edit = el('button', { class: 'sesd-btn sesd-btn-sm sesd-btn-ghost', html: ic('pencil') + ' Edit' });
+    var del = el('button', { class: 'sesd-btn sesd-btn-sm sesd-btn-danger', html: ic('trash') + ' Hapus' });
     edit.addEventListener('click', function (e) { e.stopPropagation(); kind === 'category' ? openCategoryForm(rec) : openRoomForm(rec); });
     del.addEventListener('click', function (e) {
       e.stopPropagation();
@@ -386,20 +400,44 @@
     var th0 = tr.querySelector('th');
     tr.appendChild(el('th', { 'data-aksi-th': '', style: th0 ? th0.getAttribute('style') : 'padding:0.875rem 1rem;text-align:left' }, 'Aksi'));
   }
+  function todayISO() { var d = new Date(); var p = function (n) { return (n < 10 ? '0' : '') + n; }; return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()); }
+  function isOverdue(rec) { return ['pending', 'approved', 'borrowed'].indexOf(rec.status) !== -1 && rec.due_date && rec.due_date < todayISO(); }
+  function openWaLink(wa, text) { if (wa) window.open('https://wa.me/' + wa + '?text=' + encodeURIComponent(text || ''), '_blank'); }
+  async function doNotify(rec, kind, okMsg) {
+    try {
+      var r = await DB.notify(rec.id, kind);
+      if (r && !r.auto) { if (r.wa) openWaLink(r.wa, r.text); else { toast('Nomor WhatsApp tujuan belum tersedia', 'error'); return; } }
+      toast(okMsg, 'success');
+    } catch (e) { toast((e && e.message) || 'Gagal mengirim notifikasi', 'error'); }
+  }
+  async function changeStatus(rec, status) {
+    try {
+      await DB.updateBorrowingStatus(rec.id, status); toast('Status diperbarui', 'success');
+      if (status === 'returned') { DB.notify(rec.id, 'returned').then(function (r) { if (r && !r.auto && r.wa) openWaLink(r.wa, r.text); }).catch(function () {}); } // best-effort, silent
+      reloadData();
+    }
+    catch (e) { toast((e && e.message) || 'Gagal', 'error'); }
+  }
   function enhanceBorrowingRow(row, rec) {
+    if (isOverdue(rec)) { var dd = $('[data-bind="due_date"]', row); if (dd) { dd.style.color = 'var(--danger)'; dd.style.fontWeight = '700'; } }
     var cell = el('td', { style: 'padding:0.875rem 1rem' });           // dedicated Aksi cell (never the date cell)
     var bar = el('div', { class: 'sesd-admin-actions' });
-    var actions = [];
-    if (rec.status === 'pending') actions = [['Setujui', 'success', 'approved'], ['Tolak', 'danger', 'rejected']];
-    else if (rec.status === 'approved') actions = [['Pinjamkan', 'primary', 'borrowed'], ['Tolak', 'danger', 'rejected']];
-    else if (rec.status === 'borrowed') actions = [['Kembalikan', 'ghost', 'returned']];
-    else cell.appendChild(el('span', { style: 'color:var(--text-muted);font-size:.78rem' }, '-'));
-    actions.forEach(function (a) {
+    var btns = [];
+    if (IS_ADMIN) {
+      if (rec.status === 'pending') { btns.push(['Setujui', 'success', function () { changeStatus(rec, 'approved'); }], ['Tolak', 'danger', function () { changeStatus(rec, 'rejected'); }]); }
+      else if (rec.status === 'approved') { btns.push(['Pinjamkan', 'primary', function () { changeStatus(rec, 'borrowed'); }], ['Tolak', 'danger', function () { changeStatus(rec, 'rejected'); }]); }
+      else if (rec.status === 'borrowed') { btns.push(['Kembalikan', 'ghost', function () { changeStatus(rec, 'returned'); }]); }
+      if (isOverdue(rec) && (rec.status === 'approved' || rec.status === 'borrowed')) btns.unshift(['Ingatkan WA', 'warning', function () { doNotify(rec, 'remind', 'Pengingat dikirim ke peminjam'); }]);
+    } else if (rec.status === 'approved' || rec.status === 'borrowed') {
+      btns.push(['Konfirmasi Pengembalian', 'primary', function () { doNotify(rec, 'return-request', 'Konfirmasi dikirim ke admin'); }]);
+    }
+    if (!btns.length) cell.appendChild(el('span', { style: 'color:var(--text-muted);font-size:.78rem' }, '-'));
+    btns.forEach(function (a) {
       var b = el('button', { class: 'sesd-btn sesd-btn-sm sesd-btn-' + a[1] }, a[0]);
-      b.addEventListener('click', async function (e) { e.stopPropagation(); try { await DB.updateBorrowingStatus(rec.id, a[2]); toast('Status diperbarui', 'success'); reloadData(); } catch (err) { toast((err && err.message) || 'Gagal', 'error'); } });
+      b.addEventListener('click', function (e) { e.stopPropagation(); a[2](); });
       bar.appendChild(b);
     });
-    if (actions.length) cell.appendChild(bar);
+    if (btns.length) cell.appendChild(bar);
     row.appendChild(cell);
   }
 
@@ -416,7 +454,7 @@
       tr.appendChild(el('td', { style: td + ';font-weight:600' }, u.name));
       tr.appendChild(el('td', { style: td + ';color:var(--text-muted);font-family:"JetBrains Mono",monospace;font-size:0.8rem' }, u.nip));
       var roleTd = el('td', { style: td });
-      roleTd.appendChild(el('span', { class: 'sesd-role sesd-role-' + (u.role === 'admin' ? 'admin' : 'user') }, u.role === 'admin' ? '🛡️ Admin' : '👤 User'));
+      roleTd.appendChild(el('span', { class: 'sesd-role sesd-role-' + (u.role === 'admin' ? 'admin' : 'user'), html: (u.role === 'admin' ? ic('shield') + ' Admin' : ic('user') + ' User') }));
       tr.appendChild(roleTd);
       var actTd = el('td', { style: td });
       var toAdmin = u.role !== 'admin';
@@ -446,7 +484,7 @@
     var navContainer = ref.parentNode.parentNode;
     var sec = el('div', { style: 'margin-bottom:0.25rem' });
     sec.appendChild(el('div', { style: 'display:flex;align-items:center;gap:6px;padding:0.6rem 0.5rem 0.25rem', html: '<div style="flex:1 1 0%;height:1px;background:rgb(26,37,64)"></div><span style="font-size:0.55rem;color:rgb(51,65,85);font-weight:800;letter-spacing:1.5px;white-space:nowrap">ADMIN</span><div style="flex:1 1 0%;height:1px;background:rgb(26,37,64)"></div>' }));
-    var a = el('a', { href: 'users.html', style: 'display:flex;align-items:center;gap:10px;padding:0.55rem 0.75rem;border-radius:10px;margin-bottom:2px;color:rgb(100,116,139);background:transparent;text-decoration:none', html: '<span style="font-size:1rem;flex-shrink:0;line-height:1">👥</span><div style="overflow:hidden;flex:1 1 0%"><div style="font-size:0.8rem;font-weight:500;white-space:nowrap;color:inherit">Kelola User</div><div style="font-size:0.62rem;color:rgb(51,65,85);white-space:nowrap;margin-top:1px">User &amp; admin</div></div>' });
+    var a = el('a', { href: 'users.html', style: 'display:flex;align-items:center;gap:10px;padding:0.55rem 0.75rem;border-radius:10px;margin-bottom:2px;color:rgb(100,116,139);background:transparent;text-decoration:none', html: '<span class="ic" style="font-size:1rem;flex-shrink:0;line-height:1">' + (window.SESDIAN_ICONS && window.SESDIAN_ICONS.users || '') + '</span><div style="overflow:hidden;flex:1 1 0%"><div style="font-size:0.8rem;font-weight:500;white-space:nowrap;color:inherit">Kelola User</div><div style="font-size:0.62rem;color:rgb(51,65,85);white-space:nowrap;margin-top:1px">User &amp; admin</div></div>' });
     sec.appendChild(a); navContainer.appendChild(sec);
     markUsersActive();
   }
@@ -547,7 +585,7 @@
       card.addEventListener('click', function () {
         var box = $('[data-select-box]', card);
         var sel = card.classList.toggle('sesd-selected');
-        if (sel) { card.style.border = '2px solid var(--primary)'; if (box) { box.style.background = 'var(--primary)'; box.style.borderColor = 'var(--primary)'; box.textContent = '✓'; } }
+        if (sel) { card.style.border = '2px solid var(--primary)'; if (box) { box.style.background = 'var(--primary)'; box.style.borderColor = 'var(--primary)'; box.innerHTML = ic('check'); } }
         else { card.style.border = '2px solid var(--border)'; if (box) { box.style.background = 'transparent'; box.style.borderColor = 'var(--border)'; box.textContent = ''; } }
         refresh();
       });
@@ -614,6 +652,7 @@
 
   /* ---------------- boot ---------------- */
   async function boot() {
+    setTimeout(function () { document.body.classList.add('sesd-ready'); }, 8000); // safety: never get stuck on the loader
     prepLoading();
     var g = guard();
     if (g.redirect) return;
@@ -621,6 +660,7 @@
     fillIdentity(USER);
     if (IS_ADMIN) { injectAdminNav(); injectAdminBars(); }
     await loadAndRender(page());
+    document.body.classList.add('sesd-ready');   // reveal once DB data is rendered (no hardcoded flash)
     wireActions(); wireNav(); wireModal(); wireSearch(); wireFilters(); fallbacks(); setupNotice();
     reapplyFilters();
   }

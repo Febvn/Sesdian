@@ -40,7 +40,7 @@
   /* ====================== DEMO in-memory store ====================== */
   var DEMO = {
     seq: 100,
-    categories: [['Elektronik', '💻'], ['Furnitur', '🪑'], ['Kendaraan', '🚗'], ['Peralatan', '🔧'], ['Dokumen', '📄'], ['Lain-lain', '📦']].map(function (c, i) { return { id: i + 1, name: c[0], icon: c[1] }; }),
+    categories: [['Elektronik', 'monitor'], ['Furnitur', 'chair'], ['Kendaraan', 'car'], ['Peralatan', 'wrench'], ['Dokumen', 'file'], ['Lain-lain', 'package']].map(function (c, i) { return { id: i + 1, name: c[0], icon: c[1] }; }),
     rooms: [['Ruang Kepala', 'RK-01'], ['Ruang Tata Usaha', 'TU-01'], ['Ruang Rapat', 'RR-01'], ['Ruang Pelayanan', 'RP-01'], ['Gudang', 'GD-01'], ['Laboratorium', 'LB-01']].map(function (r, i) { return { id: i + 1, name: r[0], code: r[1], pic: '' }; }),
     assets: [{ id: 1, code: '123', name: 'Laptop', category_id: 1, brand: 'Acer', room_id: 2, year: 2024, condition: 'Baik', type: 'BMN', asset_type: 'Fixed Asset', stock_total: 14, stock_available: 9, stock_borrowed: 5, image: null }],
     borrowings: [{ id: 1, asset_id: 1, borrower_name: 'Adi Septriansyah', qty: 1, status: 'pending', due_date: '2026-06-18', created_at: '2026-06-15T08:00:00Z' }],
@@ -54,7 +54,7 @@
 
   /* ====================== auth ====================== */
   var auth = {
-    async signUp(o) { var d = await req('register', { method: 'POST', body: { nip: o.nip, name: o.name, password: o.password } }); setToken(d.token); return d; },
+    async signUp(o) { var d = await req('register', { method: 'POST', body: { nip: o.nip, name: o.name, password: o.password, phone: o.phone } }); setToken(d.token); return d; },
     async signIn(o) { var d = await req('login', { method: 'POST', body: { nip: o.nip, password: o.password } }); setToken(d.token); return d; },
     async signOut() { clearToken(); },
     currentUser() {
@@ -165,10 +165,14 @@
   function normWa(n) { var d = String(n || '').replace(/\D/g, ''); if (d.charAt(0) === '0') d = '62' + d.slice(1); return d; }
   async function getSettings() { return demo ? P({ wa_number: DEMO.settings.wa_number, wa_auto: false }) : req('settings'); }
   async function setWaNumber(n) { if (demo) { DEMO.settings.wa_number = normWa(n); return P({ wa_number: DEMO.settings.wa_number, wa_auto: false }); } return req('settings', { method: 'PATCH', body: { wa_number: n } }); }
+  async function notify(borrowingId, kind) {
+    if (demo) { return P({ auto: false, wa: kind === 'return-request' ? DEMO.settings.wa_number : '', text: 'Notifikasi demo (' + kind + ')' }); }
+    return req('notify', { method: 'POST', body: { borrowingId: borrowingId, kind: kind } });
+  }
 
   window.SESDIAN_DB = {
     configured: !demo, backend: demo ? 'demo' : 'api',
-    getSettings: getSettings, setWaNumber: setWaNumber,
+    getSettings: getSettings, setWaNumber: setWaNumber, notify: notify,
     auth: auth,
     categories: categories, rooms: rooms, assets: assets, borrowings: borrowings, dashboard: dashboard, requestBorrowing: requestBorrowing,
     users: users, setUserRole: setUserRole,

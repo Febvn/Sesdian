@@ -31,11 +31,22 @@ Browser  -->  /api/* (Vercel serverless, Node)  -->  Neon Postgres
   and set the WhatsApp notification number.
 
 ## WhatsApp notifications
-- An admin sets the notification number on the Kelola User page.
-- When a user submits a borrowing request:
-  - If `FONNTE_TOKEN` (a https://fonnte.com gateway token) is set on the server,
-    the API auto-sends a WhatsApp message to the admin number.
-  - Otherwise the app opens a `wa.me` click-to-send link prefilled to the admin.
+- An admin sets the notification number on the Kelola User page (`settings` table,
+  created automatically on first use - no manual migration needed).
+- New borrowing request -> the admin is notified.
+- Overdue item (past due date, not returned) -> admin can press "Ingatkan WA" on
+  that row to remind the borrower.
+- On return, the borrower gets a confirmation; a borrower can also press
+  "Konfirmasi Pengembalian" to tell the admin they have returned an item.
+- Delivery: if `FONNTE_TOKEN` (https://fonnte.com gateway) is set, messages are
+  auto-sent server-side. Otherwise the app opens a `wa.me` click-to-send link.
+  Borrower reminders need the user's phone (captured at registration / `users.phone`).
+
+## UI
+- Loading: protected pages show a spinner until the database data is rendered,
+  so no hardcoded/placeholder content flashes first.
+- Icons: the interface uses inline SVG icons (no emoji); `public/assets/icons.js`
+  holds the set and `applyBinds` maps category icons by name.
 
 ## Project layout
 ```

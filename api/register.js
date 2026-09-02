@@ -4,9 +4,10 @@ import { hashPassword, signToken, send, readJson } from './_auth.js';
 export default async function handler(req, res) {
   if (req.method !== 'POST') return send(res, 405, { error: 'Method not allowed' });
   try {
-    const { nip, name, password } = await readJson(req);
+    const { nip, name, password, phone } = await readJson(req);
     if (!nip || !name || !password) return send(res, 400, { error: 'Lengkapi nama, NIP, dan password' });
     if (String(password).length < 8) return send(res, 400, { error: 'Password minimal 8 karakter' });
+    const wa = String(phone || '').replace(/\D/g, '').replace(/^0/, '62');
 
     const sql = getSql();
     const exists = await sql`select id from users where nip = ${String(nip).trim()}`;
@@ -15,8 +16,8 @@ export default async function handler(req, res) {
     // bootstrap: the very first account created becomes the admin - derived
     // atomically in one statement so concurrent registrations can't both win.
     const rows = await sql`
-      insert into users (nip, name, role, password_hash)
-      values (${String(nip).trim()}, ${String(name)},
+      insert into users (nip, name, phone, role, password_hash)
+      values (${String(nip).trim()}, ${String(name)}, ${wa || null},
               case when not exists (select 1 from users) then 'admin' else 'user' end,
               ${hashPassword(password)})
       returning id, nip, name, role`;

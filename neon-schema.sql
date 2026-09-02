@@ -15,6 +15,7 @@ create table users (
   id            bigserial primary key,
   nip           text unique not null,
   name          text not null,
+  phone         text,                     -- WhatsApp number for overdue/return reminders
   role          text not null default 'user',   -- 'user' | 'admin'; the FIRST account to register becomes admin (see /api/register)
   password_hash text not null,            -- scrypt: "<saltHex>:<hashHex>" (set by /api/register)
   created_at    timestamptz not null default now()
@@ -78,8 +79,8 @@ create index on borrowings (created_at desc);
 --  SEED DATA (mirrors the original SESDIAN demo content)
 -- ============================================================
 insert into categories (name, icon) values
-  ('Elektronik','💻'), ('Furnitur','🪑'), ('Kendaraan','🚗'),
-  ('Peralatan','🔧'), ('Dokumen','📄'), ('Lain-lain','📦');
+  ('Elektronik','monitor'), ('Furnitur','chair'), ('Kendaraan','car'),
+  ('Peralatan','wrench'), ('Dokumen','file'), ('Lain-lain','package');
 
 insert into rooms (name, code, pic) values
   ('Ruang Kepala','RK-01',null),

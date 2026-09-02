@@ -1,9 +1,10 @@
 import { getSql } from './_db.js';
 import { requireAuth, requireAdmin, send, readJson } from './_auth.js';
-import { waEnabled, normalizeWa } from './_wa.js';
+import { waEnabled, normalizeWa, ensureSettings } from './_wa.js';
 
 export default async function handler(req, res) {
   const sql = getSql();
+  await ensureSettings(sql);   // create the settings table on first use (self-heal)
 
   // any signed-in user may read settings the client needs (e.g. wa fallback)
   if (req.method === 'GET') {
