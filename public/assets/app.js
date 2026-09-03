@@ -678,8 +678,12 @@
     var now = new Date();
     var shortDate = now.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
     var longDate = now.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).toUpperCase();
-    byText(/18 Jun 2026/i, 'span, div').forEach(function(e) { e.textContent = shortDate; });
-    byText(/KAMIS, 18 JUNI 2026/i, 'div').forEach(function(e) { e.textContent = longDate; });
+    $$('span, div').forEach(function(e) {
+      if (e.children.length === 0) {
+        if (/18 Jun 2026/i.test(e.textContent)) e.textContent = shortDate;
+        else if (/KAMIS, 18 JUNI 2026/i.test(e.textContent)) e.textContent = longDate;
+      }
+    });
   }
 
   function translateBreadcrumbs() {
