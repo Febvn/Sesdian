@@ -179,40 +179,83 @@
       getSettings: DB.getSettings,
     };
 
-    // Override dengan cached version
+    // Override dengan cached version (INSTANT)
     DB.categories = function () {
       var cached = getCached('categories');
-      return cached ? Promise.resolve(cached) : original.categories();
+      if (cached) return Promise.resolve(cached);
+      // If not cached, fetch and cache
+      return original.categories().then(function(data) {
+        if (!window.SESDIAN_CACHE.data.categories) {
+          window.SESDIAN_CACHE.data.categories = data;
+        }
+        return data;
+      });
     };
 
     DB.rooms = function () {
       var cached = getCached('rooms');
-      return cached ? Promise.resolve(cached) : original.rooms();
+      if (cached) return Promise.resolve(cached);
+      return original.rooms().then(function(data) {
+        if (!window.SESDIAN_CACHE.data.rooms) {
+          window.SESDIAN_CACHE.data.rooms = data;
+        }
+        return data;
+      });
     };
 
     DB.assets = function () {
       var cached = getCached('assets');
-      return cached ? Promise.resolve(cached) : original.assets();
+      if (cached) return Promise.resolve(cached);
+      return original.assets().then(function(data) {
+        if (!window.SESDIAN_CACHE.data.assets) {
+          window.SESDIAN_CACHE.data.assets = data;
+        }
+        return data;
+      });
     };
 
     DB.borrowings = function () {
       var cached = getCached('borrowings');
-      return cached ? Promise.resolve(cached) : original.borrowings();
+      if (cached) return Promise.resolve(cached);
+      return original.borrowings().then(function(data) {
+        if (!window.SESDIAN_CACHE.data.borrowings) {
+          window.SESDIAN_CACHE.data.borrowings = data;
+        }
+        return data;
+      });
     };
 
     DB.dashboard = function () {
       var cached = getCached('dashboard');
-      return cached ? Promise.resolve(cached) : original.dashboard();
+      if (cached) return Promise.resolve(cached);
+      return original.dashboard().then(function(data) {
+        if (!window.SESDIAN_CACHE.data.dashboard) {
+          window.SESDIAN_CACHE.data.dashboard = data;
+        }
+        return data;
+      });
     };
 
     DB.users = function () {
       var cached = getCached('users');
-      return cached ? Promise.resolve(cached) : original.users();
+      if (cached) return Promise.resolve(cached);
+      return original.users().then(function(data) {
+        if (!window.SESDIAN_CACHE.data.users) {
+          window.SESDIAN_CACHE.data.users = data;
+        }
+        return data;
+      });
     };
 
     DB.getSettings = function () {
       var cached = getCached('settings');
-      return cached ? Promise.resolve(cached) : original.getSettings();
+      if (cached) return Promise.resolve(cached);
+      return original.getSettings().then(function(data) {
+        if (!window.SESDIAN_CACHE.data.settings) {
+          window.SESDIAN_CACHE.data.settings = data;
+        }
+        return data;
+      });
     };
 
     // Invalidate cache on write operations
@@ -236,6 +279,11 @@
 
   /* ====================== Init on Page Load ====================== */
   async function init() {
+    // Patch DB immediately untuk auto-cache saat first fetch
+    if (window.SESDIAN_DB) {
+      patchDBWithCache();
+    }
+
     // Clear old caches
     clearStorage();
 
@@ -249,7 +297,6 @@
     // Check if already cached in this session
     if (window.SESDIAN_CACHE.loaded && isCacheValid()) {
       // Data sudah ada, skip preload
-      patchDBWithCache();
       return;
     }
 
@@ -316,5 +363,19 @@
   } else {
     init();
   }
+
+  // Auto-patch DB saat tersedia (untuk halaman tanpa preloader.js)
+  var checkDB = setInterval(function() {
+    if (window.SESDIAN_DB && !window.SESDIAN_DB._patched) {
+      patchDBWithCache();
+      window.SESDIAN_DB._patched = true;
+      clearInterval(checkDB);
+    }
+  }, 100);
+
+  // Stop checking setelah 5 detik
+  setTimeout(function() {
+    clearInterval(checkDB);
+  }, 5000);
 
 })();
