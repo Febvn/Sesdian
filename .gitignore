@@ -10,5 +10,10 @@ node_modules/
 # Vercel
 .vercel/
 
+# Environment variables (keep credentials secret!)
+.env
+.env.local
+.env*.local
+
 # stray binaries (not part of this project)
 *.exe
