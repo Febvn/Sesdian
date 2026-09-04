@@ -144,6 +144,10 @@
   }
 
   function appendEmpty(container, msg) {
+    // Remove skeleton if exists
+    var skeleton = container.querySelector('.sesd-skeleton-container');
+    if (skeleton) skeleton.remove();
+    
     var isTable = container.tagName === 'TBODY' || container.tagName === 'TABLE';
     var e;
     if (isTable) { e = el('tr', { class: 'sesd-empty' }); var td = el('td', { style: 'text-align:center;padding:2rem;color:var(--text-muted)' }, msg || 'Belum ada data.'); td.colSpan = 99; e.appendChild(td); }
@@ -165,15 +169,50 @@
       tpl.remove();                       // drop the original seed row from the DOM
       entry = TPL[tplSel] = { container: container, src: src };
     }
+    
+    // Remove skeleton loading
+    var skeleton = entry.container.querySelector('.sesd-skeleton-container');
+    if (skeleton) skeleton.remove();
+    
     entry.container.innerHTML = '';
     if (!records.length) { appendEmpty(entry.container); return; }
     records.forEach(function (rec) { var n = entry.src.cloneNode(true); applyBinds(n, rec); if (fill) fill(n, rec); entry.container.appendChild(n); });
   }
 
-  function prepLoading() { $$('[data-stat],[data-count]').forEach(function (e) { e.textContent = ''; }); }
+  function prepLoading() { 
+    $$('[data-stat],[data-count]').forEach(function (e) { 
+      e.innerHTML = '<span class="sesd-loading-inline"></span>'; 
+    }); 
+    
+    // Add skeleton loading to list containers
+    $$('[data-list],[data-monitor-list],[data-recent-list],[data-users-list],[data-asset-options]').forEach(function (container) {
+      if (container.children.length === 0 || container.querySelector('[data-template]')) {
+        // Show loading skeleton
+        var skeleton = el('div', { 
+          class: 'sesd-skeleton-container',
+          style: 'data-skeleton="true"'
+        });
+        skeleton.innerHTML = '<div class="sesd-loading-dots-alt">' +
+          '<span>Memuat data</span>' +
+          '<div class="dot"></div>' +
+          '<div class="dot"></div>' +
+          '<div class="dot"></div>' +
+          '</div>';
+        
+        // Clear and show skeleton
+        var templates = container.querySelectorAll('[data-template],[data-monitor-template],[data-recent-template],[data-asset-template]');
+        templates.forEach(function(t) { t.style.display = 'none'; });
+        
+        if (!container.querySelector('.sesd-skeleton-container')) {
+          container.appendChild(skeleton);
+        }
+      }
+    });
+  }
 
   /* ---------------- per-page data load (BOTH modes) ---------------- */
   async function loadAndRender(p) {
+    prepLoading(); // Show loading indicators
     try {
       if (p === 'dashboard') {
         var d = await DB.dashboard();
