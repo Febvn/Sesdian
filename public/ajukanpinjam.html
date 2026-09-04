@@ -1,20 +1,1290 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="id">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SESDIAN - Ajukan Pinjam</title>
-  <link rel="icon" type="image/svg+xml" href="favicon.svg">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/app.css">
-</head>
-<body data-page="ajukanpinjam" data-auth="required">
-<div id="root"><div style="display: flex; min-height: 100vh; background: rgb(240, 244, 255);"><aside style="width: 256px; background: rgb(11, 17, 32); display: flex; flex-direction: column; transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); position: sticky; top: 0px; height: 100vh; overflow: hidden; flex-shrink: 0; box-shadow: rgba(0, 0, 0, 0.25) 4px 0px 32px;"><div style="padding: 1rem; border-bottom: 1px solid rgb(26, 37, 64); display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 60px;"><div><div style="font-size: 1.15rem; font-weight: 900; color: rgb(255, 255, 255); letter-spacing: -0.5px; line-height: 1;">SES<span style="color: rgb(99, 102, 241);">DIAN</span></div><div style="font-size: 0.55rem; color: rgb(51, 65, 85); margin-top: 3px; font-family: &quot;JetBrains Mono&quot;; letter-spacing: 2px;">ASSET MANAGEMENT</div></div><button style="background: rgb(26, 37, 64); border-width: medium; border-style: none; border-color: currentcolor; border-image: initial; color: rgb(100, 116, 139); cursor: pointer; border-radius: 8px; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; flex-shrink: 0; margin-left: 0px; transition: 0.2s;">‹</button></div><div style="flex: 1 1 0%; overflow: hidden auto; padding: 0.5rem;"><div style="margin-bottom: 0.25rem;"><div style="display: flex; align-items: center; gap: 6px; padding: 0.6rem 0.5rem 0.25rem;"><div style="flex: 1 1 0%; height: 1px; background: rgb(26, 37, 64);"></div><span style="font-size: 0.55rem; color: rgb(51, 65, 85); font-weight: 800; letter-spacing: 1.5px; white-space: nowrap;">UTAMA</span><div style="flex: 1 1 0%; height: 1px; background: rgb(26, 37, 64);"></div></div><a title="" class="" href="dashboard.html" data-discover="true" style="display: flex; align-items: center; gap: 10px; padding: 0.55rem 0.75rem; border-radius: 10px; margin-bottom: 2px; color: rgb(100, 116, 139); background: transparent; text-decoration: none; transition: 0.18s; box-shadow: none; justify-content: flex-start;"><span style="font-size: 1rem; flex-shrink: 0; line-height: 1;"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="1em" height="1em" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg></span></span><div style="overflow: hidden; flex: 1 1 0%;"><div style="font-size: 0.8rem; font-weight: 500; white-space: nowrap; color: inherit;">Dashboard</div><div style="font-size: 0.62rem; color: rgb(51, 65, 85); white-space: nowrap; margin-top: 1px;">Ringkasan &amp; statistik</div></div></a></div><div style="margin-bottom: 0.25rem;"><div style="display: flex; align-items: center; gap: 6px; padding: 0.6rem 0.5rem 0.25rem;"><div style="flex: 1 1 0%; height: 1px; background: rgb(26, 37, 64);"></div><span style="font-size: 0.55rem; color: rgb(51, 65, 85); font-weight: 800; letter-spacing: 1.5px; white-space: nowrap;">ASET</span><div style="flex: 1 1 0%; height: 1px; background: rgb(26, 37, 64);"></div></div><a title="" class="" href="dataaset.html" data-discover="true" style="display: flex; align-items: center; gap: 10px; padding: 0.55rem 0.75rem; border-radius: 10px; margin-bottom: 2px; color: rgb(100, 116, 139); background: transparent; text-decoration: none; transition: 0.18s; box-shadow: none; justify-content: flex-start;"><span style="font-size: 1rem; flex-shrink: 0; line-height: 1;"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="1em" height="1em" aria-hidden="true"><path d="M21 8 12 3 3 8v8l9 5 9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/></svg></span></span><div style="overflow: hidden; flex: 1 1 0%;"><div style="font-size: 0.8rem; font-weight: 500; white-space: nowrap; color: inherit;">Data Aset</div><div style="font-size: 0.62rem; color: rgb(51, 65, 85); white-space: nowrap; margin-top: 1px;">Lihat semua aset</div></div></a><a title="" class="" href="kategoriaset.html" data-discover="true" style="display: flex; align-items: center; gap: 10px; padding: 0.55rem 0.75rem; border-radius: 10px; margin-bottom: 2px; color: rgb(100, 116, 139); background: transparent; text-decoration: none; transition: 0.18s; box-shadow: none; justify-content: flex-start;"><span style="font-size: 1rem; flex-shrink: 0; line-height: 1;"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="1em" height="1em" aria-hidden="true"><path d="M3 3h7l11 11-7 7L3 10z"/><circle cx="7.5" cy="7.5" r="1.3"/></svg></span></span><div style="overflow: hidden; flex: 1 1 0%;"><div style="font-size: 0.8rem; font-weight: 500; white-space: nowrap; color: inherit;">Kategori Aset</div><div style="font-size: 0.62rem; color: rgb(51, 65, 85); white-space: nowrap; margin-top: 1px;">Jenis-jenis aset</div></div></a><a title="" class="" href="ruangan.html" data-discover="true" style="display: flex; align-items: center; gap: 10px; padding: 0.55rem 0.75rem; border-radius: 10px; margin-bottom: 2px; color: rgb(100, 116, 139); background: transparent; text-decoration: none; transition: 0.18s; box-shadow: none; justify-content: flex-start;"><span style="font-size: 1rem; flex-shrink: 0; line-height: 1;"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="1em" height="1em" aria-hidden="true"><path d="M3 11 12 3l9 8"/><path d="M5 10v10h14V10"/></svg></span></span><div style="overflow: hidden; flex: 1 1 0%;"><div style="font-size: 0.8rem; font-weight: 500; white-space: nowrap; color: inherit;">Ruangan</div><div style="font-size: 0.62rem; color: rgb(51, 65, 85); white-space: nowrap; margin-top: 1px;">Daftar ruangan</div></div></a></div><div style="margin-bottom: 0.25rem;"><div style="display: flex; align-items: center; gap: 6px; padding: 0.6rem 0.5rem 0.25rem;"><div style="flex: 1 1 0%; height: 1px; background: rgb(26, 37, 64);"></div><span style="font-size: 0.55rem; color: rgb(51, 65, 85); font-weight: 800; letter-spacing: 1.5px; white-space: nowrap;">PEMINJAMAN</span><div style="flex: 1 1 0%; height: 1px; background: rgb(26, 37, 64);"></div></div><a title="" class="" href="daftarpinjam.html" data-discover="true" style="display: flex; align-items: center; gap: 10px; padding: 0.55rem 0.75rem; border-radius: 10px; margin-bottom: 2px; color: rgb(100, 116, 139); background: transparent; text-decoration: none; transition: 0.18s; box-shadow: none; justify-content: flex-start;"><span style="font-size: 1rem; flex-shrink: 0; line-height: 1;"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="1em" height="1em" aria-hidden="true"><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M3 21v-5h5"/></svg></span></span><div style="overflow: hidden; flex: 1 1 0%;"><div style="font-size: 0.8rem; font-weight: 500; white-space: nowrap; color: inherit;">Daftar Pinjam</div><div style="font-size: 0.62rem; color: rgb(51, 65, 85); white-space: nowrap; margin-top: 1px;">Riwayat peminjaman</div></div></a><a title="" aria-current="page" class="active" href="ajukanpinjam.html" data-discover="true" style="display: flex; align-items: center; gap: 10px; padding: 0.55rem 0.75rem; border-radius: 10px; margin-bottom: 2px; color: rgb(255, 255, 255); background: rgb(245, 158, 11); text-decoration: none; transition: 0.18s; box-shadow: rgba(245, 158, 11, 0.35) 0px 4px 12px; justify-content: flex-start;"><span style="font-size: 1rem; flex-shrink: 0; line-height: 1;"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="1em" height="1em" aria-hidden="true"><rect x="8" y="3" width="8" height="4" rx="1"/><path d="M8 5H6v16h12V5h-2"/><path d="M9 12h6M9 16h6"/></svg></span></span><div style="overflow: hidden; flex: 1 1 0%;"><div style="font-size: 0.8rem; font-weight: 700; white-space: nowrap; color: inherit;">Ajukan Pinjam</div><div style="font-size: 0.62rem; color: rgba(255, 255, 255, 0.55); white-space: nowrap; margin-top: 1px;">Request baru</div></div></a></div></div><div style="padding: 0.75rem; border-top: 1px solid rgb(26, 37, 64);"><div style="display: flex; align-items: center; gap: 8px; padding: 0.6rem; border-radius: 10px; background: linear-gradient(135deg, rgb(26, 37, 64), rgb(15, 23, 42)); border: 1px solid rgb(30, 41, 59);"><div style="width: 34px; height: 34px; border-radius: 9px; flex-shrink: 0; background: linear-gradient(135deg, rgb(99, 102, 241), rgb(139, 92, 246)); display: flex; align-items: center; justify-content: center; color: rgb(255, 255, 255); font-weight: 800; font-size: 0.75rem;" data-user-initials>AS</div><div style="flex: 1 1 0%; min-width: 0px;"><div style="color: rgb(226, 232, 240); font-size: 0.75rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" data-user-name>Adi Septriansyah</div><div style="color: rgb(51, 65, 85); font-size: 0.6rem; text-transform: uppercase; letter-spacing: 1px;" data-user-role>user</div></div><button style="background: transparent; border: 1px solid rgb(30, 41, 59); color: rgb(71, 85, 105); cursor: pointer; font-size: 0.7rem; padding: 0.25rem 0.5rem; border-radius: 6px; transition: 0.2s; flex-shrink: 0;" data-action="logout">Keluar</button></div></div></aside><main style="flex: 1 1 0%; overflow: auto; min-width: 0px;"><div style="background: rgb(255, 255, 255); border-bottom: 1px solid rgb(226, 232, 240); padding: 0.7rem 1rem; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0px; z-index: 10; box-shadow: rgba(0, 0, 0, 0.04) 0px 1px 0px;"><div style="display: flex; align-items: center; gap: 10px;"><div style="display: flex; align-items: center; gap: 6px; font-size: 0.8rem; overflow: hidden;"><span style="color: rgb(148, 163, 184);"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="1em" height="1em" aria-hidden="true"><path d="M3 11 12 3l9 8"/><path d="M5 10v10h14V10"/></svg></span></span><span style="display: flex; align-items: center; gap: 6px;"><span style="color: rgb(148, 163, 184); font-weight: 400; text-transform: capitalize; white-space: nowrap;">borrowings</span></span><span style="display: flex; align-items: center; gap: 6px;"><span style="color: rgb(203, 213, 225);">/</span><span style="color: rgb(15, 23, 42); font-weight: 600; text-transform: capitalize; white-space: nowrap;">request</span></span></div></div><div style="display: flex; align-items: center; gap: 8px;"><div style="display: flex; align-items: center; gap: 6px;"><div style="width: 7px; height: 7px; border-radius: 50%; background: rgb(16, 185, 129); box-shadow: rgba(16, 185, 129, 0.2) 0px 0px 0px 3px;"></div><span style="font-size: 0.75rem; color: rgb(100, 116, 139); font-weight: 500;">Online</span></div><div style="width: 1px; height: 14px; background: rgb(226, 232, 240);"></div><span style="font-size: 0.72rem; color: rgb(148, 163, 184);">18 Jun 2026</span><div style="width: 1px; height: 14px; background: rgb(226, 232, 240);"></div><div style="position: relative;"><button style="position: relative; background: rgb(248, 250, 255); border: 1px solid var(--border); border-radius: 10px; width: 38px; height: 38px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; transition: 0.2s;"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="1em" height="1em" aria-hidden="true"><path d="M6 9a6 6 0 0 1 12 0c0 7 3 7 3 9H3c0-2 3-2 3-9"/><path d="M10.5 21a1.5 1.5 0 0 0 3 0"/></svg></span></button></div></div></div><div style="padding: 1.75rem;"><div><div class="animate-fade-up" style="display: flex; align-items: center; gap: 12px; margin-bottom: 1.5rem;"><button style="background: rgb(241, 245, 249); border-width: medium; border-style: none; border-color: currentcolor; border-image: initial; border-radius: 8px; padding: 0.5rem 0.75rem; cursor: pointer; font-size: 0.85rem; color: rgb(100, 116, 139); font-weight: 600;" data-nav="daftarpinjam.html">Kembali</button><div><h1 style="font-size: 1.4rem; font-weight: 800;">Ajukan Peminjaman</h1><p style="color: var(--text-muted); font-size: 0.85rem;"><span style="color: rgb(16, 185, 129); font-weight: 700;">1 tersedia</span></p></div></div><div style="display: grid; grid-template-columns: 1fr 340px; gap: 1.25rem; align-items: start;"><div><div style="background: rgb(255, 255, 255); border-radius: 14px; padding: 1rem; box-shadow: var(--shadow); margin-bottom: 1rem; display: flex; gap: 10px; flex-wrap: wrap;"><div style="position: relative; flex: 1 1 0%; min-width: 180px;"><span style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 1.1rem; display: flex; pointer-events: none;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="1em" height="1em"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></span><input data-search="assets" placeholder="Cari nama, kode, atau lokasi..." value="" style="width: 100%; padding: 0.75rem 1rem 0.75rem 2.8rem; border-radius: 12px; border: 1px solid var(--border); font-size: 0.9rem; outline: none; background: rgb(255, 255, 255); transition: 0.2s; box-shadow: rgba(0, 0, 0, 0.02) 0px 2px 4px; box-sizing: border-box;" onfocus="this.style.borderColor='var(--primary)'; this.style.boxShadow='0 0 0 3px var(--primary-light)'" onblur="this.style.borderColor='var(--border)'; this.style.boxShadow='rgba(0, 0, 0, 0.02) 0px 2px 4px'"></div><button style="padding: 0.75rem 1.1rem; border-radius: 10px; border: 1px solid var(--primary); background: var(--primary-light); color: var(--primary); cursor: pointer; font-size: 0.82rem; font-weight: 700; transition: 0.2s;" data-filter="status" data-filter-val="all" data-filter-active>Semua</button><button style="padding: 0.75rem 1.1rem; border-radius: 10px; border: 1px solid var(--border); background: rgb(255, 255, 255); color: var(--text-muted); cursor: pointer; font-size: 0.82rem; font-weight: 600; transition: 0.2s;" data-filter="status" data-filter-val="available">Tersedia</button><button style="padding: 0.75rem 1.1rem; border-radius: 10px; border: 1px solid var(--border); background: rgb(255, 255, 255); color: var(--text-muted); cursor: pointer; font-size: 0.82rem; font-weight: 600; transition: 0.2s;" data-filter="status" data-filter-val="unavailable">Tidak Tersedia</button></div><div data-list="assets" style="display: flex; flex-direction: column; gap: 8px;"><div class="animate-fade-up delay-1" data-template data-search-item="assets" data-asset-select style="border-radius: 12px; background: rgb(255, 255, 255); padding: 0.875rem 1.25rem; border: 2px solid var(--border); cursor: pointer; display: flex; align-items: center; gap: 12px; transition: 0.18s; box-shadow: var(--shadow); opacity: 1; position: relative;"><div style="width: 44px; height: 44px; border-radius: 12px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; background: rgb(241, 245, 249); transition: 0.2s;"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="1em" height="1em" aria-hidden="true"><path d="M15 6a3.5 3.5 0 0 0-4.6 4.6L4 17l3 3 6.4-6.4A3.5 3.5 0 0 0 18 9l-2.3 2.3-2-2z"/></svg></span></div><div style="flex: 1 1 0%; min-width: 0px;"><div style="font-weight: 700; font-size: 0.9rem; color: var(--text); display: flex; align-items: center; gap: 8px; flex-wrap: wrap;" data-bind="name">Laptop</div><div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;"><span style="font-family: &quot;JetBrains Mono&quot;;" data-bind="code">123</span> · <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="1em" height="1em" aria-hidden="true"><path d="M12 21s7-6 7-11a7 7 0 0 0-14 0c0 5 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg></span> Ruang Tata Usaha · <span style="color: rgb(16, 185, 129); font-weight: 600;">Stok Tersedia: 13</span> · Fixed Asset</div></div><span style="background: rgb(220, 252, 231); color: rgb(22, 101, 52); padding: 0.25rem 0.65rem; border-radius: 20px; font-size: 0.72rem; font-weight: 700; flex-shrink: 0;"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="1em" height="1em" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12 2.5 2.5 4.5-5"/></svg></span> Tersedia</span><div data-select-box style="width: 22px; height: 22px; border-radius: 6px; border: 2px solid var(--border); background: transparent; display: flex; align-items: center; justify-content: center; color: rgb(255, 255, 255); font-size: 0.8rem; flex-shrink: 0;"></div></div></div></div><div style="background: rgb(255, 255, 255); border-radius: 16px; padding: 1.5rem; box-shadow: var(--shadow); position: sticky; top: 5rem;"><h3 style="font-weight: 800; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 8px;"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="1em" height="1em" aria-hidden="true"><rect x="8" y="3" width="8" height="4" rx="1"/><path d="M8 5H6v16h12V5h-2"/><path d="M9 12h6M9 16h6"/></svg></span> Detail Peminjaman</h3><div style="background: linear-gradient(135deg, rgb(248, 250, 255), rgb(239, 246, 255)); border-radius: 10px; padding: 0.75rem; margin-bottom: 1rem; border: 1px solid rgb(219, 234, 254);"><div style="font-size: 0.68rem; font-weight: 700; color: var(--primary); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="1em" height="1em" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></span> Data Peminjam</div><div style="font-size: 0.8rem; color: var(--text);"><div style="font-weight: 700;">Adi Septriansyah</div><div style="color: var(--text-muted); font-family: &quot;JetBrains Mono&quot;; font-size: 0.75rem;">123456789123456710</div><div style="color: var(--text-muted); font-size: 0.75rem;"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="1em" height="1em" aria-hidden="true"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg></span> 081271830293</div></div></div><div style="margin-bottom: 1rem;"><label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">Tanggal Kembali *</label><input data-field="date" min="2026-06-19" type="date" value="" style="display: block; width: 100%; padding: 0.65rem 0.875rem; border-radius: 10px; border: 1.5px solid var(--border); font-size: 0.875rem; outline: none; box-sizing: border-box; transition: border-color 0.2s;"></div><div style="margin-bottom: 1.25rem;"><label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">Keperluan / Catatan (opsional)</label><textarea data-field="notes" placeholder="Jelaskan keperluan peminjaman aset ini..." style="display: block; width: 100%; padding: 0.65rem 0.875rem; border-radius: 10px; border: 1.5px solid var(--border); font-size: 0.875rem; outline: none; box-sizing: border-box; transition: border-color 0.2s; height: 80px; resize: vertical; font-family: &quot;Plus Jakarta Sans&quot;, sans-serif;"></textarea></div><button data-action="submit-pinjam" disabled="" style="width: 100%; padding: 0.875rem; background: rgb(226, 232, 240); color: rgb(148, 163, 184); border-width: medium; border-style: none; border-color: currentcolor; border-image: initial; border-radius: 12px; cursor: not-allowed; font-weight: 700; font-size: 0.9rem; transition: 0.2s; box-shadow: none;">Pilih aset yang tersedia</button><p style="text-align: center; font-size: 0.75rem; color: var(--text-muted); margin-top: 8px;">Hanya aset <strong style="color: rgb(16, 185, 129);"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="1em" height="1em" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12 2.5 2.5 4.5-5"/></svg></span> Tersedia</strong> yang dapat dipilih</p></div></div></div></div></main></div></div>
-  <script defer src="assets/config.js"></script>
-  <script defer src="assets/db.js"></script>
-  <script defer src="assets/icons.js"></script>
-  <script defer src="assets/app.js"></script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SESDIAN - Ajukan Pinjam</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="assets/app.css" />
+  </head>
+  <body data-page="ajukanpinjam" data-auth="required">
+    <div id="root">
+      <div
+        style="display: flex; min-height: 100vh; background: rgb(240, 244, 255)"
+      >
+        <aside
+          style="
+            width: 256px;
+            background: rgb(11, 17, 32);
+            display: flex;
+            flex-direction: column;
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: sticky;
+            top: 0px;
+            height: 100vh;
+            overflow: hidden;
+            flex-shrink: 0;
+            box-shadow: rgba(0, 0, 0, 0.25) 4px 0px 32px;
+          "
+        >
+          <div
+            style="
+              padding: 1rem;
+              border-bottom: 1px solid rgb(26, 37, 64);
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              gap: 8px;
+              min-height: 60px;
+            "
+          >
+            <div>
+              <div
+                style="
+                  font-size: 1.15rem;
+                  font-weight: 900;
+                  color: rgb(255, 255, 255);
+                  letter-spacing: -0.5px;
+                  line-height: 1;
+                "
+              >
+                SES<span style="color: rgb(99, 102, 241)">DIAN</span>
+              </div>
+              <div
+                style="
+                  font-size: 0.55rem;
+                  color: rgb(51, 65, 85);
+                  margin-top: 3px;
+                  font-family: &quot;JetBrains Mono&quot;;
+                  letter-spacing: 2px;
+                "
+              >
+                ASSET MANAGEMENT
+              </div>
+            </div>
+            <button
+              style="
+                background: rgb(26, 37, 64);
+                border-width: medium;
+                border-style: none;
+                border-color: currentcolor;
+                border-image: initial;
+                color: rgb(100, 116, 139);
+                cursor: pointer;
+                border-radius: 8px;
+                width: 28px;
+                height: 28px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 0.85rem;
+                flex-shrink: 0;
+                margin-left: 0px;
+                transition: 0.2s;
+              "
+            >
+              ‹
+            </button>
+          </div>
+          <div style="flex: 1 1 0%; overflow: hidden auto; padding: 0.5rem">
+            <div style="margin-bottom: 0.25rem">
+              <div
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 6px;
+                  padding: 0.6rem 0.5rem 0.25rem;
+                "
+              >
+                <div
+                  style="flex: 1 1 0%; height: 1px; background: rgb(26, 37, 64)"
+                ></div>
+                <span
+                  style="
+                    font-size: 0.55rem;
+                    color: rgb(51, 65, 85);
+                    font-weight: 800;
+                    letter-spacing: 1.5px;
+                    white-space: nowrap;
+                  "
+                  >UTAMA</span
+                >
+                <div
+                  style="flex: 1 1 0%; height: 1px; background: rgb(26, 37, 64)"
+                ></div>
+              </div>
+              <a
+                title=""
+                class=""
+                href="dashboard.html"
+                data-discover="true"
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 10px;
+                  padding: 0.55rem 0.75rem;
+                  border-radius: 10px;
+                  margin-bottom: 2px;
+                  color: rgb(100, 116, 139);
+                  background: transparent;
+                  text-decoration: none;
+                  transition: 0.18s;
+                  box-shadow: none;
+                  justify-content: flex-start;
+                "
+                ><span style="font-size: 1rem; flex-shrink: 0; line-height: 1"
+                  ><span class="ic"
+                    ><svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      width="1em"
+                      height="1em"
+                      aria-hidden="true"
+                    >
+                      <path d="M13 2 4 14h7l-1 8 9-12h-7z" /></svg></span
+                ></span>
+                <div style="overflow: hidden; flex: 1 1 0%">
+                  <div
+                    style="
+                      font-size: 0.8rem;
+                      font-weight: 500;
+                      white-space: nowrap;
+                      color: inherit;
+                    "
+                  >
+                    Dashboard
+                  </div>
+                  <div
+                    style="
+                      font-size: 0.62rem;
+                      color: rgb(51, 65, 85);
+                      white-space: nowrap;
+                      margin-top: 1px;
+                    "
+                  >
+                    Ringkasan &amp; statistik
+                  </div>
+                </div></a
+              >
+            </div>
+            <div style="margin-bottom: 0.25rem">
+              <div
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 6px;
+                  padding: 0.6rem 0.5rem 0.25rem;
+                "
+              >
+                <div
+                  style="flex: 1 1 0%; height: 1px; background: rgb(26, 37, 64)"
+                ></div>
+                <span
+                  style="
+                    font-size: 0.55rem;
+                    color: rgb(51, 65, 85);
+                    font-weight: 800;
+                    letter-spacing: 1.5px;
+                    white-space: nowrap;
+                  "
+                  >ASET</span
+                >
+                <div
+                  style="flex: 1 1 0%; height: 1px; background: rgb(26, 37, 64)"
+                ></div>
+              </div>
+              <a
+                title=""
+                class=""
+                href="dataaset.html"
+                data-discover="true"
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 10px;
+                  padding: 0.55rem 0.75rem;
+                  border-radius: 10px;
+                  margin-bottom: 2px;
+                  color: rgb(100, 116, 139);
+                  background: transparent;
+                  text-decoration: none;
+                  transition: 0.18s;
+                  box-shadow: none;
+                  justify-content: flex-start;
+                "
+                ><span style="font-size: 1rem; flex-shrink: 0; line-height: 1"
+                  ><span class="ic"
+                    ><svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      width="1em"
+                      height="1em"
+                      aria-hidden="true"
+                    >
+                      <path d="M21 8 12 3 3 8v8l9 5 9-5z" />
+                      <path d="M3 8l9 5 9-5M12 13v8" /></svg></span
+                ></span>
+                <div style="overflow: hidden; flex: 1 1 0%">
+                  <div
+                    style="
+                      font-size: 0.8rem;
+                      font-weight: 500;
+                      white-space: nowrap;
+                      color: inherit;
+                    "
+                  >
+                    Data Aset
+                  </div>
+                  <div
+                    style="
+                      font-size: 0.62rem;
+                      color: rgb(51, 65, 85);
+                      white-space: nowrap;
+                      margin-top: 1px;
+                    "
+                  >
+                    Lihat semua aset
+                  </div>
+                </div></a
+              ><a
+                title=""
+                class=""
+                href="kategoriaset.html"
+                data-discover="true"
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 10px;
+                  padding: 0.55rem 0.75rem;
+                  border-radius: 10px;
+                  margin-bottom: 2px;
+                  color: rgb(100, 116, 139);
+                  background: transparent;
+                  text-decoration: none;
+                  transition: 0.18s;
+                  box-shadow: none;
+                  justify-content: flex-start;
+                "
+                ><span style="font-size: 1rem; flex-shrink: 0; line-height: 1"
+                  ><span class="ic"
+                    ><svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      width="1em"
+                      height="1em"
+                      aria-hidden="true"
+                    >
+                      <path d="M3 3h7l11 11-7 7L3 10z" />
+                      <circle cx="7.5" cy="7.5" r="1.3" /></svg></span
+                ></span>
+                <div style="overflow: hidden; flex: 1 1 0%">
+                  <div
+                    style="
+                      font-size: 0.8rem;
+                      font-weight: 500;
+                      white-space: nowrap;
+                      color: inherit;
+                    "
+                  >
+                    Kategori Aset
+                  </div>
+                  <div
+                    style="
+                      font-size: 0.62rem;
+                      color: rgb(51, 65, 85);
+                      white-space: nowrap;
+                      margin-top: 1px;
+                    "
+                  >
+                    Jenis-jenis aset
+                  </div>
+                </div></a
+              ><a
+                title=""
+                class=""
+                href="ruangan.html"
+                data-discover="true"
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 10px;
+                  padding: 0.55rem 0.75rem;
+                  border-radius: 10px;
+                  margin-bottom: 2px;
+                  color: rgb(100, 116, 139);
+                  background: transparent;
+                  text-decoration: none;
+                  transition: 0.18s;
+                  box-shadow: none;
+                  justify-content: flex-start;
+                "
+                ><span style="font-size: 1rem; flex-shrink: 0; line-height: 1"
+                  ><span class="ic"
+                    ><svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      width="1em"
+                      height="1em"
+                      aria-hidden="true"
+                    >
+                      <path d="M3 11 12 3l9 8" />
+                      <path d="M5 10v10h14V10" /></svg></span
+                ></span>
+                <div style="overflow: hidden; flex: 1 1 0%">
+                  <div
+                    style="
+                      font-size: 0.8rem;
+                      font-weight: 500;
+                      white-space: nowrap;
+                      color: inherit;
+                    "
+                  >
+                    Ruangan
+                  </div>
+                  <div
+                    style="
+                      font-size: 0.62rem;
+                      color: rgb(51, 65, 85);
+                      white-space: nowrap;
+                      margin-top: 1px;
+                    "
+                  >
+                    Daftar ruangan
+                  </div>
+                </div></a
+              >
+            </div>
+            <div style="margin-bottom: 0.25rem">
+              <div
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 6px;
+                  padding: 0.6rem 0.5rem 0.25rem;
+                "
+              >
+                <div
+                  style="flex: 1 1 0%; height: 1px; background: rgb(26, 37, 64)"
+                ></div>
+                <span
+                  style="
+                    font-size: 0.55rem;
+                    color: rgb(51, 65, 85);
+                    font-weight: 800;
+                    letter-spacing: 1.5px;
+                    white-space: nowrap;
+                  "
+                  >PEMINJAMAN</span
+                >
+                <div
+                  style="flex: 1 1 0%; height: 1px; background: rgb(26, 37, 64)"
+                ></div>
+              </div>
+              <a
+                title=""
+                class=""
+                href="daftarpinjam.html"
+                data-discover="true"
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 10px;
+                  padding: 0.55rem 0.75rem;
+                  border-radius: 10px;
+                  margin-bottom: 2px;
+                  color: rgb(100, 116, 139);
+                  background: transparent;
+                  text-decoration: none;
+                  transition: 0.18s;
+                  box-shadow: none;
+                  justify-content: flex-start;
+                "
+                ><span style="font-size: 1rem; flex-shrink: 0; line-height: 1"
+                  ><span class="ic"
+                    ><svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      width="1em"
+                      height="1em"
+                      aria-hidden="true"
+                    >
+                      <path d="M3 12a9 9 0 0 1 15-6.7L21 8" />
+                      <path d="M21 3v5h-5" />
+                      <path d="M21 12a9 9 0 0 1-15 6.7L3 16" />
+                      <path d="M3 21v-5h5" /></svg></span
+                ></span>
+                <div style="overflow: hidden; flex: 1 1 0%">
+                  <div
+                    style="
+                      font-size: 0.8rem;
+                      font-weight: 500;
+                      white-space: nowrap;
+                      color: inherit;
+                    "
+                  >
+                    Daftar Pinjam
+                  </div>
+                  <div
+                    style="
+                      font-size: 0.62rem;
+                      color: rgb(51, 65, 85);
+                      white-space: nowrap;
+                      margin-top: 1px;
+                    "
+                  >
+                    Riwayat peminjaman
+                  </div>
+                </div></a
+              ><a
+                title=""
+                aria-current="page"
+                class="active"
+                href="ajukanpinjam.html"
+                data-discover="true"
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 10px;
+                  padding: 0.55rem 0.75rem;
+                  border-radius: 10px;
+                  margin-bottom: 2px;
+                  color: rgb(255, 255, 255);
+                  background: rgb(245, 158, 11);
+                  text-decoration: none;
+                  transition: 0.18s;
+                  box-shadow: rgba(245, 158, 11, 0.35) 0px 4px 12px;
+                  justify-content: flex-start;
+                "
+                ><span style="font-size: 1rem; flex-shrink: 0; line-height: 1"
+                  ><span class="ic"
+                    ><svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      width="1em"
+                      height="1em"
+                      aria-hidden="true"
+                    >
+                      <rect x="8" y="3" width="8" height="4" rx="1" />
+                      <path d="M8 5H6v16h12V5h-2" />
+                      <path d="M9 12h6M9 16h6" /></svg></span
+                ></span>
+                <div style="overflow: hidden; flex: 1 1 0%">
+                  <div
+                    style="
+                      font-size: 0.8rem;
+                      font-weight: 700;
+                      white-space: nowrap;
+                      color: inherit;
+                    "
+                  >
+                    Ajukan Pinjam
+                  </div>
+                  <div
+                    style="
+                      font-size: 0.62rem;
+                      color: rgba(255, 255, 255, 0.55);
+                      white-space: nowrap;
+                      margin-top: 1px;
+                    "
+                  >
+                    Request baru
+                  </div>
+                </div></a
+              >
+            </div>
+          </div>
+          <div style="padding: 0.75rem; border-top: 1px solid rgb(26, 37, 64)">
+            <div
+              style="
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                padding: 0.6rem;
+                border-radius: 10px;
+                background: linear-gradient(
+                  135deg,
+                  rgb(26, 37, 64),
+                  rgb(15, 23, 42)
+                );
+                border: 1px solid rgb(30, 41, 59);
+              "
+            >
+              <div
+                style="
+                  width: 34px;
+                  height: 34px;
+                  border-radius: 9px;
+                  flex-shrink: 0;
+                  background: linear-gradient(
+                    135deg,
+                    rgb(99, 102, 241),
+                    rgb(139, 92, 246)
+                  );
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  color: rgb(255, 255, 255);
+                  font-weight: 800;
+                  font-size: 0.75rem;
+                "
+                data-user-initials
+              >
+                AS
+              </div>
+              <div style="flex: 1 1 0%; min-width: 0px">
+                <div
+                  style="
+                    color: rgb(226, 232, 240);
+                    font-size: 0.75rem;
+                    font-weight: 700;
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                  "
+                  data-user-name
+                >
+                  Adi Septriansyah
+                </div>
+                <div
+                  style="
+                    color: rgb(51, 65, 85);
+                    font-size: 0.6rem;
+                    text-transform: uppercase;
+                    letter-spacing: 1px;
+                  "
+                  data-user-role
+                >
+                  user
+                </div>
+              </div>
+              <button
+                style="
+                  background: transparent;
+                  border: 1px solid rgb(30, 41, 59);
+                  color: rgb(71, 85, 105);
+                  cursor: pointer;
+                  font-size: 0.7rem;
+                  padding: 0.25rem 0.5rem;
+                  border-radius: 6px;
+                  transition: 0.2s;
+                  flex-shrink: 0;
+                "
+                data-action="logout"
+              >
+                Keluar
+              </button>
+            </div>
+          </div>
+        </aside>
+        <main style="flex: 1 1 0%; overflow: auto; min-width: 0px">
+          <div
+            style="
+              background: rgb(255, 255, 255);
+              border-bottom: 1px solid rgb(226, 232, 240);
+              padding: 0.7rem 1rem;
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              position: sticky;
+              top: 0px;
+              z-index: 10;
+              box-shadow: rgba(0, 0, 0, 0.04) 0px 1px 0px;
+            "
+          >
+            <div style="display: flex; align-items: center; gap: 10px">
+              <div
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 6px;
+                  font-size: 0.8rem;
+                  overflow: hidden;
+                "
+              >
+                <span style="color: rgb(148, 163, 184)"
+                  ><span class="ic"
+                    ><svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      width="1em"
+                      height="1em"
+                      aria-hidden="true"
+                    >
+                      <path d="M3 11 12 3l9 8" />
+                      <path d="M5 10v10h14V10" /></svg></span></span
+                ><span style="display: flex; align-items: center; gap: 6px"
+                  ><span
+                    style="
+                      color: rgb(148, 163, 184);
+                      font-weight: 400;
+                      text-transform: capitalize;
+                      white-space: nowrap;
+                    "
+                    >borrowings</span
+                  ></span
+                ><span style="display: flex; align-items: center; gap: 6px"
+                  ><span style="color: rgb(203, 213, 225)">/</span
+                  ><span
+                    style="
+                      color: rgb(15, 23, 42);
+                      font-weight: 600;
+                      text-transform: capitalize;
+                      white-space: nowrap;
+                    "
+                    >request</span
+                  ></span
+                >
+              </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px">
+              <div style="display: flex; align-items: center; gap: 6px">
+                <div
+                  style="
+                    width: 7px;
+                    height: 7px;
+                    border-radius: 50%;
+                    background: rgb(16, 185, 129);
+                    box-shadow: rgba(16, 185, 129, 0.2) 0px 0px 0px 3px;
+                  "
+                ></div>
+                <span
+                  style="
+                    font-size: 0.75rem;
+                    color: rgb(100, 116, 139);
+                    font-weight: 500;
+                  "
+                  >Online</span
+                >
+              </div>
+              <div
+                style="width: 1px; height: 14px; background: rgb(226, 232, 240)"
+              ></div>
+              <span style="font-size: 0.72rem; color: rgb(148, 163, 184)"
+                >18 Jun 2026</span
+              >
+              <div
+                style="width: 1px; height: 14px; background: rgb(226, 232, 240)"
+              ></div>
+              <div style="position: relative">
+                <button
+                  style="
+                    position: relative;
+                    background: rgb(248, 250, 255);
+                    border: 1px solid var(--border);
+                    border-radius: 10px;
+                    width: 38px;
+                    height: 38px;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 1.1rem;
+                    transition: 0.2s;
+                  "
+                >
+                  <span class="ic"
+                    ><svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      width="1em"
+                      height="1em"
+                      aria-hidden="true"
+                    >
+                      <path d="M6 9a6 6 0 0 1 12 0c0 7 3 7 3 9H3c0-2 3-2 3-9" />
+                      <path d="M10.5 21a1.5 1.5 0 0 0 3 0" /></svg
+                  ></span>
+                </button>
+              </div>
+            </div>
+          </div>
+          <div style="padding: 1.75rem">
+            <div>
+              <div
+                class="animate-fade-up"
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 12px;
+                  margin-bottom: 1.5rem;
+                "
+              >
+                <button
+                  style="
+                    background: rgb(241, 245, 249);
+                    border-width: medium;
+                    border-style: none;
+                    border-color: currentcolor;
+                    border-image: initial;
+                    border-radius: 8px;
+                    padding: 0.5rem 0.75rem;
+                    cursor: pointer;
+                    font-size: 0.85rem;
+                    color: rgb(100, 116, 139);
+                    font-weight: 600;
+                  "
+                  data-nav="daftarpinjam.html"
+                >
+                  Kembali
+                </button>
+                <div>
+                  <h1 style="font-size: 1.4rem; font-weight: 800">
+                    Ajukan Peminjaman
+                  </h1>
+                  <p style="color: var(--text-muted); font-size: 0.85rem">
+                    <span style="color: rgb(16, 185, 129); font-weight: 700"
+                      >1 tersedia</span
+                    >
+                  </p>
+                </div>
+              </div>
+              <div
+                style="
+                  display: grid;
+                  grid-template-columns: 1fr 340px;
+                  gap: 1.25rem;
+                  align-items: start;
+                "
+              >
+                <div>
+                  <div
+                    style="
+                      background: rgb(255, 255, 255);
+                      border-radius: 14px;
+                      padding: 1rem;
+                      box-shadow: var(--shadow);
+                      margin-bottom: 1rem;
+                      display: flex;
+                      gap: 10px;
+                      flex-wrap: wrap;
+                    "
+                  >
+                    <div
+                      style="position: relative; flex: 1 1 0%; min-width: 180px"
+                    >
+                      <span
+                        style="
+                          position: absolute;
+                          left: 14px;
+                          top: 50%;
+                          transform: translateY(-50%);
+                          color: var(--text-muted);
+                          font-size: 1.1rem;
+                          display: flex;
+                          pointer-events: none;
+                        "
+                        ><svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          width="1em"
+                          height="1em"
+                        >
+                          <circle cx="11" cy="11" r="7" />
+                          <path d="m21 21-4.3-4.3" /></svg></span
+                      ><input
+                        data-search="assets"
+                        placeholder="Cari nama, kode, atau lokasi..."
+                        value=""
+                        style="
+                          width: 100%;
+                          padding: 0.75rem 1rem 0.75rem 2.8rem;
+                          border-radius: 12px;
+                          border: 1px solid var(--border);
+                          font-size: 0.9rem;
+                          outline: none;
+                          background: rgb(255, 255, 255);
+                          transition: 0.2s;
+                          box-shadow: rgba(0, 0, 0, 0.02) 0px 2px 4px;
+                          box-sizing: border-box;
+                        "
+                        onfocus="
+                          this.style.borderColor = 'var(--primary)';
+                          this.style.boxShadow =
+                            '0 0 0 3px var(--primary-light)';
+                        "
+                        onblur="
+                          this.style.borderColor = 'var(--border)';
+                          this.style.boxShadow =
+                            'rgba(0, 0, 0, 0.02) 0px 2px 4px';
+                        "
+                      />
+                    </div>
+                    <button
+                      style="
+                        padding: 0.75rem 1.1rem;
+                        border-radius: 10px;
+                        border: 1px solid var(--primary);
+                        background: var(--primary-light);
+                        color: var(--primary);
+                        cursor: pointer;
+                        font-size: 0.82rem;
+                        font-weight: 700;
+                        transition: 0.2s;
+                      "
+                      data-filter="status"
+                      data-filter-val="all"
+                      data-filter-active
+                    >
+                      Semua</button
+                    ><button
+                      style="
+                        padding: 0.75rem 1.1rem;
+                        border-radius: 10px;
+                        border: 1px solid var(--border);
+                        background: rgb(255, 255, 255);
+                        color: var(--text-muted);
+                        cursor: pointer;
+                        font-size: 0.82rem;
+                        font-weight: 600;
+                        transition: 0.2s;
+                      "
+                      data-filter="status"
+                      data-filter-val="available"
+                    >
+                      Tersedia</button
+                    ><button
+                      style="
+                        padding: 0.75rem 1.1rem;
+                        border-radius: 10px;
+                        border: 1px solid var(--border);
+                        background: rgb(255, 255, 255);
+                        color: var(--text-muted);
+                        cursor: pointer;
+                        font-size: 0.82rem;
+                        font-weight: 600;
+                        transition: 0.2s;
+                      "
+                      data-filter="status"
+                      data-filter-val="unavailable"
+                    >
+                      Tidak Tersedia
+                    </button>
+                  </div>
+                  <div
+                    data-list="assets"
+                    style="display: flex; flex-direction: column; gap: 8px"
+                  >
+                    <div
+                      class="animate-fade-up delay-1"
+                      data-template
+                      data-search-item="assets"
+                      data-asset-select
+                      style="
+                        border-radius: 12px;
+                        background: rgb(255, 255, 255);
+                        padding: 0.875rem 1.25rem;
+                        border: 2px solid var(--border);
+                        cursor: pointer;
+                        display: flex;
+                        align-items: center;
+                        gap: 12px;
+                        transition: 0.18s;
+                        box-shadow: var(--shadow);
+                        opacity: 1;
+                        position: relative;
+                      "
+                    >
+                      <div
+                        style="
+                          width: 44px;
+                          height: 44px;
+                          border-radius: 12px;
+                          flex-shrink: 0;
+                          display: flex;
+                          align-items: center;
+                          justify-content: center;
+                          font-size: 1.2rem;
+                          background: rgb(241, 245, 249);
+                          transition: 0.2s;
+                        "
+                      >
+                        <span class="ic"
+                          ><svg
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            width="1em"
+                            height="1em"
+                            aria-hidden="true"
+                          >
+                            <path
+                              d="M15 6a3.5 3.5 0 0 0-4.6 4.6L4 17l3 3 6.4-6.4A3.5 3.5 0 0 0 18 9l-2.3 2.3-2-2z"
+                            /></svg
+                        ></span>
+                      </div>
+                      <div style="flex: 1 1 0%; min-width: 0px">
+                        <div
+                          style="
+                            font-weight: 700;
+                            font-size: 0.9rem;
+                            color: var(--text);
+                            display: flex;
+                            align-items: center;
+                            gap: 8px;
+                            flex-wrap: wrap;
+                          "
+                          data-bind="name"
+                        >
+                          Laptop
+                        </div>
+                        <div
+                          style="
+                            font-size: 0.75rem;
+                            color: var(--text-muted);
+                            margin-top: 2px;
+                          "
+                        >
+                          <span
+                            style="font-family: &quot;JetBrains Mono&quot;"
+                            data-bind="code"
+                            >123</span
+                          >
+                          ·
+                          <span class="ic"
+                            ><svg
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-width="2"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              width="1em"
+                              height="1em"
+                              aria-hidden="true"
+                            >
+                              <path
+                                d="M12 21s7-6 7-11a7 7 0 0 0-14 0c0 5 7 11 7 11z"
+                              />
+                              <circle cx="12" cy="10" r="2.5" /></svg
+                          ></span>
+                          Ruang Tata Usaha ·
+                          <span
+                            style="color: rgb(16, 185, 129); font-weight: 600"
+                            >Stok Tersedia: 13</span
+                          >
+                          · Fixed Asset
+                        </div>
+                      </div>
+                      <span
+                        style="
+                          background: rgb(220, 252, 231);
+                          color: rgb(22, 101, 52);
+                          padding: 0.25rem 0.65rem;
+                          border-radius: 20px;
+                          font-size: 0.72rem;
+                          font-weight: 700;
+                          flex-shrink: 0;
+                        "
+                        ><span class="ic"
+                          ><svg
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            width="1em"
+                            height="1em"
+                            aria-hidden="true"
+                          >
+                            <circle cx="12" cy="12" r="9" />
+                            <path d="m8.5 12 2.5 2.5 4.5-5" /></svg
+                        ></span>
+                        Tersedia</span
+                      >
+                      <div
+                        data-select-box
+                        style="
+                          width: 22px;
+                          height: 22px;
+                          border-radius: 6px;
+                          border: 2px solid var(--border);
+                          background: transparent;
+                          display: flex;
+                          align-items: center;
+                          justify-content: center;
+                          color: rgb(255, 255, 255);
+                          font-size: 0.8rem;
+                          flex-shrink: 0;
+                        "
+                      ></div>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  style="
+                    background: rgb(255, 255, 255);
+                    border-radius: 16px;
+                    padding: 1.5rem;
+                    box-shadow: var(--shadow);
+                    position: sticky;
+                    top: 5rem;
+                  "
+                >
+                  <h3
+                    style="
+                      font-weight: 800;
+                      margin-bottom: 1.25rem;
+                      display: flex;
+                      align-items: center;
+                      gap: 8px;
+                    "
+                  >
+                    <span class="ic"
+                      ><svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        width="1em"
+                        height="1em"
+                        aria-hidden="true"
+                      >
+                        <rect x="8" y="3" width="8" height="4" rx="1" />
+                        <path d="M8 5H6v16h12V5h-2" />
+                        <path d="M9 12h6M9 16h6" /></svg
+                    ></span>
+                    Detail Peminjaman
+                  </h3>
+                  <div
+                    style="
+                      background: linear-gradient(
+                        135deg,
+                        rgb(248, 250, 255),
+                        rgb(239, 246, 255)
+                      );
+                      border-radius: 10px;
+                      padding: 0.75rem;
+                      margin-bottom: 1rem;
+                      border: 1px solid rgb(219, 234, 254);
+                    "
+                  >
+                    <div
+                      style="
+                        font-size: 0.68rem;
+                        font-weight: 700;
+                        color: var(--primary);
+                        margin-bottom: 6px;
+                        text-transform: uppercase;
+                        letter-spacing: 0.5px;
+                      "
+                    >
+                      <span class="ic"
+                        ><svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          width="1em"
+                          height="1em"
+                          aria-hidden="true"
+                        >
+                          <circle cx="12" cy="8" r="4" />
+                          <path d="M4 21c0-4 4-6 8-6s8 2 8 6" /></svg
+                      ></span>
+                      Data Peminjam
+                    </div>
+                    <div style="font-size: 0.8rem; color: var(--text)">
+                      <div style="font-weight: 700">Adi Septriansyah</div>
+                      <div
+                        style="
+                          color: var(--text-muted);
+                          font-family: &quot;JetBrains Mono&quot;;
+                          font-size: 0.75rem;
+                        "
+                      >
+                        123456789123456710
+                      </div>
+                      <div style="color: var(--text-muted); font-size: 0.75rem">
+                        <span class="ic"
+                          ><svg
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            width="1em"
+                            height="1em"
+                            aria-hidden="true"
+                          >
+                            <rect x="7" y="2" width="10" height="20" rx="2" />
+                            <path d="M11 18h2" /></svg
+                        ></span>
+                        081271830293
+                      </div>
+                    </div>
+                  </div>
+                  <div style="margin-bottom: 1rem">
+                    <label
+                      style="
+                        font-size: 0.75rem;
+                        font-weight: 700;
+                        color: var(--text-muted);
+                        display: block;
+                        margin-bottom: 6px;
+                        text-transform: uppercase;
+                        letter-spacing: 0.5px;
+                      "
+                      >Tanggal Kembali *</label
+                    ><input
+                      data-field="date"
+                      min="2026-06-19"
+                      type="date"
+                      value=""
+                      style="
+                        display: block;
+                        width: 100%;
+                        padding: 0.65rem 0.875rem;
+                        border-radius: 10px;
+                        border: 1.5px solid var(--border);
+                        font-size: 0.875rem;
+                        outline: none;
+                        box-sizing: border-box;
+                        transition: border-color 0.2s;
+                      "
+                    />
+                  </div>
+                  <div style="margin-bottom: 1.25rem">
+                    <label
+                      style="
+                        font-size: 0.75rem;
+                        font-weight: 700;
+                        color: var(--text-muted);
+                        display: block;
+                        margin-bottom: 6px;
+                        text-transform: uppercase;
+                        letter-spacing: 0.5px;
+                      "
+                      >Keperluan / Catatan (opsional)</label
+                    ><textarea
+                      data-field="notes"
+                      placeholder="Jelaskan keperluan peminjaman aset ini..."
+                      style="
+                        display: block;
+                        width: 100%;
+                        padding: 0.65rem 0.875rem;
+                        border-radius: 10px;
+                        border: 1.5px solid var(--border);
+                        font-size: 0.875rem;
+                        outline: none;
+                        box-sizing: border-box;
+                        transition: border-color 0.2s;
+                        height: 80px;
+                        resize: vertical;
+                        font-family: &quot;Plus Jakarta Sans&quot;, sans-serif;
+                      "
+                    ></textarea>
+                  </div>
+                  <button
+                    data-action="submit-pinjam"
+                    disabled=""
+                    style="
+                      width: 100%;
+                      padding: 0.875rem;
+                      background: rgb(226, 232, 240);
+                      color: rgb(148, 163, 184);
+                      border-width: medium;
+                      border-style: none;
+                      border-color: currentcolor;
+                      border-image: initial;
+                      border-radius: 12px;
+                      cursor: not-allowed;
+                      font-weight: 700;
+                      font-size: 0.9rem;
+                      transition: 0.2s;
+                      box-shadow: none;
+                    "
+                  >
+                    Pilih aset yang tersedia
+                  </button>
+                  <p
+                    style="
+                      text-align: center;
+                      font-size: 0.75rem;
+                      color: var(--text-muted);
+                      margin-top: 8px;
+                    "
+                  >
+                    Hanya aset
+                    <strong style="color: rgb(16, 185, 129)"
+                      ><span class="ic"
+                        ><svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          width="1em"
+                          height="1em"
+                          aria-hidden="true"
+                        >
+                          <circle cx="12" cy="12" r="9" />
+                          <path d="m8.5 12 2.5 2.5 4.5-5" /></svg
+                      ></span>
+                      Tersedia</strong
+                    >
+                    yang dapat dipilih
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+    <script defer src="assets/config.js"></script>
+    <script defer src="assets/db.js"></script>
+    <script defer src="assets/icons.js"></script>
+    <script defer src="assets/app.js"></script>
+  </body>
 </html>

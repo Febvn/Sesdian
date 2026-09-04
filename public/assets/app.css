@@ -32,11 +32,11 @@ a{color:var(--primary);text-decoration:none}
 @keyframes shimmer{0%{background-position:-200% 0}to{background-position:200% 0}}
 @keyframes spin{to{transform:rotate(360deg)}}
 @keyframes bounceIn{0%{opacity:0;transform:scale(.8)}60%{opacity:1;transform:scale(1.05)}to{transform:scale(1)}}
-.animate-fade-up{animation:.5s both fadeUp}
+.animate-fade-up{animation:.15s both fadeUp}
 .animate-fade-in{animation:.4s both fadeIn}
 .animate-slide-in{animation:.4s both slideIn}
 .animate-bounce-in{animation:.4s both bounceIn}
-.delay-1{animation-delay:50ms}.delay-2{animation-delay:.1s}.delay-3{animation-delay:.15s}.delay-4{animation-delay:.2s}.delay-5{animation-delay:.25s}
+.delay-1{animation-delay:0ms}.delay-2{animation-delay:0ms}.delay-3{animation-delay:0ms}.delay-4{animation-delay:0ms}.delay-5{animation-delay:0ms}
 .skeleton{background:linear-gradient(90deg,#f1f5f9 25%,#e2e8f0 50%,#f1f5f9 75%) 0 0/200% 100%;border-radius:8px;animation:1.5s infinite shimmer}
 @media (width<=768px){:root{font-size:14px}}
 
