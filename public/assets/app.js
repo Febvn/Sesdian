@@ -193,7 +193,6 @@
           style: 'data-skeleton="true"'
         });
         skeleton.innerHTML = '<div class="sesd-loading-dots-alt">' +
-          '<span>Memuat data</span>' +
           '<div class="dot"></div>' +
           '<div class="dot"></div>' +
           '<div class="dot"></div>' +

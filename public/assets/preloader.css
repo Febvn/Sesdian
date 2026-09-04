@@ -218,15 +218,13 @@
 .sesd-loading-dots-alt {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  font-size: 1rem;
-  font-weight: 600;
-  color: #64748b;
+  justify-content: center;
+  gap: 8px;
 }
 
 .sesd-loading-dots-alt .dot {
-  width: 6px;
-  height: 6px;
+  width: 10px;
+  height: 10px;
   background: #6366f1;
   border-radius: 50%;
   animation: dotBounce 1.4s infinite ease-in-out;
