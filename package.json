@@ -8,9 +8,9 @@
     "dev": "node dev-server.mjs",
     "db:check": "node scripts/db-check.mjs",
     "db:run": "node scripts/run-sql.mjs",
-    "db:migrate": "node scripts/run-sql.mjs migrate-v3.sql",
-    "db:seed": "node scripts/run-sql.mjs seed-aset-2025.sql",
-    "db:setup": "node scripts/run-sql.mjs migrate-v3.sql && node scripts/run-sql.mjs seed-aset-2025.sql"
+    "db:migrate": "node scripts/run-sql.mjs db/migrate-v3.sql",
+    "db:seed": "node scripts/run-sql.mjs db/seed-aset-2025.sql",
+    "db:setup": "node scripts/run-sql.mjs db/migrate-v3.sql && node scripts/run-sql.mjs db/seed-aset-2025.sql"
   },
   "dependencies": {
     "@neondatabase/serverless": "^0.10.4"

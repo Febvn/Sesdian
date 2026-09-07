@@ -35,28 +35,28 @@ export default async function handler(req, res) {
     const auth = requireAuth(req, res); if (!auth) return;
     try {
       const page = parseInt(req.query?.page || 1, 10);
-      const limit = Math.min(parseInt(req.query?.limit || 1000, 10), 1000);
+      const limit = Math.min(parseInt(req.query?.limit || 5000, 10), 10000);
       const offset = (page - 1) * limit;
       const seesAll = STAFF.indexOf(auth.role) !== -1;
 
+      // single round-trip: total via window count instead of a second COUNT query
       const rows = seesAll
         ? await sql`select b.id, b.borrower_name, b.qty, b.status, b.due_date, b.created_at,
                b.approved_at, b.verified_at,
-               coalesce(a.name,'-') as asset_name, coalesce(a.code,'') as asset_code
+               coalesce(a.name,'-') as asset_name, coalesce(a.code,'') as asset_code,
+               count(*) over() as total_count
             from borrowings b left join assets a on a.id = b.asset_id
             order by b.created_at desc limit ${limit} offset ${offset}`
         : await sql`select b.id, b.borrower_name, b.qty, b.status, b.due_date, b.created_at,
                b.approved_at, b.verified_at,
-               coalesce(a.name,'-') as asset_name, coalesce(a.code,'') as asset_code
+               coalesce(a.name,'-') as asset_name, coalesce(a.code,'') as asset_code,
+               count(*) over() as total_count
             from borrowings b left join assets a on a.id = b.asset_id
             where b.user_id = ${auth.sub}
             order by b.created_at desc limit ${limit} offset ${offset}`;
 
-      const [{ count }] = seesAll
-        ? await sql`select count(*) from borrowings`
-        : await sql`select count(*) from borrowings where user_id = ${auth.sub}`;
-
-      return send(res, 200, { borrowings: rows, total: parseInt(count, 10), page, limit });
+      const total = rows.length ? parseInt(rows[0].total_count, 10) : 0;
+      return send(res, 200, { borrowings: rows, total, page, limit });
     } catch (e) { return send(res, 500, { error: e.message }); }
   }
 

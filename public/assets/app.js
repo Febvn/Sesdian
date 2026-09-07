@@ -151,7 +151,7 @@
       var f = e.getAttribute('data-bind');
       if (f === 'stock_bar') { var pct = rec.stock_total ? Math.round((rec.stock_available / rec.stock_total) * 100) : (rec.total ? Math.round(rec.available / rec.total * 100) : 0); e.style.width = pct + '%'; return; }
       if (f === 'status_badge') { setStatusBadge(e, rec.status); return; }
-      if (f === 'image') { e.src = rec.image || PLACEHOLDER; return; }
+      if (f === 'image') { e.loading = 'lazy'; e.decoding = 'async'; e.src = rec.image || PLACEHOLDER; return; }
       if (f === 'icon') { var nm = iconFor(rec.icon); if (nm) { e.innerHTML = window.SESDIAN_ICONS[nm]; e.style.color = 'var(--primary)'; } else { e.textContent = rec.icon || ''; } return; }
       var v = rec[f];
       if (v !== undefined && v !== null) e.textContent = v;
@@ -192,22 +192,25 @@
     entry.container.innerHTML = '';
     if (!records.length) { appendEmpty(entry.container); return; }
 
-    // Add staggered animation to items
+    // Build everything off-DOM, then append in ONE reflow (handles 1 or 1000 rows
+    // smoothly). Only the first few items fade in with a light stagger — the rest
+    // appear instantly, so large lists feel fast without dropping the polish.
+    var frag = document.createDocumentFragment();
+    var animated = [];
+    var STAGGER_MAX = 16;
     records.forEach(function (rec, index) {
       var n = entry.src.cloneNode(true);
       applyBinds(n, rec);
       if (fill) fill(n, rec);
-
-      // Add fade-in animation
-      n.style.opacity = '0';
-      n.style.transition = 'opacity 0.3s ease';
-      entry.container.appendChild(n);
-
-      // Stagger the animation
-      setTimeout(function() {
-        n.style.opacity = '1';
-      }, index * 50);
+      if (index < STAGGER_MAX) { n.style.opacity = '0'; n.style.transition = 'opacity 0.3s ease'; animated.push(n); }
+      frag.appendChild(n);
     });
+    entry.container.appendChild(frag);
+    if (animated.length) {
+      requestAnimationFrame(function () {
+        animated.forEach(function (n, i) { setTimeout(function () { n.style.opacity = '1'; }, i * 30); });
+      });
+    }
   }
 
   /* ====================== NO PREPLOADING - handled by preloader.js ====================== */

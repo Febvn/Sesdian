@@ -4,9 +4,10 @@ Ringkasan implementasi 6 fitur baru beserta langkah pengaktifan.
 
 ## ⚠️ Langkah wajib setelah deploy
 
-1. **Jalankan migrasi database** di Neon SQL Editor (atau `psql $DATABASE_URL -f migrate-v3.sql`):
+1. **Jalankan migrasi database** di Neon SQL Editor (atau `psql $DATABASE_URL -f db/migrate-v3.sql`),
+   atau lebih praktis dari lokal: `npm run db:setup` (lihat `docs/LOCAL-DEV.md`):
    ```
-   migrate-v3.sql
+   db/migrate-v3.sql
    ```
    Migrasi ini menambah kolom verifikasi ganda, kolom `qr_code`, membuat **10 QR sampel**
    (QR000001–QR000010 untuk 10 aset id terkecil), dan index untuk laporan. Aman dijalankan sekali.
@@ -64,7 +65,7 @@ Ringkasan implementasi 6 fitur baru beserta langkah pengaktifan.
 - API: `api/catalog.js`, `api/asset-detail.js`, `api/reports.js`, `api/assets-import.js`
 - Halaman: `katalog.html`, `aset-detail.html`, `verifikasi.html`, `laporan.html`, `qr-print.html`
 - Skrip: `assets/guest.js`, `assets/reports.js`, `assets/import.js`, `assets/qr.js`
-- Migrasi: `migrate-v3.sql`
+- Migrasi/seed: `db/migrate-v3.sql`, `db/seed-aset-2025.sql`
 
 ## Catatan
 - Import Excel & render QR memuat pustaka (SheetJS / qrcode-generator) dari CDN saat dibutuhkan —

@@ -60,17 +60,23 @@ public/             the static site (served by Vercel)
 api/                serverless functions
   register, login, me, categories, rooms, assets, borrowings, users, settings
   _auth.js _db.js _wa.js   (shared helpers, not routed)
-neon-schema.sql     full schema + seed (fresh install)
-migrate.sql         incremental, non-destructive migration (existing DB)
+db/                 SQL: schema, migrations, seed data
+  neon-schema.sql     full schema + seed (fresh install)
+  migrate*.sql        incremental, non-destructive migrations (existing DB)
+  seed-aset-2025.sql  asset data seed
+docs/               guides (setup, local dev, features, etc.)
+dev-server.mjs      local dev server (serves public/ + runs api/ against Neon)
+scripts/            db:check / db:run helpers (see docs/LOCAL-DEV.md)
 package.json        declares @neondatabase/serverless (installed by Vercel)
 vercel.json         outputDirectory: public, clean URLs
 ```
 
 ## Setup
 1. Create a Neon database (https://neon.tech) and copy the connection string.
-2. Fresh DB: run `neon-schema.sql` in the Neon SQL Editor.
-   Existing DB (already has data): run `migrate.sql` instead (it only adds the
-   settings table; it does not drop anything).
+2. Fresh DB: run `db/neon-schema.sql` in the Neon SQL Editor, then `db/migrate-v3.sql`.
+   Existing DB (already has data): run `db/migrate.sql` then `db/migrate-v3.sql`
+   (they only add columns/tables; nothing is dropped).
+   To run locally instead, see `docs/LOCAL-DEV.md`.
 3. Deploy to Vercel and add environment variables:
    - `DATABASE_URL`  (required) - your Neon connection string
    - `JWT_SECRET`    (required) - a long random string, e.g. `openssl rand -hex 32`

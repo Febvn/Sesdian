@@ -9,21 +9,23 @@ export default async function handler(req, res) {
     if (!requireAuth(req, res)) return;
     try {
       const page = parseInt(req.query?.page || 1, 10);
-      const limit = Math.min(parseInt(req.query?.limit || 1000, 10), 1000); // Default to 1000 to avoid breaking current UI
+      const limit = Math.min(parseInt(req.query?.limit || 5000, 10), 10000); // load all assets by default
       const offset = (page - 1) * limit;
+      // single round-trip: total via window count instead of a second COUNT query
       const rows = await sql`
         select a.id, a.code, a.name, coalesce(a.brand,'') as brand, a.year,
                coalesce(a.condition,'Baik') as condition, coalesce(a.type,'BMN') as type,
                coalesce(a.asset_type,'') as asset_type,
                a.stock_total, a.stock_available, a.stock_borrowed,
                a.category_id, a.room_id, a.image, a.qr_code,
-               coalesce(c.name,'') as category, coalesce(r.name,'') as room
+               coalesce(c.name,'') as category, coalesce(r.name,'') as room,
+               count(*) over() as total_count
         from assets a
         left join categories c on c.id = a.category_id
         left join rooms r on r.id = a.room_id
         order by a.id limit ${limit} offset ${offset}`;
-      const [{ count }] = await sql`select count(*) from assets`;
-      return send(res, 200, { assets: rows, total: parseInt(count, 10), page, limit });
+      const total = rows.length ? parseInt(rows[0].total_count, 10) : 0;
+      return send(res, 200, { assets: rows, total, page, limit });
     }
     catch (e) { return send(res, 500, { error: e.message }); }
   }

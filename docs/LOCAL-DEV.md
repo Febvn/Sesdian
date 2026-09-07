@@ -32,13 +32,13 @@ Kalau berhasil akan tampil jumlah baris `users`, `assets`, dll.
 ```
 npm run db:setup
 ```
-Sama dengan menjalankan `migrate-v3.sql` lalu `seed-aset-2025.sql`
+Sama dengan menjalankan `db/migrate-v3.sql` lalu `db/seed-aset-2025.sql`
 (697 aset BMN 2025 + 5 kategori, lalu menandai QR semua aset). Idempotent — aman diulang.
 
 Atau terpisah:
 ```
-npm run db:migrate      # migrate-v3.sql
-npm run db:seed         # seed-aset-2025.sql
+npm run db:migrate      # db/migrate-v3.sql
+npm run db:seed         # db/seed-aset-2025.sql
 npm run db:run <file>   # menjalankan file .sql apa pun
 ```
 

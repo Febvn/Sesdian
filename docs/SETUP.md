@@ -31,7 +31,7 @@ Aplikasi ini memerlukan environment variables berikut:
 Jalankan script ini di Neon SQL Editor:
 
 ```bash
-neon-schema.sql
+db/neon-schema.sql
 ```
 
 Script ini akan:
@@ -44,7 +44,7 @@ Script ini akan:
 Jika database sudah memiliki data, gunakan migration script:
 
 ```bash
-migrate.sql
+db/migrate.sql
 ```
 
 Script ini akan:
