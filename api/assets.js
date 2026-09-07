@@ -16,7 +16,7 @@ export default async function handler(req, res) {
                coalesce(a.condition,'Baik') as condition, coalesce(a.type,'BMN') as type,
                coalesce(a.asset_type,'') as asset_type,
                a.stock_total, a.stock_available, a.stock_borrowed,
-               a.category_id, a.room_id, a.image,
+               a.category_id, a.room_id, a.image, a.qr_code,
                coalesce(c.name,'') as category, coalesce(r.name,'') as room
         from assets a
         left join categories c on c.id = a.category_id
@@ -41,7 +41,11 @@ export default async function handler(req, res) {
                 ${b.year ? parseInt(b.year, 10) : null}, ${b.condition || 'Baik'}, ${b.type || 'BMN'},
                 ${b.asset_type || 'Fixed Asset'}, ${total}, ${total}, 0, ${b.image || null})
         returning id`;
-      return send(res, 200, { id: rows[0].id });
+      const newId = rows[0].id;
+      // auto-assign a unique QR code so every asset has a scannable detail page
+      await sql`update assets set qr_code = ${'QR' + String(newId).padStart(6, '0')}, qr_generated_at = now()
+                where id = ${newId} and qr_code is null`;
+      return send(res, 200, { id: newId });
     } catch (e) { return send(res, 500, { error: e.message }); }
   }
 

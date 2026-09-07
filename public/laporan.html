@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SESDIAN - Laporan Peminjaman</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="assets/app.css" />
+    <link rel="stylesheet" href="assets/preloader.css" />
+    <style>
+      @media print {
+        aside[data-shell],
+        [data-topbar],
+        [data-no-print] {
+          display: none !important;
+        }
+        body,
+        #root > div {
+          background: #fff !important;
+        }
+        main {
+          overflow: visible !important;
+        }
+      }
+    </style>
+  </head>
+  <body
+    data-page="laporan"
+    data-auth="required"
+    data-roles="admin,verifikator"
+  >
+    <div id="root">
+      <div style="display: flex; min-height: 100vh; background: rgb(240, 244, 255)">
+        <aside
+          data-shell
+          style="
+            width: 256px;
+            background: rgb(11, 17, 32);
+            display: flex;
+            flex-direction: column;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow: hidden;
+            flex-shrink: 0;
+            box-shadow: rgba(0, 0, 0, 0.25) 4px 0 32px;
+          "
+        ></aside>
+        <main style="flex: 1 1 0%; overflow: auto; min-width: 0">
+          <div
+            data-topbar
+            style="
+              background: #fff;
+              border-bottom: 1px solid rgb(226, 232, 240);
+              padding: 0.7rem 1rem;
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              position: sticky;
+              top: 0;
+              z-index: 10;
+              box-shadow: rgba(0, 0, 0, 0.04) 0 1px 0;
+            "
+          ></div>
+          <div style="padding: 1.75rem">
+            <div
+              data-no-print
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                flex-wrap: wrap;
+                gap: 12px;
+                margin-bottom: 1.25rem;
+              "
+            >
+              <div>
+                <h1 style="font-size: 1.5rem; font-weight: 800; margin-bottom: 4px">
+                  Laporan Peminjaman
+                </h1>
+                <p style="color: var(--text-muted); font-size: 0.875rem">
+                  Rekap peminjaman harian, mingguan, dan bulanan.
+                </p>
+              </div>
+              <div style="display: flex; gap: 8px; flex-wrap: wrap">
+                <button data-export class="sesd-btn sesd-btn-success">Export CSV</button>
+                <button data-print class="sesd-btn sesd-btn-ghost">Cetak / PDF</button>
+              </div>
+            </div>
+
+            <!-- controls -->
+            <div
+              data-no-print
+              style="
+                background: #fff;
+                border-radius: 14px;
+                box-shadow: var(--shadow);
+                padding: 1rem 1.25rem;
+                margin-bottom: 1.25rem;
+                display: flex;
+                gap: 12px;
+                flex-wrap: wrap;
+                align-items: flex-end;
+              "
+            >
+              <div>
+                <label style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; display: block; margin-bottom: 5px">Periode</label>
+                <div style="display: inline-flex; background: rgb(15, 23, 42); border-radius: 12px; padding: 4px; gap: 2px">
+                  <button data-period="daily" style="padding: 0.5rem 1rem; border-radius: 9px; border: none; cursor: pointer; font-weight: 700; font-size: 0.8rem; background: transparent; color: var(--text-muted)">Harian</button>
+                  <button data-period="weekly" style="padding: 0.5rem 1rem; border-radius: 9px; border: none; cursor: pointer; font-weight: 700; font-size: 0.8rem; background: transparent; color: var(--text-muted)">Mingguan</button>
+                  <button data-period="monthly" style="padding: 0.5rem 1rem; border-radius: 9px; border: none; cursor: pointer; font-weight: 700; font-size: 0.8rem; background: transparent; color: var(--text-muted)">Bulanan</button>
+                </div>
+              </div>
+              <div>
+                <label style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; display: block; margin-bottom: 5px">Dari</label>
+                <input data-start type="date" style="padding: 0.6rem 0.7rem; border: 1.5px solid var(--border); border-radius: 10px; font-size: 0.875rem; outline: none" />
+              </div>
+              <div>
+                <label style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; display: block; margin-bottom: 5px">Sampai</label>
+                <input data-end type="date" style="padding: 0.6rem 0.7rem; border: 1.5px solid var(--border); border-radius: 10px; font-size: 0.875rem; outline: none" />
+              </div>
+              <button data-apply class="sesd-btn sesd-btn-primary">Terapkan</button>
+            </div>
+
+            <!-- summary -->
+            <div
+              style="
+                display: grid;
+                grid-template-columns: 220px 1fr;
+                gap: 1rem;
+                margin-bottom: 1.25rem;
+              "
+            >
+              <div style="background: linear-gradient(135deg, rgb(99, 102, 241), rgb(139, 92, 246)); color: #fff; border-radius: 16px; padding: 1.25rem; box-shadow: var(--shadow-lg)">
+                <div style="font-size: 0.8rem; opacity: 0.85; font-weight: 600">Total Peminjaman</div>
+                <div data-total style="font-size: 2.6rem; font-weight: 800; line-height: 1.1; margin-top: 6px">0</div>
+                <div style="font-size: 0.72rem; opacity: 0.8; margin-top: 4px">pada periode terpilih</div>
+              </div>
+              <div style="background: #fff; border-radius: 16px; padding: 1.25rem; box-shadow: var(--shadow)">
+                <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 10px">Berdasarkan Status</div>
+                <div data-status-breakdown style="display: flex; flex-wrap: wrap; gap: 8px"></div>
+              </div>
+            </div>
+
+            <!-- chart -->
+            <div style="background: #fff; border-radius: 16px; padding: 1.25rem; box-shadow: var(--shadow); margin-bottom: 1.25rem">
+              <div style="font-size: 0.95rem; font-weight: 800; margin-bottom: 8px">Tren Peminjaman</div>
+              <div data-chart></div>
+            </div>
+
+            <!-- tops -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.25rem">
+              <div style="background: #fff; border-radius: 16px; padding: 1.25rem; box-shadow: var(--shadow)">
+                <div style="font-size: 0.95rem; font-weight: 800; margin-bottom: 8px">Aset Paling Sering Dipinjam</div>
+                <div data-top-assets></div>
+              </div>
+              <div style="background: #fff; border-radius: 16px; padding: 1.25rem; box-shadow: var(--shadow)">
+                <div style="font-size: 0.95rem; font-weight: 800; margin-bottom: 8px">Peminjam Teraktif</div>
+                <div data-top-borrowers></div>
+              </div>
+            </div>
+
+            <!-- detail table -->
+            <div style="background: #fff; border-radius: 16px; box-shadow: var(--shadow); overflow: auto">
+              <table style="width: 100%; border-collapse: collapse; min-width: 720px">
+                <thead style="background: rgb(248, 250, 255)">
+                  <tr>
+                    <th style="padding: 0.8rem 1rem; text-align: left; font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase">Tanggal</th>
+                    <th style="padding: 0.8rem 1rem; text-align: left; font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase">Aset</th>
+                    <th style="padding: 0.8rem 1rem; text-align: left; font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase">Peminjam</th>
+                    <th style="padding: 0.8rem 1rem; text-align: left; font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase">Jumlah</th>
+                    <th style="padding: 0.8rem 1rem; text-align: left; font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase">Status</th>
+                    <th style="padding: 0.8rem 1rem; text-align: left; font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase">Jatuh Tempo</th>
+                  </tr>
+                </thead>
+                <tbody data-report-rows></tbody>
+              </table>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+    <script defer src="assets/config.js"></script>
+    <script defer src="assets/db.js"></script>
+    <script defer src="assets/icons.js"></script>
+    <script defer src="assets/preloader.js"></script>
+    <script defer src="assets/app.js"></script>
+    <script defer src="assets/reports.js"></script>
+  </body>
+</html>

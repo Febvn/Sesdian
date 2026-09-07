@@ -1,34 +1,58 @@
 import { getSql } from './_db.js';
-import { requireAuth, requireAdmin, send, readJson } from './_auth.js';
+import { requireAuth, send, readJson } from './_auth.js';
 import { notifyAdminBorrow } from './_wa.js';
 
-const RESERVED = ['pending', 'approved', 'borrowed']; // stock counted as out while in these states
-const STATUSES = ['pending', 'approved', 'borrowed', 'returned', 'rejected'];
+// Stock is counted as "out" while a borrowing is in any of these states.
+const RESERVED = ['pending', 'approved', 'verified', 'borrowed'];
+const STATUSES = ['pending', 'approved', 'verified', 'borrowed', 'returned', 'rejected'];
+const STAFF = ['admin', 'verifikator'];
+
+// Dual-verification workflow:
+//   pending --(admin approve)--> approved --(verifikator verify)--> verified
+//        --(admin/verifikator lend)--> borrowed --(admin/verifikator)--> returned
+//   rejected may be set from pending/approved/verified by admin/verifikator.
+// Each transition declares the required previous status and who may perform it.
+function transitionError(prevStatus, target, role) {
+  const rule = {
+    approved: { from: ['pending'], roles: ['admin'], msg: 'Persetujuan awal hanya oleh admin.' },
+    verified: { from: ['approved'], roles: ['verifikator'], msg: 'Verifikasi kedua hanya oleh verifikator.' },
+    borrowed: { from: ['verified'], roles: STAFF, msg: 'Aset harus diverifikasi dulu sebelum dipinjamkan.' },
+    returned: { from: ['borrowed'], roles: STAFF, msg: 'Hanya peminjaman aktif yang bisa dikembalikan.' },
+    rejected: { from: ['pending', 'approved', 'verified'], roles: STAFF, msg: 'Peminjaman ini tidak bisa ditolak.' },
+  }[target];
+  if (!rule) return 'Status tidak valid';
+  if (rule.roles.indexOf(role) === -1) return rule.msg;
+  if (rule.from.indexOf(prevStatus) === -1) return rule.msg;
+  return null;
+}
 
 export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return send(res, 204, {});
   const sql = getSql();
 
-  // ---------- list (admins see all; users see only their own) ----------
+  // ---------- list (staff see all; users see only their own) ----------
   if (req.method === 'GET') {
     const auth = requireAuth(req, res); if (!auth) return;
     try {
       const page = parseInt(req.query?.page || 1, 10);
       const limit = Math.min(parseInt(req.query?.limit || 1000, 10), 1000);
       const offset = (page - 1) * limit;
+      const seesAll = STAFF.indexOf(auth.role) !== -1;
 
-      const rows = auth.role === 'admin'
+      const rows = seesAll
         ? await sql`select b.id, b.borrower_name, b.qty, b.status, b.due_date, b.created_at,
+               b.approved_at, b.verified_at,
                coalesce(a.name,'-') as asset_name, coalesce(a.code,'') as asset_code
             from borrowings b left join assets a on a.id = b.asset_id
             order by b.created_at desc limit ${limit} offset ${offset}`
         : await sql`select b.id, b.borrower_name, b.qty, b.status, b.due_date, b.created_at,
+               b.approved_at, b.verified_at,
                coalesce(a.name,'-') as asset_name, coalesce(a.code,'') as asset_code
             from borrowings b left join assets a on a.id = b.asset_id
             where b.user_id = ${auth.sub}
             order by b.created_at desc limit ${limit} offset ${offset}`;
-      
-      const [{ count }] = auth.role === 'admin' 
+
+      const [{ count }] = seesAll
         ? await sql`select count(*) from borrowings`
         : await sql`select count(*) from borrowings where user_id = ${auth.sub}`;
 
@@ -70,9 +94,10 @@ export default async function handler(req, res) {
     } catch (e) { return send(res, 500, { error: e.message }); }
   }
 
-  // ---------- admin: change status (approve / reject / borrow / return) ----------
+  // ---------- change status (admin / verifikator, role-gated per transition) ----------
   if (req.method === 'PATCH') {
-    if (!requireAdmin(req, res)) return;
+    const auth = requireAuth(req, res); if (!auth) return;
+    if (STAFF.indexOf(auth.role) === -1) return send(res, 403, { error: 'Akses admin/verifikator diperlukan' });
     try {
       const body = await readJson(req);
       const id = parseInt(body.id, 10);
@@ -83,12 +108,14 @@ export default async function handler(req, res) {
       if (!cur.length) return send(res, 404, { error: 'Peminjaman tidak ditemukan' });
       const prev = cur[0];
 
+      const err = transitionError(prev.status, status, auth.role);
+      if (err) return send(res, 403, { error: err });
+
       const wasOut = RESERVED.indexOf(prev.status) !== -1;
       const nowOut = RESERVED.indexOf(status) !== -1;
       const releasing = wasOut && !nowOut;     // returned/rejected -> give stock back
-      const reserving = !wasOut && nowOut;     // re-activate -> take stock again
+      const reserving = !wasOut && nowOut;     // (re)activate -> take stock again
 
-      // re-reserve guard: never over-commit beyond available stock
       if (reserving && prev.asset_id) {
         const a = await sql`select stock_available from assets where id = ${prev.asset_id}`;
         if (a.length && a[0].stock_available < prev.qty) return send(res, 400, { error: 'Stok tidak mencukupi untuk mengaktifkan kembali' });
@@ -96,9 +123,17 @@ export default async function handler(req, res) {
 
       const dAvail = releasing ? prev.qty : (reserving ? -prev.qty : 0);
       const dBorrow = releasing ? -prev.qty : (reserving ? prev.qty : 0);
-      // status update + stock adjustment in ONE statement -> can't desync
+      // status + audit stamps + stock adjustment in ONE statement -> can't desync
       await sql`
-        with b as (update borrowings set status = ${status} where id = ${id} returning asset_id)
+        with b as (
+          update borrowings set
+            status = ${status},
+            approved_by = case when ${status} = 'approved' then ${auth.sub} else approved_by end,
+            approved_at = case when ${status} = 'approved' then now()      else approved_at end,
+            verified_by = case when ${status} = 'verified' then ${auth.sub} else verified_by end,
+            verified_at = case when ${status} = 'verified' then now()      else verified_at end
+          where id = ${id} returning asset_id
+        )
         update assets a set stock_available = a.stock_available + ${dAvail},
                             stock_borrowed  = a.stock_borrowed  + ${dBorrow}
         from b where a.id = b.asset_id`;

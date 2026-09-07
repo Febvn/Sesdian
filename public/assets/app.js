@@ -12,7 +12,7 @@
   var DB = window.SESDIAN_DB || { configured: false };
   var REAL = !!DB.configured && /^https?:$/.test(location.protocol);
   var KEY = 'sesdian_user';
-  var USER = null, IS_ADMIN = false;
+  var USER = null, IS_ADMIN = false, IS_VERIFIKATOR = false, IS_STAFF = false;
 
   var $ = function (s, r) { return (r || document).querySelector(s); };
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
@@ -39,7 +39,8 @@
 
   var STATUS = {
     pending: { label: 'Pending', bg: '#fef3c7', fg: '#92400e' },
-    approved: { label: 'Disetujui', bg: '#dbeafe', fg: '#1e40af' },
+    approved: { label: 'Disetujui Admin', bg: '#dbeafe', fg: '#1e40af' },
+    verified: { label: 'Terverifikasi', bg: '#cffafe', fg: '#155e75' },
     borrowed: { label: 'Dipinjam', bg: '#ede9fe', fg: '#5b21b6' },
     returned: { label: 'Kembali', bg: '#dcfce7', fg: '#166534' },
     rejected: { label: 'Ditolak', bg: '#fee2e2', fg: '#991b1b' },
@@ -103,10 +104,12 @@
   function guard() {
     var needsAuth = document.body.hasAttribute('data-auth');
     var needsAdmin = document.body.hasAttribute('data-admin');
+    var roleList = (document.body.getAttribute('data-roles') || '').split(',').map(function (s) { return s.trim(); }).filter(Boolean);
     var user = currentUser();
     if (needsAuth && !user) { location.replace('login.html'); return { redirect: true }; }
     if ((page() === 'login' || page() === 'register') && user) { location.replace('dashboard.html'); return { redirect: true }; }
     if (needsAdmin && (!user || user.role !== 'admin')) { location.replace('dashboard.html'); return { redirect: true }; }
+    if (roleList.length && (!user || roleList.indexOf(user.role) === -1)) { location.replace('dashboard.html'); return { redirect: true }; }
     return { redirect: false, user: user };
   }
 
@@ -274,6 +277,14 @@
         if ($('[data-asset-template]')) {
           renderList('[data-asset-template]', await DB.assets(), function (n, r) { var cb = $('[data-asset-checkbox]', n) || $('input[type="checkbox"]', n); if (cb) cb.value = String(r.id); });
         }
+      } else if (p === 'verifikasi') {
+        var allb = await DB.borrowings();
+        var queue = allb.filter(function (b) { return b.status === 'approved'; });
+        ensureAksiHeader();
+        renderList('[data-template]', queue, function (n, r) { n.setAttribute('data-status', r.status); enhanceBorrowingRow(n, r); });
+        var qc = $('[data-count="approved"]'); if (qc) qc.textContent = queue.length;
+        var done = allb.filter(function (b) { return b.status === 'verified' || b.status === 'borrowed' || b.status === 'returned'; }).length;
+        var dc = $('[data-count="verified"]'); if (dc) dc.textContent = done;
       } else if (p === 'ajukanpinjam') {
         renderList('[data-template]', await DB.assets(), function (n, r) {
           n.setAttribute('data-asset-id', r.id);
@@ -498,15 +509,18 @@
     var cell = el('td', { style: 'padding:0.875rem 1rem' });           // dedicated Aksi cell (never the date cell)
     var bar = el('div', { class: 'sesd-admin-actions' });
     var btns = [];
-    if (IS_ADMIN) {
-      if (rec.status === 'pending') { btns.push(['Setujui', 'success', function () { changeStatus(rec, 'approved'); }], ['Tolak', 'danger', function () { changeStatus(rec, 'rejected'); }]); }
-      else if (rec.status === 'approved') { btns.push(['Pinjamkan', 'primary', function () { changeStatus(rec, 'borrowed'); }], ['Tolak', 'danger', function () { changeStatus(rec, 'rejected'); }]); }
+    // Dual verification: pending --admin--> approved --verifikator--> verified --staff--> borrowed --staff--> returned
+    if (IS_STAFF) {
+      if (IS_ADMIN && rec.status === 'pending') { btns.push(['Setujui (Verifikasi 1)', 'success', function () { changeStatus(rec, 'approved'); }], ['Tolak', 'danger', function () { changeStatus(rec, 'rejected'); }]); }
+      else if (IS_VERIFIKATOR && rec.status === 'approved') { btns.push(['Verifikasi (Verifikasi 2)', 'success', function () { changeStatus(rec, 'verified'); }], ['Tolak', 'danger', function () { changeStatus(rec, 'rejected'); }]); }
+      else if (rec.status === 'verified') { btns.push(['Pinjamkan', 'primary', function () { changeStatus(rec, 'borrowed'); }], ['Tolak', 'danger', function () { changeStatus(rec, 'rejected'); }]); }
       else if (rec.status === 'borrowed') { btns.push(['Kembalikan', 'ghost', function () { changeStatus(rec, 'returned'); }]); }
-      if (isOverdue(rec) && (rec.status === 'approved' || rec.status === 'borrowed')) btns.unshift(['Ingatkan WA', 'warning', function () { doNotify(rec, 'remind', 'Pengingat dikirim ke peminjam'); }]);
-    } else if (rec.status === 'approved' || rec.status === 'borrowed') {
+      else if (IS_ADMIN && rec.status === 'approved') { cell._note = 'Menunggu verifikator'; }
+      if (isOverdue(rec) && (rec.status === 'approved' || rec.status === 'verified' || rec.status === 'borrowed')) btns.unshift(['Ingatkan WA', 'warning', function () { doNotify(rec, 'remind', 'Pengingat dikirim ke peminjam'); }]);
+    } else if (rec.status === 'approved' || rec.status === 'verified' || rec.status === 'borrowed') {
       btns.push(['Konfirmasi Pengembalian', 'primary', function () { doNotify(rec, 'return-request', 'Konfirmasi dikirim ke admin'); }]);
     }
-    if (!btns.length) cell.appendChild(el('span', { style: 'color:var(--text-muted);font-size:.78rem' }, '-'));
+    if (!btns.length) cell.appendChild(el('span', { style: 'color:var(--text-muted);font-size:.78rem' }, cell._note || '-'));
     btns.forEach(function (a) {
       var b = el('button', { class: 'sesd-btn sesd-btn-sm sesd-btn-' + a[1] }, a[0]);
       b.addEventListener('click', function (e) { e.stopPropagation(); a[2](); });
@@ -516,6 +530,15 @@
     row.appendChild(cell);
   }
 
+  var ROLE_META = {
+    admin: ['Admin', 'shield', '#ede9fe', '#5b21b6'],
+    verifikator: ['Verifikator', 'check_circle', '#cffafe', '#155e75'],
+    user: ['User', 'user', '#e2e8f0', '#475569'],
+  };
+  function roleBadge(role) {
+    var m = ROLE_META[role] || ROLE_META.user;
+    return el('span', { class: 'sesd-role', style: 'background:' + m[2] + ';color:' + m[3], html: ic(m[1]) + ' ' + m[0] });
+  }
   async function renderUsers() {
     var list = $('[data-users-list]'); if (!list) return;
     var users = [];
@@ -529,14 +552,36 @@
       tr.appendChild(el('td', { style: td + ';font-weight:600' }, u.name));
       tr.appendChild(el('td', { style: td + ';color:var(--text-muted);font-family:"JetBrains Mono",monospace;font-size:0.8rem' }, u.nip));
       var roleTd = el('td', { style: td });
-      roleTd.appendChild(el('span', { class: 'sesd-role sesd-role-' + (u.role === 'admin' ? 'admin' : 'user'), html: (u.role === 'admin' ? ic('shield') + ' Admin' : ic('user') + ' User') }));
+      roleTd.appendChild(roleBadge(u.role));
       tr.appendChild(roleTd);
       var actTd = el('td', { style: td });
-      var toAdmin = u.role !== 'admin';
-      var btn = el('button', { class: 'sesd-btn sesd-btn-sm ' + (toAdmin ? 'sesd-btn-primary' : 'sesd-btn-ghost') }, toAdmin ? 'Jadikan Admin' : 'Jadikan User');
-      btn.addEventListener('click', async function () { try { await DB.setUserRole(u.id, toAdmin ? 'admin' : 'user'); toast('Role diperbarui', 'success'); renderUsers(); } catch (e) { toast((e && e.message) || 'Gagal', 'error'); } });
-      actTd.appendChild(btn); tr.appendChild(actTd);
+      var wrap = el('div', { style: 'display:flex;gap:6px;align-items:center;flex-wrap:wrap' });
+      var sel = el('select', { style: 'padding:0.35rem 0.5rem;border:1.5px solid var(--border);border-radius:8px;font-size:0.78rem;font-family:inherit;cursor:pointer' });
+      ['user', 'verifikator', 'admin'].forEach(function (r) { var o = el('option', { value: r }, ROLE_META[r][0]); if (u.role === r) o.selected = true; sel.appendChild(o); });
+      sel.addEventListener('change', async function () { try { await DB.setUserRole(u.id, sel.value); toast('Role diperbarui', 'success'); renderUsers(); } catch (e) { toast((e && e.message) || 'Gagal', 'error'); renderUsers(); } });
+      var del = el('button', { class: 'sesd-btn sesd-btn-sm sesd-btn-danger', html: ic('trash') });
+      del.addEventListener('click', function () { confirmDelete('user "' + u.name + '"', async function () { await DB.deleteUser(u.id); toast('User dihapus', 'success'); renderUsers(); }); });
+      wrap.appendChild(sel); wrap.appendChild(del);
+      actTd.appendChild(wrap); tr.appendChild(actTd);
       list.appendChild(tr);
+    });
+  }
+  function openUserForm() {
+    overlayForm({
+      title: 'Tambah User', submitLabel: 'Tambah',
+      fields: [
+        { name: 'name', label: 'Nama Lengkap' },
+        { name: 'nip', label: 'NIP' },
+        { name: 'password', label: 'Password (min. 8 karakter)', type: 'password' },
+        { name: 'role', label: 'Role', type: 'select', value: 'user', options: [{ value: 'user', label: 'User' }, { value: 'verifikator', label: 'Verifikator' }, { value: 'admin', label: 'Admin' }] },
+        { name: 'phone', label: 'No. HP / WhatsApp (opsional)' },
+      ],
+      onSave: async function (v) {
+        if (!v.name || !v.nip) throw new Error('Nama dan NIP wajib diisi');
+        if (!v.password || v.password.length < 8) throw new Error('Password minimal 8 karakter');
+        await DB.createUser({ nip: v.nip, name: v.name, password: v.password, role: v.role, phone: v.phone });
+        toast('User ditambahkan', 'success'); reloadData();
+      },
     });
   }
 
@@ -553,31 +598,75 @@
     });
   }
 
-  function injectAdminNav() {
-    if ($('aside a[href="users.html"]')) { markUsersActive(); return; }
+  function sectionHeader(label) {
+    return el('div', { style: 'display:flex;align-items:center;gap:6px;padding:0.6rem 0.5rem 0.25rem', html: '<div style="flex:1 1 0%;height:1px;background:rgb(26,37,64)"></div><span style="font-size:0.55rem;color:rgb(51,65,85);font-weight:800;letter-spacing:1.5px;white-space:nowrap">' + label + '</span><div style="flex:1 1 0%;height:1px;background:rgb(26,37,64)"></div>' });
+  }
+  function makeNavLink(href, iconName, title, subtitle) {
+    var active = (page() + '.html') === href;
+    var base = 'display:flex;align-items:center;gap:10px;padding:0.55rem 0.75rem;border-radius:10px;margin-bottom:2px;text-decoration:none;transition:0.18s;justify-content:flex-start;';
+    var style = active
+      ? base + 'color:rgb(255,255,255);background:rgb(245,158,11);box-shadow:rgba(245,158,11,0.35) 0px 4px 12px;'
+      : base + 'color:rgb(100,116,139);background:transparent;box-shadow:none;';
+    var sub = active ? 'rgba(255,255,255,0.6)' : 'rgb(51,65,85)';
+    var icon = (window.SESDIAN_ICONS && window.SESDIAN_ICONS[iconName]) || '';
+    return el('a', { href: href, style: style, html: '<span class="ic" style="font-size:1rem;flex-shrink:0;line-height:1">' + icon + '</span><div style="overflow:hidden;flex:1 1 0%"><div style="font-size:0.8rem;font-weight:' + (active ? '700' : '500') + ';white-space:nowrap;color:inherit">' + title + '</div><div style="font-size:0.62rem;color:' + sub + ';white-space:nowrap;margin-top:1px">' + subtitle + '</div></div>' });
+  }
+  function injectRoleNav() {
+    if (!IS_STAFF) return;
+    if ($('aside [data-role-nav]')) return;
     var ref = $('aside a[href="ajukanpinjam.html"]'); if (!ref) return;
     var navContainer = ref.parentNode.parentNode;
-    var sec = el('div', { style: 'margin-bottom:0.25rem' });
-    sec.appendChild(el('div', { style: 'display:flex;align-items:center;gap:6px;padding:0.6rem 0.5rem 0.25rem', html: '<div style="flex:1 1 0%;height:1px;background:rgb(26,37,64)"></div><span style="font-size:0.55rem;color:rgb(51,65,85);font-weight:800;letter-spacing:1.5px;white-space:nowrap">ADMIN</span><div style="flex:1 1 0%;height:1px;background:rgb(26,37,64)"></div>' }));
-    var a = el('a', { href: 'users.html', style: 'display:flex;align-items:center;gap:10px;padding:0.55rem 0.75rem;border-radius:10px;margin-bottom:2px;color:rgb(100,116,139);background:transparent;text-decoration:none', html: '<span class="ic" style="font-size:1rem;flex-shrink:0;line-height:1">' + (window.SESDIAN_ICONS && window.SESDIAN_ICONS.users || '') + '</span><div style="overflow:hidden;flex:1 1 0%"><div style="font-size:0.8rem;font-weight:500;white-space:nowrap;color:inherit">Kelola User</div><div style="font-size:0.62rem;color:rgb(51,65,85);white-space:nowrap;margin-top:1px">User &amp; admin</div></div>' });
-    sec.appendChild(a); navContainer.appendChild(sec);
-    markUsersActive();
+    var sec = el('div', { 'data-role-nav': '', style: 'margin-bottom:0.25rem' });
+    sec.appendChild(sectionHeader('MANAJEMEN'));
+    sec.appendChild(makeNavLink('laporan.html', 'chart', 'Laporan', 'Harian · bulanan'));
+    sec.appendChild(makeNavLink('verifikasi.html', 'check_circle', 'Verifikasi', 'Persetujuan ke-2'));
+    if (IS_ADMIN) sec.appendChild(makeNavLink('users.html', 'users', 'Kelola User', 'User & admin'));
+    navContainer.appendChild(sec);
   }
-  function markUsersActive() {
-    if (page() !== 'users') return;
-    var a = $('aside a[href="users.html"]'); if (!a) return;
-    a.style.color = 'rgb(255,255,255)'; a.style.background = 'rgb(245,158,11)'; a.style.boxShadow = 'rgba(245,158,11,0.35) 0px 4px 12px';
-    var lbl = a.querySelector('div div'); if (lbl) lbl.style.fontWeight = '700';
+
+  /* ---------------- dynamic app shell (for new pages that opt in) ----------------
+     A page using <aside data-shell></aside> + a sticky <div data-topbar></div>
+     gets the standard sidebar + topbar built here, so it needs no copied markup. */
+  var PAGE_TITLES = { dashboard: 'Dashboard', dataaset: 'Data Aset', kategoriaset: 'Kategori Aset', ruangan: 'Ruangan', daftarpinjam: 'Daftar Pinjam', ajukanpinjam: 'Ajukan Pinjam', users: 'Kelola User', verifikasi: 'Verifikasi', laporan: 'Laporan' };
+  function navSection(label, links) { var d = el('div', { style: 'margin-bottom:0.25rem' }); d.appendChild(sectionHeader(label)); links.forEach(function (l) { d.appendChild(l); }); return d; }
+  function buildShell() {
+    var aside = $('aside[data-shell]');
+    if (aside && !aside.children.length) {
+      aside.appendChild(el('div', { style: 'padding:1rem;border-bottom:1px solid rgb(26,37,64);display:flex;align-items:center;gap:8px;min-height:60px', html: '<div><div style="font-size:1.15rem;font-weight:900;color:#fff;letter-spacing:-0.5px;line-height:1">SES<span style="color:rgb(99,102,241)">DIAN</span></div><div style="font-size:0.55rem;color:rgb(51,65,85);margin-top:3px;font-family:\'JetBrains Mono\';letter-spacing:2px">ASSET MANAGEMENT</div></div>' }));
+      var nav = el('div', { style: 'flex:1 1 0%;overflow:hidden auto;padding:0.5rem' });
+      nav.appendChild(navSection('UTAMA', [makeNavLink('dashboard.html', 'zap', 'Dashboard', 'Ringkasan & statistik')]));
+      nav.appendChild(navSection('ASET', [makeNavLink('dataaset.html', 'package', 'Data Aset', 'Lihat semua aset'), makeNavLink('kategoriaset.html', 'tag', 'Kategori Aset', 'Jenis-jenis aset'), makeNavLink('ruangan.html', 'home', 'Ruangan', 'Daftar ruangan')]));
+      nav.appendChild(navSection('PEMINJAMAN', [makeNavLink('daftarpinjam.html', 'refresh', 'Daftar Pinjam', 'Riwayat peminjaman'), makeNavLink('ajukanpinjam.html', 'clipboard', 'Ajukan Pinjam', 'Request baru')]));
+      aside.appendChild(nav);
+      aside.appendChild(el('div', { style: 'padding:0.75rem;border-top:1px solid rgb(26,37,64)', html: '<div style="display:flex;align-items:center;gap:8px;padding:0.6rem;border-radius:10px;background:linear-gradient(135deg,rgb(26,37,64),rgb(15,23,42));border:1px solid rgb(30,41,59)"><div data-user-initials style="width:34px;height:34px;border-radius:9px;flex-shrink:0;background:linear-gradient(135deg,rgb(99,102,241),rgb(139,92,246));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:0.75rem">AS</div><div style="flex:1 1 0%;min-width:0px"><div data-user-name style="color:rgb(226,232,240);font-size:0.75rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Pengguna</div><div data-user-role style="color:rgb(51,65,85);font-size:0.6rem;text-transform:uppercase;letter-spacing:1px">user</div></div><button data-action="logout" style="background:transparent;border:1px solid rgb(30,41,59);color:rgb(71,85,105);cursor:pointer;font-size:0.7rem;padding:0.25rem 0.5rem;border-radius:6px;flex-shrink:0">Keluar</button></div>' }));
+    }
+    var top = $('[data-topbar]');
+    if (top && !top.children.length) {
+      top.appendChild(el('div', { style: 'display:flex;align-items:center;gap:10px', html: '<span class="ic" style="color:rgb(148,163,184)">' + ((window.SESDIAN_ICONS && window.SESDIAN_ICONS.home) || '') + '</span><span style="color:rgb(15,23,42);font-weight:600">' + (PAGE_TITLES[page()] || '') + '</span>' }));
+      top.appendChild(el('div', { style: 'display:flex;align-items:center;gap:6px', html: '<div style="width:7px;height:7px;border-radius:50%;background:rgb(16,185,129);box-shadow:rgba(16,185,129,0.2) 0px 0px 0px 3px"></div><span style="font-size:0.75rem;color:rgb(100,116,139);font-weight:500">Online</span>' }));
+    }
   }
 
   function injectAdminBars() {
     var p = page();
     var content = $$('main > div').pop(); if (!content) return;
     var inner = content.firstElementChild || content;
-    function bar(label, onClick) { var b = el('button', { class: 'sesd-btn sesd-btn-primary' }, label); b.addEventListener('click', onClick); var wrap = el('div', { class: 'sesd-admin-bar' }); wrap.appendChild(b); inner.insertBefore(wrap, inner.firstChild); }
-    if (p === 'dataaset') bar('Tambah Aset', function () { openAssetForm(null); });
-    else if (p === 'kategoriaset') bar('Tambah Kategori', function () { openCategoryForm(null); });
-    else if (p === 'ruangan') bar('Tambah Ruangan', function () { openRoomForm(null); });
+    function bar(buttons) {
+      var wrap = el('div', { class: 'sesd-admin-bar' });
+      buttons.forEach(function (b) {
+        var btn = el('button', { class: 'sesd-btn sesd-btn-' + (b.variant || 'primary'), html: (b.icon ? ic(b.icon) + ' ' : '') + b.label });
+        btn.addEventListener('click', b.onClick); wrap.appendChild(btn);
+      });
+      inner.insertBefore(wrap, inner.firstChild);
+    }
+    if (p === 'dataaset') bar([
+      { label: 'Tambah Aset', icon: 'package', onClick: function () { openAssetForm(null); } },
+      { label: 'Import Excel', variant: 'success', icon: 'archive', onClick: function () { if (window.SESDIAN_IMPORT) window.SESDIAN_IMPORT.open(); else toast('Modul import belum siap', 'error'); } },
+      { label: 'Cetak QR', variant: 'ghost', icon: 'tag', onClick: function () { location.href = 'qr-print.html'; } },
+    ]);
+    else if (p === 'kategoriaset') bar([{ label: 'Tambah Kategori', onClick: function () { openCategoryForm(null); } }]);
+    else if (p === 'ruangan') bar([{ label: 'Tambah Ruangan', onClick: function () { openRoomForm(null); } }]);
+    else if (p === 'users') bar([{ label: 'Tambah User', icon: 'user', onClick: function () { openUserForm(); } }]);
   }
 
   /* ---------------- password toggle ---------------- */
@@ -779,9 +868,14 @@
     // No prepLoading() - preloader.js handles all loading states
     var g = guard();
     if (g.redirect) return;
-    USER = g.user; IS_ADMIN = !!(USER && USER.role === 'admin');
+    USER = g.user;
+    IS_ADMIN = !!(USER && USER.role === 'admin');
+    IS_VERIFIKATOR = !!(USER && USER.role === 'verifikator');
+    IS_STAFF = IS_ADMIN || IS_VERIFIKATOR;
+    buildShell();                 // fill dynamic sidebar/topbar on pages that opt in
     fillIdentity(USER);
-    if (IS_ADMIN) { injectAdminNav(); injectAdminBars(); }
+    if (IS_STAFF) injectRoleNav();
+    if (IS_ADMIN) injectAdminBars();
     await loadAndRender(page());
     setupMobileLayout();
     setupDates();

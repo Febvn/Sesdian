@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SESDIAN - Cetak QR Aset</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="assets/app.css" />
+    <style>
+      .qr-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 12px;
+      }
+      @media print {
+        [data-no-print] { display: none !important; }
+        body { background: #fff !important; }
+        .qr-grid { grid-template-columns: repeat(4, 1fr); }
+      }
+    </style>
+  </head>
+  <body data-page="qr-print" style="background: var(--bg)">
+    <div
+      data-no-print
+      style="
+        background: rgb(11, 17, 32);
+        position: sticky;
+        top: 0;
+        z-index: 10;
+      "
+    >
+      <div
+        style="
+          max-width: 1100px;
+          margin: 0 auto;
+          padding: 0.85rem 1.25rem;
+          display: flex;
+          align-items: center;
+          gap: 14px;
+        "
+      >
+        <a
+          href="dataaset.html"
+          style="color: rgb(148, 163, 184); text-decoration: none; font-size: 0.85rem; font-weight: 600"
+          >‹ Data Aset</a
+        >
+        <span style="color: #fff; font-weight: 800">Cetak QR Aset</span>
+        <span data-qr-sub style="color: rgb(100, 116, 139); font-size: 0.78rem"></span>
+        <div style="flex: 1"></div>
+        <button data-print class="sesd-btn sesd-btn-primary">Cetak / PDF</button>
+      </div>
+    </div>
+
+    <main style="max-width: 1100px; margin: 0 auto; padding: 1.5rem 1.25rem">
+      <p
+        data-no-print
+        style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1rem"
+      >
+        Scan QR untuk membuka halaman detail aset. Tempelkan stiker QR pada aset
+        fisik. Gunakan tombol Cetak untuk mencetak atau menyimpan sebagai PDF.
+      </p>
+      <div data-qr-grid class="qr-grid">
+        <div class="sesd-loading">Menyiapkan QR…</div>
+      </div>
+    </main>
+
+    <script defer src="assets/config.js"></script>
+    <script defer src="assets/db.js"></script>
+    <script defer src="assets/icons.js"></script>
+    <script defer src="assets/qr.js"></script>
+  </body>
+</html>

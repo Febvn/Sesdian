@@ -18,7 +18,8 @@ export default async function handler(req, res) {
         from assets
       `;
       
-      const [{ pending }] = auth.role === 'admin' 
+      const seesAll = auth.role === 'admin' || auth.role === 'verifikator';
+      const [{ pending }] = seesAll
         ? await sql`select count(*) as pending from borrowings where status = 'pending'`
         : await sql`select count(*) as pending from borrowings where status = 'pending' and user_id = ${auth.sub}`;
 
@@ -29,7 +30,7 @@ export default async function handler(req, res) {
         limit 10
       `;
 
-      const recent = auth.role === 'admin'
+      const recent = seesAll
         ? await sql`select b.id, b.borrower_name, b.qty, b.status, b.due_date, b.created_at, coalesce(a.name,'-') as asset_name, coalesce(a.code,'') as asset_code from borrowings b left join assets a on a.id = b.asset_id order by b.created_at desc limit 5`
         : await sql`select b.id, b.borrower_name, b.qty, b.status, b.due_date, b.created_at, coalesce(a.name,'-') as asset_name, coalesce(a.code,'') as asset_code from borrowings b left join assets a on a.id = b.asset_id where b.user_id = ${auth.sub} order by b.created_at desc limit 5`;
 

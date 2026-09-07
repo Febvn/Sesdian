@@ -355,7 +355,7 @@
                   'createCategory', 'updateCategory', 'deleteCategory',
                   'createRoom', 'updateRoom', 'deleteRoom',
                   'requestBorrowing', 'updateBorrowingStatus',
-                  'setUserRole', 'setWaNumber'];
+                  'setUserRole', 'createUser', 'deleteUser', 'importAssets', 'setWaNumber'];
 
     writes.forEach(function (fn) {
       if (DB[fn]) {

@@ -42,7 +42,7 @@
     seq: 100,
     categories: [['Elektronik', 'monitor'], ['Furnitur', 'chair'], ['Kendaraan', 'car'], ['Peralatan', 'wrench'], ['Dokumen', 'file'], ['Lain-lain', 'package']].map(function (c, i) { return { id: i + 1, name: c[0], icon: c[1] }; }),
     rooms: [['Ruang Kepala', 'RK-01'], ['Ruang Tata Usaha', 'TU-01'], ['Ruang Rapat', 'RR-01'], ['Ruang Pelayanan', 'RP-01'], ['Gudang', 'GD-01'], ['Laboratorium', 'LB-01']].map(function (r, i) { return { id: i + 1, name: r[0], code: r[1], pic: '' }; }),
-    assets: [{ id: 1, code: '123', name: 'Laptop', category_id: 1, brand: 'Acer', room_id: 2, year: 2024, condition: 'Baik', type: 'BMN', asset_type: 'Fixed Asset', stock_total: 14, stock_available: 9, stock_borrowed: 5, image: null }],
+    assets: [{ id: 1, code: '123', name: 'Laptop', category_id: 1, brand: 'Acer', room_id: 2, year: 2024, condition: 'Baik', type: 'BMN', asset_type: 'Fixed Asset', stock_total: 14, stock_available: 9, stock_borrowed: 5, image: null, qr_code: 'QR000001' }],
     borrowings: [{ id: 1, asset_id: 1, borrower_name: 'Adi Septriansyah', qty: 1, status: 'pending', due_date: '2026-06-18', created_at: '2026-06-15T08:00:00Z' }],
     users: [{ id: 1, nip: '123456789012345678', name: 'Adi Septriansyah', role: 'admin' }, { id: 2, nip: '987654321098765432', name: 'Budi Santoso', role: 'user' }],
     settings: { wa_number: '' },
@@ -124,11 +124,52 @@
     return (await req('borrowings', { method: 'POST', body: { assetId: o.assetId, qty: o.qty || 1, dueDate: o.dueDate || null, notes: o.notes || null } })).borrowing;
   }
 
+  /* ====================== public catalog / detail (guest) ====================== */
+  function publicAsset(a) { return { id: a.id, code: a.code, name: a.name, brand: a.brand, type: a.type, image: a.image, qr_code: a.qr_code, category: a.category, room: a.room }; }
+  async function catalog() {
+    if (demo) { var as = await assets(); return P({ assets: as.map(publicAsset), categories: DEMO.categories.slice(), rooms: DEMO.rooms.slice() }); }
+    return req('catalog');
+  }
+  async function assetDetail(o) {
+    o = o || {};
+    if (demo) {
+      var as = await assets();
+      var a = as.filter(function (x) { return (o.id && x.id == o.id) || (o.qr && x.qr_code === o.qr); })[0];
+      if (!a) return Promise.reject(new Error('Aset tidak ditemukan'));
+      return P({ asset: publicAsset(a), authed: !!currentUserRaw() });
+    }
+    var qs = o.qr ? ('qr=' + encodeURIComponent(o.qr)) : ('id=' + encodeURIComponent(o.id));
+    return req('asset-detail?' + qs);
+  }
+
+  /* ====================== reports (admin/verifikator) ====================== */
+  async function reports(params) {
+    params = params || {};
+    if (demo) { return P({ period: params.period || 'daily', start: '', end: '', total: 0, series: [], by_status: {}, top_assets: [], top_borrowers: [], rows: [] }); }
+    var qs = Object.keys(params).filter(function (k) { return params[k]; }).map(function (k) { return k + '=' + encodeURIComponent(params[k]); }).join('&');
+    return req('reports' + (qs ? ('?' + qs) : ''));
+  }
+
+  /* ====================== admin: bulk import ====================== */
+  async function importAssets(rows) {
+    if (demo) { return P({ success: rows.length, skipped: 0, failed: 0, errors: [] }); }
+    return req('assets-import', { method: 'POST', body: { rows: rows } });
+  }
+
   /* ====================== admin: users ====================== */
+  function currentUserRaw() { var t = token(); return t ? decode(t) : null; }
   async function users() { return demo ? P(DEMO.users.slice()) : (await req('users')).users; }
   async function setUserRole(id, role) {
     if (demo) { var u = DEMO.users.filter(function (x) { return x.id == id; })[0]; if (u) u.role = role; return P(u); }
     return (await req('users', { method: 'PATCH', body: { id: id, role: role } })).user;
+  }
+  async function createUser(d) {
+    if (demo) { var u = { id: ++DEMO.seq, nip: d.nip, name: d.name, role: d.role || 'user' }; DEMO.users.push(u); return P(u); }
+    return (await req('users', { method: 'POST', body: d })).user;
+  }
+  async function deleteUser(id) {
+    if (demo) { DEMO.users = DEMO.users.filter(function (x) { return x.id != id; }); return P({ ok: true }); }
+    return req('users', { method: 'DELETE', body: { id: id } });
   }
 
   /* ====================== admin: assets ====================== */
@@ -160,7 +201,7 @@
     if (demo) {
       var b = DEMO.borrowings.filter(function (x) { return x.id == id; })[0];
       if (b) {
-        var RES = ['pending', 'approved', 'borrowed'];
+        var RES = ['pending', 'approved', 'verified', 'borrowed'];
         var wasOut = RES.indexOf(b.status) !== -1, nowOut = RES.indexOf(status) !== -1;
         var a = DEMO.assets.filter(function (x) { return x.id === b.asset_id; })[0];
         if (a) {
@@ -188,7 +229,8 @@
     getSettings: getSettings, setWaNumber: setWaNumber, notify: notify,
     auth: auth,
     categories: categories, rooms: rooms, assets: assets, borrowings: borrowings, dashboard: dashboard, requestBorrowing: requestBorrowing,
-    users: users, setUserRole: setUserRole,
+    catalog: catalog, assetDetail: assetDetail, reports: reports, importAssets: importAssets,
+    users: users, setUserRole: setUserRole, createUser: createUser, deleteUser: deleteUser,
     createAsset: createAsset, updateAsset: updateAsset, deleteAsset: deleteAsset,
     createCategory: createCategory, updateCategory: updateCategory, deleteCategory: deleteCategory,
     createRoom: createRoom, updateRoom: updateRoom, deleteRoom: deleteRoom,

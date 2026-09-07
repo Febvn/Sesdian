@@ -22,15 +22,16 @@
       }
     </style>
     <script>
-      // Root bootstrap: send authenticated users to the dashboard, others to login.
+      // Root bootstrap: signed-in users go to the dashboard; guests get the
+      // public catalog (browse without login; borrowing still requires login).
       try {
         // 'sesdian_token' = real (Neon) session; 'sesdian_user' = demo session
         var signedIn =
           localStorage.getItem("sesdian_token") ||
           localStorage.getItem("sesdian_user");
-        location.replace(signedIn ? "dashboard.html" : "login.html");
+        location.replace(signedIn ? "dashboard.html" : "katalog.html");
       } catch (e) {
-        location.replace("login.html");
+        location.replace("katalog.html");
       }
     </script>
   </head>
