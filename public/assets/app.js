@@ -207,46 +207,12 @@
     });
   }
 
-  function prepLoading() {
-    // Skip loading skeletons if data is already cached (instant render)
-    if (window.SESDIAN_CACHE && window.SESDIAN_CACHE.loaded) return;
-
-    $$('[data-stat],[data-count]').forEach(function (e) {
-      // Only show loading if not already showing
-      if (!e.querySelector('.sesd-loading-inline')) {
-        e.innerHTML = '<span class="sesd-loading-inline"></span>';
-      }
-    });
-
-    // Add skeleton loading to list containers
-    $$('[data-list],[data-monitor-list],[data-recent-list],[data-users-list],[data-asset-options]').forEach(function (container) {
-      if (container.children.length === 0 || container.querySelector('[data-template]')) {
-        // Check if skeleton already exists
-        if (!container.querySelector('.sesd-skeleton-container')) {
-          // Show loading skeleton
-          var skeleton = el('div', {
-            class: 'sesd-skeleton-container',
-            style: 'data-skeleton="true"'
-          });
-          skeleton.innerHTML = '<div class="sesd-loading-dots-alt">' +
-            '<div class="dot"></div>' +
-            '<div class="dot"></div>' +
-            '<div class="dot"></div>' +
-            '</div>';
-
-          // Clear and show skeleton
-          var templates = container.querySelectorAll('[data-template],[data-monitor-template],[data-recent-template],[data-asset-template]');
-          templates.forEach(function(t) { t.style.display = 'none'; });
-
-          container.appendChild(skeleton);
-        }
-      }
-    });
-  }
+  /* ====================== NO PREPLOADING - handled by preloader.js ====================== */
+  // Removed prepLoading() - preloader.js handles all loading states
 
   /* ---------------- per-page data load (BOTH modes) ---------------- */
   async function loadAndRender(p) {
-    prepLoading(); // Show loading indicators
+    // No prepLoading() - preloader.js handles loading states
     try {
       if (p === 'dashboard') {
         var d = await DB.dashboard();
@@ -454,6 +420,9 @@
     ov.addEventListener('click', function (e) { if (e.target === ov) ov.remove(); });
   }
   function enhanceAssetCard(card, rec) {
+    // Prevent duplicate buttons
+    if (card.querySelector('.sesd-admin-actions')) return;
+
     var bar = el('div', { class: 'sesd-admin-actions', style: 'padding:0 1rem 1rem' });
     var edit = el('button', { class: 'sesd-btn sesd-btn-sm sesd-btn-ghost', html: ic('pencil') + ' Edit' });
     var del = el('button', { class: 'sesd-btn sesd-btn-sm sesd-btn-danger', html: ic('trash') + ' Hapus' });
@@ -481,6 +450,9 @@
     });
   }
   function enhanceSimpleCard(card, rec, kind) {
+    // Prevent duplicate buttons
+    if (card.querySelector('.sesd-admin-actions')) return;
+
     var bar = el('div', { class: 'sesd-admin-actions', style: 'margin-top:10px' });
     var edit = el('button', { class: 'sesd-btn sesd-btn-sm sesd-btn-ghost', html: ic('pencil') + ' Edit' });
     var del = el('button', { class: 'sesd-btn sesd-btn-sm sesd-btn-danger', html: ic('trash') + ' Hapus' });
@@ -519,6 +491,9 @@
     catch (e) { toast((e && e.message) || 'Gagal', 'error'); }
   }
   function enhanceBorrowingRow(row, rec) {
+    // Prevent duplicate buttons
+    if (row.querySelector('.sesd-admin-actions')) return;
+
     if (isOverdue(rec)) { var dd = $('[data-bind="due_date"]', row); if (dd) { dd.style.color = 'var(--danger)'; dd.style.fontWeight = '700'; } }
     var cell = el('td', { style: 'padding:0.875rem 1rem' });           // dedicated Aksi cell (never the date cell)
     var bar = el('div', { class: 'sesd-admin-actions' });
@@ -801,7 +776,7 @@
       document.body.classList.add('sesd-ready');
     }
     setTimeout(function () { document.body.classList.add('sesd-ready'); }, 4000); // safety: never get stuck on the loader
-    prepLoading();
+    // No prepLoading() - preloader.js handles all loading states
     var g = guard();
     if (g.redirect) return;
     USER = g.user; IS_ADMIN = !!(USER && USER.role === 'admin');

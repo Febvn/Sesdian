@@ -5,6 +5,14 @@
 (function () {
   'use strict';
 
+  var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
+  function el(tag, attrs, text) {
+    var e = document.createElement(tag);
+    if (attrs) for (var k in attrs) { if (k === 'class') e.className = attrs[k]; else if (k === 'style') e.style.cssText = attrs[k]; else if (k === 'html') e.innerHTML = attrs[k]; else e.setAttribute(k, attrs[k]); }
+    if (text != null) e.textContent = text;
+    return e;
+  }
+
   var CACHE_VERSION = '1.0.0';
   var CACHE_KEY = 'sesdian_cache_v' + CACHE_VERSION;
   var CACHE_DURATION = 5 * 60 * 1000; // 5 menit
@@ -137,12 +145,56 @@
   function showMinimalLoading() {
     // Add loading class to body for skeleton display
     document.body.classList.add('sesd-loading-page');
+
+    // Show skeleton loading for tables and lists
+    $$('[data-list],[data-monitor-list],[data-recent-list],[data-users-list],[data-asset-options]').forEach(function (container) {
+      // Skip if already has skeleton or has data
+      if (container.querySelector('.sesd-skeleton-container,.sesd-skeleton-row')) return;
+      if (container.children.length > 0 && !container.querySelector('[data-template]')) return;
+
+      // For table bodies, show skeleton rows with shimmer effect
+      if (container.tagName === 'TBODY') {
+        showTableSkeleton(container);
+      } else {
+        // For other containers, show dots skeleton
+        var skeleton = el('div', {
+          class: 'sesd-skeleton-container',
+          style: 'data-skeleton="true"'
+        });
+        skeleton.innerHTML = '<div class="sesd-loading-dots-alt">' +
+          '<div class="dot"></div>' +
+          '<div class="dot"></div>' +
+          '<div class="dot"></div>' +
+          '</div>';
+
+        // Hide templates
+        var templates = container.querySelectorAll('[data-template],[data-monitor-template],[data-recent-template],[data-asset-template]');
+        templates.forEach(function(t) { t.style.display = 'none'; });
+
+        container.appendChild(skeleton);
+      }
+    });
+  }
+
+  function showTableSkeleton(container) {
+    // Show 5 skeleton rows with shimmer animation
+    var numRows = 5;
+    for (var i = 0; i < numRows; i++) {
+      var row = el('tr', { class: 'sesd-skeleton-row' });
+      row.innerHTML = '<td style="padding:0.875rem 1rem"><div class="sesd-skeleton-text" style="width:60%"></div></td>' +
+        '<td style="padding:0.875rem 1rem"><div class="sesd-skeleton-text" style="width:30%"></div></td>' +
+        '<td style="padding:0.875rem 1rem"><div class="sesd-skeleton-text" style="width:40%"></div></td>' +
+        '<td style="padding:0.875rem 1rem"><div class="sesd-skeleton-text" style="width:20%"></div></td>' +
+        '<td style="padding:0.875rem 1rem"><div class="sesd-skeleton-text" style="width:25%"></div></td>';
+      container.appendChild(row);
+    }
   }
 
   function hideLoading() {
     // Remove body loading class
     document.body.classList.remove('sesd-loading-page');
 
+    // Remove all skeleton elements
     var loader = document.getElementById('sesd-preloader');
     if (loader) {
       loader.style.opacity = '0';
@@ -150,6 +202,21 @@
         loader.style.display = 'none';
       }, 300);
     }
+
+    // Remove skeleton containers
+    document.querySelectorAll('.sesd-skeleton-container').forEach(function(el) {
+      el.remove();
+    });
+
+    // Remove skeleton rows
+    document.querySelectorAll('.sesd-skeleton-row').forEach(function(el) {
+      el.remove();
+    });
+
+    // Show hidden templates
+    document.querySelectorAll('[data-template],[data-monitor-template],[data-recent-template],[data-asset-template]').forEach(function(t) {
+      t.style.display = '';
+    });
 
     // Mark stat cards as loaded with animation
     setTimeout(function() {

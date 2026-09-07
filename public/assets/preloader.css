@@ -302,20 +302,43 @@
   100% { background-position: -200% 0; }
 }
 
-/* Table skeleton */
-.sesd-skeleton-table {
-  width: 100%;
-  border-collapse: collapse;
+/* ============================================================
+   Skeleton Table Rows with Shimmer Effect
+   ============================================================ */
+
+.sesd-skeleton-row {
+  animation: skeletonRowPulse 2s ease-in-out infinite;
 }
 
-.sesd-skeleton-table td {
-  padding: 1rem;
+.sesd-skeleton-row td {
+  padding: 0.875rem 1rem;
   border-bottom: 1px solid #e2e8f0;
 }
 
-.sesd-skeleton-row {
-  animation: skeletonPulse 2s ease-in-out infinite;
+.sesd-skeleton-row .sesd-skeleton-text {
+  height: 14px;
+  background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
+  background-size: 200% 100%;
+  border-radius: 4px;
+  animation: skeletonShimmer 1.5s infinite;
 }
+
+@keyframes skeletonRowPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+@keyframes skeletonShimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Staggered shimmer animation for rows */
+.sesd-skeleton-row:nth-child(1) { animation-delay: 0ms; }
+.sesd-skeleton-row:nth-child(2) { animation-delay: 100ms; }
+.sesd-skeleton-row:nth-child(3) { animation-delay: 200ms; }
+.sesd-skeleton-row:nth-child(4) { animation-delay: 300ms; }
+.sesd-skeleton-row:nth-child(5) { animation-delay: 400ms; }
 
 /* Hide content while loading */
 [data-loading="true"] {
@@ -392,7 +415,8 @@ body.sesd-loading-page [data-count] {
   .dashboard-stat-card,
   .dashboard-list-item,
   [data-stat],
-  [data-count] {
+  [data-count],
+  .sesd-skeleton-row {
     animation: none;
     transition: none;
   }
@@ -406,5 +430,10 @@ body.sesd-loading-page [data-count] {
   .dashboard-list-item {
     opacity: 1;
     transform: none;
+  }
+
+  .sesd-skeleton-row .sesd-skeleton-text {
+    background: #e2e8f0;
+    animation: none;
   }
 }
