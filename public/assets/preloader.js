@@ -310,8 +310,13 @@
       return;
     }
 
-    // Show loading (hanya untuk pertama kali login/muat)
-    var loader = showLoading('Memuat data...');
+    // GUARANTEE: Hanya tampilkan UI loading penuh SEKALI saja dalam satu sesi
+    var hasLoadedOnce = sessionStorage.getItem('sesdian_loaded_once');
+    var loader = null;
+    if (!hasLoadedOnce) {
+      loader = showLoading('Memuat data...');
+      sessionStorage.setItem('sesdian_loaded_once', 'true');
+    }
 
     try {
       // Wait for DB to be ready
