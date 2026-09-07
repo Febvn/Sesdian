@@ -254,18 +254,17 @@
         renderList('[data-recent-template]', d.recent);
       } else if (p === 'dataaset') {
         var assets = await DB.assets();
-        renderList('[data-template]', assets, function (n, r) {
-          n.setAttribute('data-type', (r.type || '').toLowerCase() === 'non-bmn' ? 'non-bmn' : 'bmn');
-          n.setAttribute('data-status', r.stock_available > 0 ? 'available' : 'borrowed');
-          n.setAttribute('data-asset-id', r.id);
+        var groups = groupAssets(assets);                        // collapse identical items into tidy cards
+        renderList('[data-template]', groups, function (n, g) {
+          n.setAttribute('data-type', (g.type || '').toLowerCase() === 'non-bmn' ? 'non-bmn' : 'bmn');
+          n.setAttribute('data-status', g.available > 0 ? 'available' : 'borrowed');
           n.removeAttribute('data-open-detail');                 // detail is a dynamic modal, not a static page
-          n.addEventListener('click', function (ev) { if (ev.target.closest('.sesd-admin-actions')) return; openAssetDetail(r); });
-          if (IS_ADMIN) enhanceAssetCard(n, r);
+          n.addEventListener('click', function (ev) { if (ev.target.closest('.sesd-admin-actions')) return; openGroupDetail(g); });
         });
         var sum = function (k) { return assets.reduce(function (t, a) { return t + (a[k] || 0); }, 0); };
         var aStats = { total_assets: assets.length, total_stock: sum('stock_total'), stock_available: sum('stock_available'), stock_borrowed: sum('stock_borrowed'), maintenance: 0 };
         Object.keys(aStats).forEach(function (k) { var e = $('[data-stat="' + k + '"]'); if (e) e.textContent = aStats[k]; });
-        var sub = $('[data-asset-subtitle]'); if (sub) sub.textContent = aStats.total_assets + ' aset · ' + aStats.total_stock + ' total unit stok';
+        var sub = $('[data-asset-subtitle]'); if (sub) sub.textContent = groups.length + ' jenis · ' + assets.length + ' unit · ' + aStats.total_stock + ' total stok';
       } else if (p === 'kategoriaset') {
         renderList('[data-template]', await DB.categories(), function (n, r) { n.setAttribute('data-id', r.id); if (IS_ADMIN) enhanceSimpleCard(n, r, 'category'); });
       } else if (p === 'ruangan') {
@@ -309,6 +308,10 @@
 
   /* ====================== ADMIN UI ====================== */
   function overlay() { return el('div', { class: 'sesd-overlay' }); }
+  // Only ever allow one modal at a time: spamming Edit/Tambah/etc. (e.g. on a
+  // laggy network) can't stack duplicate popups. Nested dialogs close their
+  // parent first (see openGroupDetail) so confirmations still work.
+  function modalOpen() { return !!$('.sesd-overlay'); }
 
   function fileToDataURL(file) {
     return new Promise(function (resolve, reject) {
@@ -329,6 +332,7 @@
   }
 
   function overlayForm(opts) {
+    if (modalOpen()) return;
     var ov = overlay(), m = el('div', { class: 'sesd-modal' });
     m.appendChild(el('h3', {}, opts.title));
     var inputs = {};
@@ -365,6 +369,7 @@
   }
 
   function confirmDelete(label, onYes) {
+    if (modalOpen()) return;
     var ov = overlay(), m = el('div', { class: 'sesd-modal', style: 'width:360px' });
     m.appendChild(el('h3', {}, 'Hapus ' + label + '?'));
     m.appendChild(el('p', { style: 'color:var(--text-muted);font-size:.85rem;margin-bottom:1rem' }, 'Tindakan ini tidak dapat dibatalkan.'));
@@ -403,6 +408,7 @@
     });
   }
   function openAssetDetail(r) {
+    if (modalOpen()) return;
     var ov = overlay(), m = el('div', { class: 'sesd-modal', style: 'width:520px' });
     m.appendChild(el('img', { src: r.image || PLACEHOLDER, style: 'width:100%;height:180px;object-fit:cover;border-radius:12px;background:linear-gradient(135deg,#eef2ff,#e0e7ff)' }));
     m.appendChild(el('div', { style: 'font-family:"JetBrains Mono",monospace;font-size:.72rem;color:var(--text-muted);margin-top:.75rem' }, r.code || ''));
@@ -443,6 +449,70 @@
     edit.addEventListener('click', function (e) { e.stopPropagation(); openAssetForm(rec); });
     del.addEventListener('click', function (e) { e.stopPropagation(); confirmDelete('aset "' + rec.name + '"', async function () { await DB.deleteAsset(rec.id); toast('Aset dihapus', 'success'); reloadData(); }); });
     bar.appendChild(edit); bar.appendChild(del); card.appendChild(bar);
+  }
+
+  /* ---- grouped asset view: many identical items (same name+category) collapse
+          into one tidy card, while each physical unit stays individual in the DB ---- */
+  function groupAssets(list) {
+    var map = {}, order = [];
+    list.forEach(function (a) {
+      var key = (a.name || '').trim().toLowerCase() + '|' + (a.category || '').toLowerCase();
+      var g = map[key];
+      if (!g) { g = map[key] = { name: a.name, category: a.category, brand: a.brand, room: a.room, type: a.type, condition: a.condition, image: a.image, units: [], stock_total: 0, stock_available: 0, stock_borrowed: 0 }; order.push(key); }
+      g.units.push(a);
+      g.stock_total += (a.stock_total != null ? a.stock_total : 1);
+      g.stock_available += (a.stock_available || 0);
+      g.stock_borrowed += (a.stock_borrowed || 0);
+      if (!g.image && a.image) g.image = a.image;
+      if (g.brand && a.brand && g.brand !== a.brand) g.brand = 'Beragam';
+      if (g.room && a.room && g.room !== a.room) g.room = 'Beberapa ruangan';
+    });
+    return order.map(function (k) {
+      var g = map[k];
+      g.available = g.stock_available;
+      g.code = g.units.length > 1 ? (g.units.length + ' unit') : (g.units[0].code || '');
+      return g;
+    }).sort(function (x, y) { return (x.name || '').localeCompare(y.name || ''); });
+  }
+  function openGroupDetail(g) {
+    if (modalOpen()) return;
+    var ov = overlay(), m = el('div', { class: 'sesd-modal', style: 'width:560px' });
+    m.appendChild(el('h3', {}, g.name || 'Aset'));
+    m.appendChild(el('div', { style: 'color:var(--text-muted);font-size:.82rem;margin:-6px 0 12px' }, (g.category || '-') + (g.brand ? (' · ' + g.brand) : '')));
+    var sum = el('div', { style: 'display:flex;gap:.6rem;margin-bottom:1rem' });
+    [['Total', g.stock_total, 'var(--text)'], ['Tersedia', g.stock_available, 'rgb(16,185,129)'], ['Dipinjam', g.stock_borrowed, 'rgb(245,158,11)']].forEach(function (s) {
+      var b = el('div', { style: 'flex:1;text-align:center;background:var(--bg);border-radius:10px;padding:.6rem' });
+      b.appendChild(el('div', { style: 'font-size:1.2rem;font-weight:800;color:' + s[2] }, String(s[1] != null ? s[1] : 0)));
+      b.appendChild(el('div', { style: 'font-size:.7rem;color:var(--text-muted)' }, s[0]));
+      sum.appendChild(b);
+    });
+    m.appendChild(sum);
+    m.appendChild(el('div', { style: 'font-size:.72rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px' }, g.units.length + ' unit terdaftar'));
+    var listWrap = el('div', { style: 'max-height:300px;overflow:auto;border:1px solid var(--border);border-radius:12px' });
+    g.units.forEach(function (u) {
+      var row = el('div', { style: 'display:flex;align-items:center;gap:8px;padding:.55rem .75rem;border-top:1px solid var(--border)' });
+      var info = el('div', { style: 'flex:1;min-width:0' });
+      info.appendChild(el('div', { style: 'font-family:"JetBrains Mono",monospace;font-size:.75rem;font-weight:700' }, u.code || '-'));
+      info.appendChild(el('div', { style: 'font-size:.7rem;color:var(--text-muted)' }, (u.condition || 'Baik') + ' · ' + (u.stock_available > 0 ? 'Tersedia' : 'Dipinjam') + (u.qr_code ? (' · ' + u.qr_code) : '')));
+      row.appendChild(info);
+      if (IS_ADMIN) {
+        var edit = el('button', { class: 'sesd-btn sesd-btn-sm sesd-btn-ghost', html: ic('pencil') });
+        edit.addEventListener('click', function () { ov.remove(); openAssetForm(u); });
+        var del = el('button', { class: 'sesd-btn sesd-btn-sm sesd-btn-danger', html: ic('trash') });
+        del.addEventListener('click', function () { ov.remove(); confirmDelete('aset "' + (u.code || u.name) + '"', async function () { await DB.deleteAsset(u.id); toast('Aset dihapus', 'success'); reloadData(); }); });
+        row.appendChild(edit); row.appendChild(del);
+      }
+      listWrap.appendChild(row);
+    });
+    m.appendChild(listWrap);
+    var foot = el('div', { style: 'display:flex;gap:8px;margin-top:1rem' });
+    var ajukan = el('button', { class: 'sesd-btn sesd-btn-success', style: 'flex:1', html: ic('clipboard') + ' Ajukan Pinjam' });
+    ajukan.addEventListener('click', function () { location.href = 'ajukanpinjam.html'; });
+    var close = el('button', { class: 'sesd-btn sesd-btn-ghost' }, 'Tutup');
+    close.addEventListener('click', function () { ov.remove(); });
+    foot.appendChild(ajukan); foot.appendChild(close); m.appendChild(foot);
+    ov.appendChild(m); document.body.appendChild(ov);
+    ov.addEventListener('click', function (e) { if (e.target === ov) ov.remove(); });
   }
 
   function openCategoryForm(rec) {

@@ -59,6 +59,7 @@
   }
 
   function open() {
+    if (document.querySelector('.sesd-overlay')) return; // never stack duplicate modals
     var ov = el('div', { class: 'sesd-overlay' });
     var m = el('div', { class: 'sesd-modal', style: 'width:680px' });
     m.appendChild(el('h3', {}, 'Import Aset dari Excel'));

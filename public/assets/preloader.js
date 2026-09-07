@@ -386,34 +386,25 @@
       return;
     }
 
-    // Check if already cached in memory
+    // Warm cache (memory) -> navigation is instant, show NO loading UI.
     if (window.SESDIAN_CACHE.loaded && isCacheValid()) {
-      // Data already in memory, just show minimal loading
-      showMinimalLoading();
+      patchDBWithCache();
       return;
     }
 
-    // Check if cached in sessionStorage (from previous page)
+    // Warm cache (sessionStorage, carried from a previous page) -> instant, no loading UI.
     var storedCache = loadFromStorage();
     if (storedCache && storedCache.data) {
-      // Data sudah ada di session storage, skip preload UI
       window.SESDIAN_CACHE.data = storedCache.data;
       window.SESDIAN_CACHE.timestamp = storedCache.timestamp;
       window.SESDIAN_CACHE.loaded = true;
       patchDBWithCache();
-      showMinimalLoading();
       return;
     }
 
-    // GUARANTEE: Hanya tampilkan UI loading penuh SEKALI saja dalam satu sesi
-    var hasLoadedOnce = sessionStorage.getItem('sesdian_loaded_once');
-    var loader = null;
-    if (!hasLoadedOnce) {
-      loader = showLoading('Memuat data...');
-      sessionStorage.setItem('sesdian_loaded_once', 'true');
-    } else {
-      showMinimalLoading();
-    }
+    // COLD load only (first visit / cache expired): show scoped skeletons in the
+    // content area while data is fetched from the DB. No full-screen preloader.
+    showMinimalLoading();
 
     try {
       // Wait for DB to be ready
@@ -427,18 +418,12 @@
         throw new Error('Database tidak tersedia');
       }
 
-      updateLoadingText('Mengambil data...');
-
-      // Preload all data
+      // Preload all data, then patch DB functions to serve from cache
       await preloadAllData();
-
-      // Patch DB functions dengan cached version
       patchDBWithCache();
 
-      updateLoadingText('Selesai!');
-
-      // Hide loading setelah selesai
-      setTimeout(hideLoading, 200);
+      // Hide skeletons once data is in
+      setTimeout(hideLoading, 150);
 
     } catch (e) {
       console.error('Preload error:', e);
