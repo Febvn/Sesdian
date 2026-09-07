@@ -13,6 +13,34 @@
     />
     <link rel="stylesheet" href="assets/app.css" />
     <link rel="stylesheet" href="assets/preloader.css" />
+    <style>
+      /* Dashboard specific styles - cards hidden initially for loading animation */
+      .dashboard-stat-card {
+        opacity: 0;
+        transform: translateY(10px);
+        transition: opacity 0.4s ease, transform 0.4s ease;
+      }
+      .dashboard-stat-card.loaded {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      .dashboard-list-item {
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+      .dashboard-list-item.loaded {
+        opacity: 1;
+      }
+      /* Progress bar animation */
+      .stock-bar-fill {
+        transition: width 0.8s ease-out !important;
+      }
+      /* User info fade in */
+      [data-user-name], [data-user-initials], [data-user-firstname], [data-user-role] {
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+    </style>
   </head>
   <body data-page="dashboard" data-auth="required">
     <div id="root">
@@ -821,7 +849,8 @@
                 "
               >
                 <div
-                  class="animate-fade-up delay-1"
+                  class="animate-fade-up delay-1 dashboard-stat-card"
+                  data-stat-card="total_assets"
                   style="
                     background: linear-gradient(
                       135deg,
@@ -863,7 +892,7 @@
                       line-height: 1;
                     "
                   >
-                    1
+                    <span class="sesd-loading-inline"></span>
                   </div>
                   <div
                     style="
@@ -877,7 +906,8 @@
                   </div>
                 </div>
                 <div
-                  class="animate-fade-up delay-2"
+                  class="animate-fade-up delay-2 dashboard-stat-card"
+                  data-stat-card="total_stock"
                   style="
                     background: linear-gradient(
                       135deg,
@@ -921,7 +951,7 @@
                       line-height: 1;
                     "
                   >
-                    14
+                    <span class="sesd-loading-inline"></span>
                   </div>
                   <div
                     style="
@@ -935,7 +965,8 @@
                   </div>
                 </div>
                 <div
-                  class="animate-fade-up delay-3"
+                  class="animate-fade-up delay-3 dashboard-stat-card"
+                  data-stat-card="stock_available"
                   style="
                     background: linear-gradient(
                       135deg,
@@ -978,7 +1009,7 @@
                       line-height: 1;
                     "
                   >
-                    9
+                    <span class="sesd-loading-inline"></span>
                   </div>
                   <div
                     style="
@@ -992,7 +1023,8 @@
                   </div>
                 </div>
                 <div
-                  class="animate-fade-up delay-4"
+                  class="animate-fade-up delay-4 dashboard-stat-card"
+                  data-stat-card="stock_borrowed"
                   style="
                     background: linear-gradient(
                       135deg,
@@ -1036,7 +1068,7 @@
                       line-height: 1;
                     "
                   >
-                    5
+                    <span class="sesd-loading-inline"></span>
                   </div>
                   <div
                     style="
@@ -1050,7 +1082,8 @@
                   </div>
                 </div>
                 <div
-                  class="animate-fade-up delay-5"
+                  class="animate-fade-up delay-5 dashboard-stat-card"
+                  data-stat-card="pending"
                   style="
                     background: linear-gradient(
                       135deg,
@@ -1092,7 +1125,7 @@
                       line-height: 1;
                     "
                   >
-                    1
+                    <span class="sesd-loading-inline"></span>
                   </div>
                   <div
                     style="

@@ -112,10 +112,22 @@
 
   function fillIdentity(user) {
     if (!user) return;
-    $$('[data-user-name]').forEach(function (e) { e.textContent = user.name; });
-    $$('[data-user-initials]').forEach(function (e) { e.textContent = user.initials || initials(user.name); });
-    $$('[data-user-firstname]').forEach(function (e) { e.textContent = (user.name || '').split(/\s+/)[0]; });
-    $$('[data-user-role]').forEach(function (e) { e.textContent = user.role || 'user'; });
+    $$('[data-user-name]').forEach(function (e) {
+      e.textContent = user.name;
+      setTimeout(function() { e.style.opacity = '1'; }, 100);
+    });
+    $$('[data-user-initials]').forEach(function (e) {
+      e.textContent = user.initials || initials(user.name);
+      setTimeout(function() { e.style.opacity = '1'; }, 150);
+    });
+    $$('[data-user-firstname]').forEach(function (e) {
+      e.textContent = (user.name || '').split(/\s+/)[0];
+      setTimeout(function() { e.style.opacity = '1'; }, 200);
+    });
+    $$('[data-user-role]').forEach(function (e) {
+      e.textContent = user.role || 'user';
+      setTimeout(function() { e.style.opacity = '1'; }, 250);
+    });
   }
 
   /* ---------------- rendering ---------------- */
@@ -169,43 +181,63 @@
       tpl.remove();                       // drop the original seed row from the DOM
       entry = TPL[tplSel] = { container: container, src: src };
     }
-    
+
     // Remove skeleton loading
     var skeleton = entry.container.querySelector('.sesd-skeleton-container');
     if (skeleton) skeleton.remove();
-    
+
     entry.container.innerHTML = '';
     if (!records.length) { appendEmpty(entry.container); return; }
-    records.forEach(function (rec) { var n = entry.src.cloneNode(true); applyBinds(n, rec); if (fill) fill(n, rec); entry.container.appendChild(n); });
+
+    // Add staggered animation to items
+    records.forEach(function (rec, index) {
+      var n = entry.src.cloneNode(true);
+      applyBinds(n, rec);
+      if (fill) fill(n, rec);
+
+      // Add fade-in animation
+      n.style.opacity = '0';
+      n.style.transition = 'opacity 0.3s ease';
+      entry.container.appendChild(n);
+
+      // Stagger the animation
+      setTimeout(function() {
+        n.style.opacity = '1';
+      }, index * 50);
+    });
   }
 
-  function prepLoading() { 
+  function prepLoading() {
     // Skip loading skeletons if data is already cached (instant render)
     if (window.SESDIAN_CACHE && window.SESDIAN_CACHE.loaded) return;
 
-    $$('[data-stat],[data-count]').forEach(function (e) { 
-      e.innerHTML = '<span class="sesd-loading-inline"></span>'; 
-    }); 
-    
+    $$('[data-stat],[data-count]').forEach(function (e) {
+      // Only show loading if not already showing
+      if (!e.querySelector('.sesd-loading-inline')) {
+        e.innerHTML = '<span class="sesd-loading-inline"></span>';
+      }
+    });
+
     // Add skeleton loading to list containers
     $$('[data-list],[data-monitor-list],[data-recent-list],[data-users-list],[data-asset-options]').forEach(function (container) {
       if (container.children.length === 0 || container.querySelector('[data-template]')) {
-        // Show loading skeleton
-        var skeleton = el('div', { 
-          class: 'sesd-skeleton-container',
-          style: 'data-skeleton="true"'
-        });
-        skeleton.innerHTML = '<div class="sesd-loading-dots-alt">' +
-          '<div class="dot"></div>' +
-          '<div class="dot"></div>' +
-          '<div class="dot"></div>' +
-          '</div>';
-        
-        // Clear and show skeleton
-        var templates = container.querySelectorAll('[data-template],[data-monitor-template],[data-recent-template],[data-asset-template]');
-        templates.forEach(function(t) { t.style.display = 'none'; });
-        
+        // Check if skeleton already exists
         if (!container.querySelector('.sesd-skeleton-container')) {
+          // Show loading skeleton
+          var skeleton = el('div', {
+            class: 'sesd-skeleton-container',
+            style: 'data-skeleton="true"'
+          });
+          skeleton.innerHTML = '<div class="sesd-loading-dots-alt">' +
+            '<div class="dot"></div>' +
+            '<div class="dot"></div>' +
+            '<div class="dot"></div>' +
+            '</div>';
+
+          // Clear and show skeleton
+          var templates = container.querySelectorAll('[data-template],[data-monitor-template],[data-recent-template],[data-asset-template]');
+          templates.forEach(function(t) { t.style.display = 'none'; });
+
           container.appendChild(skeleton);
         }
       }
@@ -218,7 +250,34 @@
     try {
       if (p === 'dashboard') {
         var d = await DB.dashboard();
-        Object.keys(d.stats).forEach(function (k) { var e = $('[data-stat="' + k + '"]'); if (e) e.textContent = d.stats[k]; });
+        // Animate stats loading
+        var statsKeys = Object.keys(d.stats);
+        statsKeys.forEach(function (k, i) {
+          var e = $('[data-stat="' + k + '"]');
+          if (e) {
+            // Remove loading indicator
+            var loadingSpan = e.querySelector('.sesd-loading-inline');
+            if (loadingSpan) loadingSpan.remove();
+
+            // Set the value
+            e.textContent = d.stats[k];
+            e.style.opacity = '0';
+            e.style.transition = 'opacity 0.3s ease';
+
+            // Animate in
+            setTimeout(function() {
+              e.style.opacity = '1';
+            }, i * 100);
+          }
+
+          // Mark stat card as loaded with stagger animation
+          var card = $('[data-stat-card="' + k + '"]');
+          if (card) {
+            setTimeout(function() {
+              card.classList.add('loaded');
+            }, i * 100);
+          }
+        });
         renderList('[data-monitor-template]', d.monitor);
         renderList('[data-recent-template]', d.recent);
       } else if (p === 'dataaset') {

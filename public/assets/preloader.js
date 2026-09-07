@@ -110,11 +110,20 @@
 
   /* ====================== Show/Hide Loading ====================== */
   function showLoading(msg) {
+    // Check if we should show full loader (first load only)
+    var hasLoadedOnce = sessionStorage.getItem('sesdian_loaded_once');
+
+    if (hasLoadedOnce) {
+      // Already loaded before, just show minimal loading indicator
+      showMinimalLoading();
+      return null;
+    }
+
     var loader = document.getElementById('sesd-preloader');
     if (!loader) {
       loader = document.createElement('div');
       loader.id = 'sesd-preloader';
-      loader.innerHTML = 
+      loader.innerHTML =
         '<div class="sesd-preloader-content">' +
           '<div class="sesd-spinner"></div>' +
           '<p class="sesd-loading-text">' + (msg || 'Memuat data...') + '</p>' +
@@ -125,16 +134,32 @@
     return loader;
   }
 
+  function showMinimalLoading() {
+    // Add loading class to body for skeleton display
+    document.body.classList.add('sesd-loading-page');
+  }
+
   function hideLoading() {
+    // Remove body loading class
+    document.body.classList.remove('sesd-loading-page');
+
     var loader = document.getElementById('sesd-preloader');
     if (loader) {
       loader.style.opacity = '0';
       setTimeout(function () {
         loader.style.display = 'none';
-        // Optional: remove dari DOM setelah fade out
-        // loader.remove();
       }, 300);
     }
+
+    // Mark stat cards as loaded with animation
+    setTimeout(function() {
+      var cards = document.querySelectorAll('.dashboard-stat-card');
+      cards.forEach(function(card, i) {
+        setTimeout(function() {
+          card.classList.add('loaded');
+        }, i * 100); // Stagger animation
+      });
+    }, 100);
   }
 
   function updateLoadingText(text) {
@@ -259,7 +284,7 @@
     };
 
     // Invalidate cache on write operations
-    var writes = ['createAsset', 'updateAsset', 'deleteAsset', 
+    var writes = ['createAsset', 'updateAsset', 'deleteAsset',
                   'createCategory', 'updateCategory', 'deleteCategory',
                   'createRoom', 'updateRoom', 'deleteRoom',
                   'requestBorrowing', 'updateBorrowingStatus',
@@ -296,6 +321,8 @@
 
     // Check if already cached in memory
     if (window.SESDIAN_CACHE.loaded && isCacheValid()) {
+      // Data already in memory, just show minimal loading
+      showMinimalLoading();
       return;
     }
 
@@ -307,6 +334,7 @@
       window.SESDIAN_CACHE.timestamp = storedCache.timestamp;
       window.SESDIAN_CACHE.loaded = true;
       patchDBWithCache();
+      showMinimalLoading();
       return;
     }
 
@@ -316,6 +344,8 @@
     if (!hasLoadedOnce) {
       loader = showLoading('Memuat data...');
       sessionStorage.setItem('sesdian_loaded_once', 'true');
+    } else {
+      showMinimalLoading();
     }
 
     try {
@@ -346,7 +376,7 @@
     } catch (e) {
       console.error('Preload error:', e);
       hideLoading();
-      
+
       // Jika auth error, redirect ke login
       if (e && e.status === 401) {
         location.replace('login.html');

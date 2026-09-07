@@ -85,11 +85,11 @@
 .sesd-spinner-dots span:nth-child(2) { animation-delay: -0.16s; }
 
 @keyframes bounce {
-  0%, 80%, 100% { 
+  0%, 80%, 100% {
     transform: scale(0);
     opacity: 0.5;
   }
-  40% { 
+  40% {
     transform: scale(1);
     opacity: 1;
   }
@@ -332,16 +332,79 @@
   display: flex;
 }
 
+/* ============================================================
+   Page Loading State
+   ============================================================ */
+
+/* Body loading state */
+body.sesd-loading-page {
+  /* Prevent FOUC during initial load */
+}
+
+body.sesd-loading-page .dashboard-stat-card,
+body.sesd-loading-page [data-stat],
+body.sesd-loading-page [data-count] {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* Dashboard stat cards loaded state */
+.dashboard-stat-card {
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+.dashboard-stat-card.loaded {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Stagger animation delays */
+.dashboard-stat-card:nth-child(1) { transition-delay: 0ms; }
+.dashboard-stat-card:nth-child(2) { transition-delay: 100ms; }
+.dashboard-stat-card:nth-child(3) { transition-delay: 200ms; }
+.dashboard-stat-card:nth-child(4) { transition-delay: 300ms; }
+.dashboard-stat-card:nth-child(5) { transition-delay: 400ms; }
+
+/* List item fade in */
+.dashboard-list-item {
+  opacity: 0;
+  transform: translateY(5px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.dashboard-list-item.loaded {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Stat value animation */
+[data-stat], [data-count] {
+  transition: opacity 0.3s ease;
+}
+
 /* Reduced Motion */
 @media (prefers-reduced-motion: reduce) {
   .sesd-spinner,
   .sesd-loading-text,
-  .sesd-preloader-content {
+  .sesd-preloader-content,
+  .dashboard-stat-card,
+  .dashboard-list-item,
+  [data-stat],
+  [data-count] {
     animation: none;
+    transition: none;
   }
-  
+
   .sesd-spinner {
     border-top-color: #fff;
     border-right-color: #fff;
+  }
+
+  .dashboard-stat-card,
+  .dashboard-list-item {
+    opacity: 1;
+    transform: none;
   }
 }
