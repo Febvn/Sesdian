@@ -294,13 +294,23 @@
       return;
     }
 
-    // Check if already cached in this session
+    // Check if already cached in memory
     if (window.SESDIAN_CACHE.loaded && isCacheValid()) {
-      // Data sudah ada, skip preload
       return;
     }
 
-    // Show loading
+    // Check if cached in sessionStorage (from previous page)
+    var storedCache = loadFromStorage();
+    if (storedCache && storedCache.data) {
+      // Data sudah ada di session storage, skip preload UI
+      window.SESDIAN_CACHE.data = storedCache.data;
+      window.SESDIAN_CACHE.timestamp = storedCache.timestamp;
+      window.SESDIAN_CACHE.loaded = true;
+      patchDBWithCache();
+      return;
+    }
+
+    // Show loading (hanya untuk pertama kali login/muat)
     var loader = showLoading('Memuat data...');
 
     try {

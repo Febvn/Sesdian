@@ -180,6 +180,9 @@
   }
 
   function prepLoading() { 
+    // Skip loading skeletons if data is already cached (instant render)
+    if (window.SESDIAN_CACHE && window.SESDIAN_CACHE.loaded) return;
+
     $$('[data-stat],[data-count]').forEach(function (e) { 
       e.innerHTML = '<span class="sesd-loading-inline"></span>'; 
     }); 
@@ -734,6 +737,10 @@
 
   /* ---------------- boot ---------------- */
   async function boot() {
+    // If cached, immediately mark as ready to prevent top progress bar flash
+    if (window.SESDIAN_CACHE && window.SESDIAN_CACHE.loaded) {
+      document.body.classList.add('sesd-ready');
+    }
     setTimeout(function () { document.body.classList.add('sesd-ready'); }, 4000); // safety: never get stuck on the loader
     prepLoading();
     var g = guard();
