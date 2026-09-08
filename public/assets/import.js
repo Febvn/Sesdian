@@ -1,7 +1,7 @@
 /* ============================================================
    SESDIAN - Excel import (admin). Parses .xlsx/.xls in the browser
    with SheetJS (loaded on demand from CDN), previews the rows, then
-   POSTs normalized JSON to /api/assets-import. Exposes
+   POSTs normalized JSON to /api/assets (body.rows). Exposes
    window.SESDIAN_IMPORT.open().
    ============================================================ */
 (function () {

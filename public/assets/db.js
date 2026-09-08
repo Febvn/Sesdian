@@ -128,7 +128,7 @@
   function publicAsset(a) { return { id: a.id, code: a.code, name: a.name, brand: a.brand, type: a.type, image: a.image, qr_code: a.qr_code, category: a.category, room: a.room }; }
   async function catalog() {
     if (demo) { var as = await assets(); return P({ assets: as.map(publicAsset), categories: DEMO.categories.slice(), rooms: DEMO.rooms.slice() }); }
-    return req('catalog');
+    return req('public?resource=catalog');
   }
   async function assetDetail(o) {
     o = o || {};
@@ -139,7 +139,7 @@
       return P({ asset: publicAsset(a), authed: !!currentUserRaw() });
     }
     var qs = o.qr ? ('qr=' + encodeURIComponent(o.qr)) : ('id=' + encodeURIComponent(o.id));
-    return req('asset-detail?' + qs);
+    return req('public?resource=detail&' + qs);
   }
 
   /* ====================== reports (admin/verifikator) ====================== */
@@ -147,13 +147,13 @@
     params = params || {};
     if (demo) { return P({ period: params.period || 'daily', start: '', end: '', total: 0, series: [], by_status: {}, top_assets: [], top_borrowers: [], rows: [] }); }
     var qs = Object.keys(params).filter(function (k) { return params[k]; }).map(function (k) { return k + '=' + encodeURIComponent(params[k]); }).join('&');
-    return req('reports' + (qs ? ('?' + qs) : ''));
+    return req('dashboard?view=reports' + (qs ? ('&' + qs) : ''));
   }
 
   /* ====================== admin: bulk import ====================== */
   async function importAssets(rows) {
     if (demo) { return P({ success: rows.length, skipped: 0, failed: 0, errors: [] }); }
-    return req('assets-import', { method: 'POST', body: { rows: rows } });
+    return req('assets', { method: 'POST', body: { rows: rows } });
   }
 
   /* ====================== admin: users ====================== */

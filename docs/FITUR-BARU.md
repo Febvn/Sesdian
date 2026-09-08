@@ -24,21 +24,21 @@ Ringkasan implementasi 6 fitur baru beserta langkah pengaktifan.
 - Pilih periode (Harian/Mingguan/Bulanan) + rentang tanggal → grafik tren, ringkasan status,
   aset paling sering dipinjam, peminjam teraktif, dan tabel detail.
 - **Export CSV** (buka di Excel) dan **Cetak / PDF** (lewat dialog cetak browser).
-- API: `GET /api/reports?period=daily|weekly|monthly&start=YYYY-MM-DD&end=YYYY-MM-DD`.
+- API: `GET /api/dashboard?view=reports&period=daily|weekly|monthly&start=YYYY-MM-DD&end=YYYY-MM-DD`.
 
 ## 2. Import Data Aset dari Excel
 - Tombol **Import Excel** di halaman **Data Aset** (admin).
 - Upload `.xlsx/.xls/.csv` → pratinjau 10 baris → Import. Kode duplikat dilewati,
   kategori/ruangan baru dibuat otomatis. Tersedia tombol **Unduh template CSV**.
 - Kolom: `Kode, Nama, Kategori, Brand, Ruangan, Tahun, Kondisi, Tipe (BMN/Non-BMN), Jenis Aset, Stok Total`.
-- API: `POST /api/assets-import` (parsing Excel terjadi di browser memakai SheetJS via CDN).
+- API: `POST /api/assets` dengan body `{rows:[...]}` (parsing Excel di browser via SheetJS CDN).
 
 ## 3. Mode Guest (tanpa login)
 - Pengunjung langsung masuk ke **katalog publik** (`katalog.html`) — tidak diminta login.
 - Bisa: telusuri & cari aset, buka **detail aset** (termasuk via QR).
 - Tidak bisa tanpa login: melihat stok/ketersediaan dan **mengajukan pinjam**
   (tombol Pinjam mengarahkan ke halaman login).
-- API publik: `GET /api/catalog`, `GET /api/asset-detail?id=..|qr=..`.
+- API publik: `GET /api/public?resource=catalog`, `GET /api/public?resource=detail&id=..|qr=..`.
 
 ## 4. Verifikasi Ganda (Admin + Verifikator)
 - Alur status: `pending → (admin setujui) approved → (verifikator verifikasi) verified →
@@ -62,7 +62,7 @@ Ringkasan implementasi 6 fitur baru beserta langkah pengaktifan.
 ---
 
 ## Berkas baru
-- API: `api/catalog.js`, `api/asset-detail.js`, `api/reports.js`, `api/assets-import.js`
+- API: `api/public.js` (katalog + detail); laporan di `api/dashboard.js?view=reports`; import di `api/assets.js` (POST `{rows}`) — digabung agar ≤12 fungsi (limit Vercel Hobby)
 - Halaman: `katalog.html`, `aset-detail.html`, `verifikasi.html`, `laporan.html`, `qr-print.html`
 - Skrip: `assets/guest.js`, `assets/reports.js`, `assets/import.js`, `assets/qr.js`
 - Migrasi/seed: `db/migrate-v3.sql`, `db/seed-aset-2025.sql`
