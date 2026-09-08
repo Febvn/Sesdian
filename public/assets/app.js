@@ -55,6 +55,22 @@
     setTimeout(function () { t.style.transition = 'opacity .3s,transform .3s'; t.style.opacity = '0'; t.style.transform = 'translateY(8px)'; setTimeout(function () { t.remove(); }, 320); }, 2800);
   }
 
+  /* ---------------- single page loader (three dots, content area) ----------------
+     The only loading indicator. Shown on a COLD load while the page's data is
+     fetched; hidden the moment it renders. On a warm cache nav it's never shown,
+     so switching pages is instant. */
+  function showPageLoader() {
+    var main = $('main'); if (!main) return;
+    var content = main.lastElementChild; if (!content) return;
+    if (content.querySelector('.sesd-page-loader')) return;
+    content.classList.add('sesd-is-loading');
+    content.appendChild(el('div', { class: 'sesd-page-loader', html: '<span></span><span></span><span></span>' }));
+  }
+  function hidePageLoader() {
+    $$('.sesd-page-loader').forEach(function (e) { e.remove(); });
+    $$('.sesd-is-loading').forEach(function (e) { e.classList.remove('sesd-is-loading'); });
+  }
+
   /* ---------------- session ---------------- */
   function demoUser() { try { return JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) { return null; } }
   function currentUser() {
@@ -250,7 +266,20 @@
             }, i * 100);
           }
         });
-        renderList('[data-monitor-template]', d.monitor);
+        // Monitor Stok Aset header — dynamic from data (was hardcoded 14/64%/36%)
+        var st = d.stats || {};
+        var totalStock = st.total_stock || 0, avail = st.stock_available || 0;
+        var ap = totalStock ? Math.round(avail / totalStock * 100) : 0;
+        var bp = totalStock ? (100 - ap) : 0;
+        var setT = function (sel, txt) { var e = $(sel); if (e) e.textContent = txt; };
+        setT('[data-monitor-total]', 'Total ' + totalStock + ' unit stok');
+        setT('[data-monitor-avail-pct]', '● Tersedia ' + ap + '%');
+        setT('[data-monitor-borrowed-pct]', '● Dipinjam ' + bp + '%');
+        var ab = $('[data-monitor-avail-bar]'); if (ab) ab.style.width = ap + '%';
+        var bb = $('[data-monitor-borrowed-bar]'); if (bb) bb.style.width = bp + '%';
+        renderList('[data-monitor-template]', d.monitor, function (n, r) {
+          var t = $('[data-bind="total"]', n); if (t) t.textContent = ' / ' + (r.total != null ? r.total : 0);
+        });
         renderList('[data-recent-template]', d.recent);
       } else if (p === 'dataaset') {
         var assets = await DB.assets();
@@ -945,11 +974,16 @@
     IS_ADMIN = !!(USER && USER.role === 'admin');
     IS_VERIFIKATOR = !!(USER && USER.role === 'verifikator');
     IS_STAFF = IS_ADMIN || IS_VERIFIKATOR;
+    // Cold load (no warm cache) -> show one page loader while data is fetched.
+    // Warm cache -> skip it entirely so navigation is instant.
+    var cold = !(window.SESDIAN_CACHE && window.SESDIAN_CACHE.loaded);
+    if (cold) showPageLoader();
     buildShell();                 // fill dynamic sidebar/topbar on pages that opt in
     fillIdentity(USER);
     if (IS_STAFF) injectRoleNav();
     if (IS_ADMIN) injectAdminBars();
     await loadAndRender(page());
+    hidePageLoader();
     setupMobileLayout();
     setupDates();
     translateBreadcrumbs();

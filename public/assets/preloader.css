@@ -159,6 +159,29 @@
 }
 
 /* ============================================================
+   Single page loader: three bouncing dots centered in the content
+   area (the only loading indicator; shown by app.js on a cold load).
+   ============================================================ */
+.sesd-page-loader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 55vh;
+}
+.sesd-page-loader span {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: var(--primary, #6366f1);
+  animation: dotBounce 1.4s infinite ease-in-out both;
+}
+.sesd-page-loader span:nth-child(1) { animation-delay: -0.32s; }
+.sesd-page-loader span:nth-child(2) { animation-delay: -0.16s; }
+/* hide the real content while its loader is showing */
+.sesd-is-loading > *:not(.sesd-page-loader) { display: none !important; }
+
+/* ============================================================
    Skeleton Loading for Containers (Animated Dots)
    ============================================================ */
 

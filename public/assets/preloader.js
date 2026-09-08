@@ -402,10 +402,8 @@
       return;
     }
 
-    // COLD load only (first visit / cache expired): show scoped skeletons in the
-    // content area while data is fetched from the DB. No full-screen preloader.
-    showMinimalLoading();
-
+    // COLD load (first visit / cache expired): app.js shows the single page
+    // loader; here we just fetch data in the background and warm the cache.
     try {
       // Wait for DB to be ready
       var maxWait = 50; // 5 detik
@@ -413,32 +411,14 @@
         await new Promise(function (r) { setTimeout(r, 100); });
         maxWait--;
       }
+      if (!window.SESDIAN_DB) throw new Error('Database tidak tersedia');
 
-      if (!window.SESDIAN_DB) {
-        throw new Error('Database tidak tersedia');
-      }
-
-      // Preload all data, then patch DB functions to serve from cache
       await preloadAllData();
       patchDBWithCache();
-
-      // Hide skeletons once data is in
-      setTimeout(hideLoading, 150);
-
     } catch (e) {
       console.error('Preload error:', e);
-      hideLoading();
-
-      // Jika auth error, redirect ke login
-      if (e && e.status === 401) {
-        location.replace('login.html');
-        return;
-      }
-
-      // Show error toast jika ada
-      if (window.toast) {
-        window.toast('Gagal memuat data: ' + (e.message || e), 'error');
-      }
+      if (e && e.status === 401) { location.replace('login.html'); return; }
+      if (window.toast) window.toast('Gagal memuat data: ' + (e.message || e), 'error');
     }
   }
 

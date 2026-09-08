@@ -1204,13 +1204,13 @@
                       margin-bottom: 6px;
                     "
                   >
-                    <span style="font-size: 0.8rem; color: var(--text-muted)"
+                    <span data-monitor-total style="font-size: 0.8rem; color: var(--text-muted)"
                       >Total 14 unit stok</span
                     >
                     <div style="display: flex; gap: 12px; font-size: 0.78rem">
-                      <span style="color: rgb(16, 185, 129); font-weight: 600"
+                      <span data-monitor-avail-pct style="color: rgb(16, 185, 129); font-weight: 600"
                         >● Tersedia 64%</span
-                      ><span style="color: rgb(245, 158, 11); font-weight: 600"
+                      ><span data-monitor-borrowed-pct style="color: rgb(245, 158, 11); font-weight: 600"
                         >● Dipinjam 36%</span
                       >
                     </div>
@@ -1225,6 +1225,7 @@
                     "
                   >
                     <div
+                      data-monitor-avail-bar
                       style="
                         width: 64%;
                         background: linear-gradient(
@@ -1236,6 +1237,7 @@
                       "
                     ></div>
                     <div
+                      data-monitor-borrowed-bar
                       style="
                         width: 36%;
                         background: linear-gradient(
@@ -1302,6 +1304,7 @@
                       "
                     >
                       <span
+                        data-bind="available"
                         style="font-weight: 700; color: rgb(16, 185, 129)"
                         >-</span
                       ><span data-bind="total" style="color: var(--text-muted)">
