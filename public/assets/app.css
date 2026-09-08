@@ -116,8 +116,14 @@ a{color:var(--primary);text-decoration:none}
 .sesd-role-admin{background:#ede9fe;color:#5b21b6}
 .sesd-role-user{background:#e2e8f0;color:#475569}
 
-/* The page shell renders instantly; data loading is shown only by the scoped
-   content skeletons (see preloader.css), so no full-page/top progress bar. */
+/* The page shell renders instantly; data loading is shown only by a single
+   three-dots loader in the content area (used by both app.js and guest.js). */
+.sesd-page-loader{display:flex;align-items:center;justify-content:center;gap:12px;min-height:55vh}
+.sesd-page-loader span{width:13px;height:13px;border-radius:50%;background:var(--primary);animation:sesdLoaderBounce 1.4s infinite ease-in-out both}
+.sesd-page-loader span:nth-child(1){animation-delay:-.32s}
+.sesd-page-loader span:nth-child(2){animation-delay:-.16s}
+.sesd-is-loading > *:not(.sesd-page-loader){display:none !important}
+@keyframes sesdLoaderBounce{0%,80%,100%{transform:scale(0);opacity:.5}40%{transform:scale(1);opacity:1}}
 
 /* inline icons: inherit text colour + size, align with text */
 .ic{display:inline-flex;align-items:center;justify-content:center;line-height:0;vertical-align:-0.125em}

@@ -27,6 +27,24 @@
   }
   function loggedIn() { try { return DB.auth && DB.auth.currentUser(); } catch (e) { return null; } }
   function qs(name) { var m = new RegExp('[?&]' + name + '=([^&]+)').exec(location.search); return m ? decodeURIComponent(m[1]) : ''; }
+  // same single three-dots loader used on the authed pages (see app.css)
+  function showDots(container) { container.innerHTML = '<div class="sesd-page-loader"><span></span><span></span><span></span></div>'; }
+
+  // group identical items (same name+category) into one tidy card; each unit
+  // still exists individually in the DB (and keeps its own QR/detail page).
+  function groupCatalog(list) {
+    var map = {}, order = [];
+    list.forEach(function (a) {
+      var key = (a.name || '').trim().toLowerCase() + '|' + (a.category || '').toLowerCase();
+      var g = map[key];
+      if (!g) { g = map[key] = { name: a.name, category: a.category, room: a.room, brand: a.brand, type: a.type, image: a.image, count: 0, repId: a.id, qr_code: a.qr_code }; order.push(key); }
+      g.count++;
+      if (!g.image && a.image) g.image = a.image;
+      if (g.brand && a.brand && g.brand !== a.brand) g.brand = 'Beragam';
+      if (g.room && a.room && g.room !== a.room) g.room = 'Beberapa ruangan';
+    });
+    return order.map(function (k) { return map[k]; }).sort(function (x, y) { return (x.name || '').localeCompare(y.name || ''); });
+  }
 
   /* header auth button (Masuk / Buka Dashboard) */
   function wireGuestAuth() {
@@ -38,18 +56,20 @@
   }
 
   /* ---------------- catalog ---------------- */
-  function assetCard(a) {
+  function assetCard(g) {
     var card = el('div', { style: 'background:#fff;border-radius:16px;overflow:hidden;box-shadow:rgba(0,0,0,0.08) 0px 8px 24px;border:1px solid var(--border);cursor:pointer;transition:transform .2s,box-shadow .2s' });
     card.addEventListener('mouseenter', function () { card.style.transform = 'translateY(-4px)'; });
     card.addEventListener('mouseleave', function () { card.style.transform = 'none'; });
-    card.addEventListener('click', function () { location.href = 'aset-detail.html?id=' + a.id; });
-    card.appendChild(el('div', { style: 'height:130px;overflow:hidden', html: '<img src="' + (a.image || PLACEHOLDER) + '" alt="" style="width:100%;height:100%;object-fit:cover;background:linear-gradient(135deg,#eef2ff,#e0e7ff)">' }));
+    card.addEventListener('click', function () { location.href = 'aset-detail.html?' + (g.qr_code ? ('qr=' + encodeURIComponent(g.qr_code)) : ('id=' + g.repId)); });
+    card.appendChild(el('div', { style: 'height:130px;overflow:hidden', html: '<img loading="lazy" decoding="async" src="' + (g.image || PLACEHOLDER) + '" alt="" style="width:100%;height:100%;object-fit:cover;background:linear-gradient(135deg,#eef2ff,#e0e7ff)">' }));
     var body = el('div', { style: 'padding:1rem' });
-    body.appendChild(el('span', { style: 'font-size:0.65rem;font-weight:800;padding:0.15rem 0.5rem;border-radius:20px;background:rgb(219,234,254);color:rgb(30,64,175)' }, a.type || 'BMN'));
-    body.appendChild(el('div', { style: 'font-family:"JetBrains Mono",monospace;font-size:0.68rem;color:var(--text-muted);margin:8px 0 2px' }, a.code || ''));
-    body.appendChild(el('div', { style: 'font-weight:700;font-size:0.95rem;margin-bottom:8px' }, a.name || ''));
+    var top = el('div', { style: 'display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:6px' });
+    top.appendChild(el('span', { style: 'font-size:0.65rem;font-weight:800;padding:0.15rem 0.5rem;border-radius:20px;background:rgb(219,234,254);color:rgb(30,64,175)' }, g.type || 'BMN'));
+    if (g.count > 1) top.appendChild(el('span', { style: 'font-size:0.68rem;font-weight:800;padding:0.15rem 0.5rem;border-radius:20px;background:rgb(237,233,254);color:rgb(91,33,182);white-space:nowrap' }, g.count + ' unit'));
+    body.appendChild(top);
+    body.appendChild(el('div', { style: 'font-weight:700;font-size:0.95rem;margin-bottom:8px' }, g.name || ''));
     var chips = el('div', { style: 'display:flex;flex-wrap:wrap;gap:4px' });
-    [['tag', a.category], ['pin', a.room]].forEach(function (c) {
+    [['tag', g.category], ['pin', g.room], ['factory', g.brand]].forEach(function (c) {
       if (!c[1]) return;
       chips.appendChild(el('span', { style: 'background:rgb(241,245,249);padding:0.1rem 0.5rem;border-radius:6px;font-size:0.72rem;color:var(--text-muted)', html: ic(c[0]) + ' ' + c[1] }));
     });
@@ -60,10 +80,12 @@
 
   async function renderKatalog() {
     var grid = $('[data-catalog-grid]'); if (!grid) return;
+    showDots(grid);
     var data;
     try { data = await DB.catalog(); } catch (e) { grid.innerHTML = '<div class="sesd-empty">Gagal memuat katalog.</div>'; return; }
     var assets = data.assets || [], cats = data.categories || [];
-    var sub = $('[data-catalog-sub]'); if (sub) sub.textContent = assets.length + ' aset tersedia untuk dilihat';
+    var groups = groupCatalog(assets);
+    var sub = $('[data-catalog-sub]'); if (sub) sub.textContent = groups.length + ' jenis · ' + assets.length + ' unit tersedia';
     var state = { q: '', cat: 'all' };
 
     // category chips
@@ -84,14 +106,14 @@
     if (search) search.addEventListener('input', function () { state.q = search.value.trim().toLowerCase(); draw(); });
 
     function draw() {
-      var list = assets.filter(function (a) {
-        if (state.cat !== 'all' && a.category !== state.cat) return false;
-        if (state.q && (a.name + ' ' + a.code + ' ' + (a.brand || '')).toLowerCase().indexOf(state.q) === -1) return false;
+      var list = groups.filter(function (g) {
+        if (state.cat !== 'all' && g.category !== state.cat) return false;
+        if (state.q && (g.name + ' ' + (g.brand || '')).toLowerCase().indexOf(state.q) === -1) return false;
         return true;
       });
       grid.innerHTML = '';
       if (!list.length) { grid.appendChild(el('div', { class: 'sesd-empty' }, 'Tidak ada aset yang cocok.')); return; }
-      list.forEach(function (a) { grid.appendChild(assetCard(a)); });
+      list.forEach(function (g) { grid.appendChild(assetCard(g)); });
     }
     draw();
   }
@@ -101,6 +123,7 @@
     var root = $('[data-detail-root]'); if (!root) return;
     var id = qs('id'), qr = qs('qr');
     if (!id && !qr) { root.innerHTML = '<div class="sesd-empty">Aset tidak ditemukan.</div>'; return; }
+    showDots(root);
     var res;
     try { res = await DB.assetDetail(id ? { id: id } : { qr: qr }); }
     catch (e) { root.innerHTML = '<div class="sesd-empty">Aset tidak ditemukan.</div>'; return; }
