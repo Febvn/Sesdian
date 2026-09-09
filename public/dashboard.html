@@ -809,7 +809,6 @@
                     KAMIS, 18 JUNI 2026
                   </div>
                   <h1
-                    data-user-firstname
                     style="
                       color: rgb(255, 255, 255);
                       font-size: 1.75rem;
@@ -817,7 +816,7 @@
                       margin-bottom: 6px;
                     "
                   >
-                    Selamat datang, Adi
+                    Selamat datang, <span data-user-firstname>Adi</span>
                     <span class="ic"
                       ><svg
                         viewBox="0 0 24 24"
@@ -1268,10 +1267,17 @@
                           overflow: hidden;
                           text-overflow: ellipsis;
                         "
+                      >
                         -
                       </div>
                       <div
                         data-bind="code"
+                        style="
+                          font-size: 0.65rem;
+                          color: var(--text-muted);
+                          font-family: 'JetBrains Mono';
+                        "
+                      >
                         -
                       </div>
                     </div>
