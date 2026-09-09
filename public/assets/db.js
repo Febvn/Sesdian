@@ -159,6 +159,9 @@
   /* ====================== admin: users ====================== */
   function currentUserRaw() { var t = token(); return t ? decode(t) : null; }
   async function users() { return demo ? P(DEMO.users.slice()) : (await req('users')).users; }
+  // always hits the API (never served from the preloader cache) so the Kelola
+  // User table can't show a stale/empty snapshot.
+  async function usersFresh() { return demo ? P(DEMO.users.slice()) : (await req('users')).users; }
   async function setUserRole(id, role) {
     if (demo) { var u = DEMO.users.filter(function (x) { return x.id == id; })[0]; if (u) u.role = role; return P(u); }
     return (await req('users', { method: 'PATCH', body: { id: id, role: role } })).user;
@@ -201,7 +204,7 @@
     if (demo) {
       var b = DEMO.borrowings.filter(function (x) { return x.id == id; })[0];
       if (b) {
-        var RES = ['pending', 'approved', 'verified', 'borrowed'];
+        var RES = ['pending', 'approved', 'verified', 'borrowed', 'return_pending'];
         var wasOut = RES.indexOf(b.status) !== -1, nowOut = RES.indexOf(status) !== -1;
         var a = DEMO.assets.filter(function (x) { return x.id === b.asset_id; })[0];
         if (a) {
@@ -230,7 +233,7 @@
     auth: auth,
     categories: categories, rooms: rooms, assets: assets, borrowings: borrowings, dashboard: dashboard, requestBorrowing: requestBorrowing,
     catalog: catalog, assetDetail: assetDetail, reports: reports, importAssets: importAssets,
-    users: users, setUserRole: setUserRole, createUser: createUser, deleteUser: deleteUser,
+    users: users, usersFresh: usersFresh, setUserRole: setUserRole, createUser: createUser, deleteUser: deleteUser,
     createAsset: createAsset, updateAsset: updateAsset, deleteAsset: deleteAsset,
     createCategory: createCategory, updateCategory: updateCategory, deleteCategory: deleteCategory,
     createRoom: createRoom, updateRoom: updateRoom, deleteRoom: deleteRoom,

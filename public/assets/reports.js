@@ -1,7 +1,7 @@
 /* ============================================================
-   SESDIAN - reports (laporan) module. Runs only on data-page="laporan".
-   Daily / weekly / monthly aggregation, on-screen chart + tables,
-   CSV download and browser print (Save as PDF). No external libraries.
+   SESDIAN - reports (laporan). Runs only on data-page="laporan".
+   Daily / weekly / monthly window, summary + detail table, CSV export,
+   and a print/PDF layout (DAFTAR PEMINJAMAN BARANG INVENTARIS form).
    ============================================================ */
 (function () {
   'use strict';
@@ -18,6 +18,7 @@
   var STATUS = {
     pending: ['Pending', '#f59e0b'], approved: ['Disetujui Admin', '#3b82f6'],
     verified: ['Terverifikasi', '#06b6d4'], borrowed: ['Dipinjam', '#8b5cf6'],
+    return_pending: ['Menunggu Verifikasi Kembali', '#f97316'],
     returned: ['Kembali', '#10b981'], rejected: ['Ditolak', '#ef4444'],
   };
   function toast(msg, type) {
@@ -26,6 +27,8 @@
     setTimeout(function () { t.style.opacity = '0'; setTimeout(function () { t.remove(); }, 320); }, 2600);
   }
   function iso(d) { return d.toISOString().slice(0, 10); }
+  function fmtDate(s) { if (!s) return ''; var d = new Date(s); if (isNaN(d)) return String(s).slice(0, 10); return d.getDate() + '/' + (d.getMonth() + 1) + '/' + d.getFullYear(); }
+  function statusLabel(s) { return (STATUS[s] && STATUS[s][0]) || s; }
   var lastData = null;
   var state = { period: 'daily' };
 
@@ -41,9 +44,8 @@
   async function load() {
     var start = $('[data-start]').value, end = $('[data-end]').value;
     try {
-      var data = await DB.reports({ period: state.period, start: start, end: end });
-      lastData = data;
-      render(data);
+      lastData = await DB.reports({ period: state.period, start: start, end: end });
+      render(lastData);
     } catch (e) {
       if (e && e.status === 401) { location.replace('login.html'); return; }
       toast((e && e.message) || 'Gagal memuat laporan', 'error');
@@ -52,79 +54,81 @@
 
   function render(d) {
     $('[data-total]').textContent = d.total;
-    // status breakdown
     var sb = $('[data-status-breakdown]'); sb.innerHTML = '';
     Object.keys(STATUS).forEach(function (k) {
       var n = d.by_status[k] || 0;
+      if (!n) return;
       var chip = el('div', { style: 'display:flex;align-items:center;gap:6px;padding:0.4rem 0.7rem;border-radius:10px;background:var(--bg);font-size:0.8rem;font-weight:600' });
       chip.appendChild(el('span', { style: 'width:9px;height:9px;border-radius:50%;background:' + STATUS[k][1] }));
       chip.appendChild(el('span', {}, STATUS[k][0] + ': ' + n));
       sb.appendChild(chip);
     });
-    // bar chart (inline SVG)
-    drawChart(d.series);
-    // top assets
-    var ta = $('[data-top-assets]'); ta.innerHTML = '';
-    if (!d.top_assets.length) ta.appendChild(el('div', { class: 'sesd-empty' }, 'Belum ada data.'));
-    d.top_assets.forEach(function (a, i) {
-      ta.appendChild(rowLine((i + 1) + '. ' + a.name + (a.code ? ' (' + a.code + ')' : ''), a.count + 'x · ' + a.qty + ' unit'));
-    });
-    // top borrowers
-    var tb = $('[data-top-borrowers]'); tb.innerHTML = '';
-    if (!d.top_borrowers.length) tb.appendChild(el('div', { class: 'sesd-empty' }, 'Belum ada data.'));
-    d.top_borrowers.forEach(function (b, i) { tb.appendChild(rowLine((i + 1) + '. ' + b.name, b.count + 'x')); });
-    // detail rows
+    if (!sb.children.length) sb.appendChild(el('span', { style: 'color:var(--text-muted);font-size:0.85rem' }, 'Tidak ada data.'));
+
     var tbody = $('[data-report-rows]'); tbody.innerHTML = '';
-    if (!d.rows.length) { tbody.appendChild(el('tr', { html: '<td colspan="6" style="text-align:center;padding:2rem;color:var(--text-muted)">Tidak ada peminjaman pada periode ini.</td>' })); }
-    d.rows.forEach(function (r) {
-      var tr = el('tr', { style: 'border-top:1px solid var(--border)' });
-      var td = 'padding:0.7rem 1rem;font-size:0.83rem';
+    if (!d.rows.length) { tbody.appendChild(el('tr', { html: '<td colspan="8" style="text-align:center;padding:2rem;color:var(--text-muted)">Tidak ada peminjaman pada periode ini.</td>' })); return; }
+    var td = 'padding:0.6rem 0.8rem;font-size:0.83rem;border-top:1px solid var(--border)';
+    d.rows.forEach(function (r, i) {
+      var tr = el('tr');
+      tr.appendChild(el('td', { style: td }, String(i + 1)));
+      tr.appendChild(el('td', { style: td + ';font-weight:600' }, r.borrower_name || '-'));
+      tr.appendChild(el('td', { style: td }, (r.asset_name || '-') + (r.asset_code ? ' (' + r.asset_code + ')' : '')));
       tr.appendChild(el('td', { style: td }, fmtDate(r.created_at)));
-      tr.appendChild(el('td', { style: td + ';font-weight:600' }, (r.asset_name || '-') + (r.asset_code ? ' (' + r.asset_code + ')' : '')));
-      tr.appendChild(el('td', { style: td }, r.borrower_name || '-'));
-      tr.appendChild(el('td', { style: td }, String(r.qty)));
-      tr.appendChild(el('td', { style: td }, (STATUS[r.status] && STATUS[r.status][0]) || r.status));
-      tr.appendChild(el('td', { style: td + ';font-family:"JetBrains Mono"' }, r.due_date ? String(r.due_date).slice(0, 10) : '-'));
+      tr.appendChild(el('td', { style: td }, r.due_date ? fmtDate(r.due_date) : '-'));
+      tr.appendChild(el('td', { style: td }, r.returned_at ? fmtDate(r.returned_at) : '—'));
+      tr.appendChild(el('td', { style: td }, r.admin_name || '-'));
+      tr.appendChild(el('td', { style: td }, r.verifikator_name || '-'));
       tbody.appendChild(tr);
     });
   }
 
-  function rowLine(left, right) {
-    var d = el('div', { style: 'display:flex;justify-content:space-between;gap:10px;padding:0.5rem 0;border-bottom:1px solid var(--border);font-size:0.85rem' });
-    d.appendChild(el('span', { style: 'font-weight:600' }, left));
-    d.appendChild(el('span', { style: 'color:var(--text-muted);white-space:nowrap' }, right));
-    return d;
-  }
-  function fmtDate(s) { if (!s) return '-'; var d = new Date(s); return d.getDate() + '/' + (d.getMonth() + 1) + '/' + d.getFullYear(); }
-
-  function drawChart(series) {
-    var host = $('[data-chart]'); host.innerHTML = '';
-    if (!series.length) { host.appendChild(el('div', { class: 'sesd-empty' }, 'Tidak ada data untuk grafik.')); return; }
-    var max = series.reduce(function (m, s) { return Math.max(m, s.count); }, 1);
-    var bar = el('div', { style: 'display:flex;align-items:flex-end;gap:6px;height:180px;overflow-x:auto;padding-top:10px' });
-    series.forEach(function (s) {
-      var col = el('div', { style: 'display:flex;flex-direction:column;align-items:center;gap:4px;min-width:34px;flex:1' });
-      var h = Math.round((s.count / max) * 140) + 2;
-      col.appendChild(el('div', { style: 'font-size:0.7rem;font-weight:700;color:var(--text)' }, String(s.count)));
-      col.appendChild(el('div', { style: 'width:60%;min-width:14px;height:' + h + 'px;border-radius:6px 6px 0 0;background:linear-gradient(180deg,rgb(99,102,241),rgb(139,92,246))' }));
-      col.appendChild(el('div', { style: 'font-size:0.6rem;color:var(--text-muted);white-space:nowrap;transform:rotate(-35deg);transform-origin:center;margin-top:6px' }, s.bucket.slice(5)));
-      bar.appendChild(col);
-    });
-    host.appendChild(bar);
-  }
-
   function exportCsv() {
     if (!lastData || !lastData.rows.length) { toast('Tidak ada data untuk diexport', 'error'); return; }
-    var head = ['Tanggal Pengajuan', 'Aset', 'Kode', 'Peminjam', 'Jumlah', 'Status', 'Jatuh Tempo'];
+    var head = ['No', 'Nama Peminjam', 'Nama Barang', 'Tgl Pinjam', 'Tgl Kembali', 'Tgl Pengembalian', 'Admin', 'Verifikator'];
     var lines = [head.join(',')];
-    lastData.rows.forEach(function (r) {
-      var row = [fmtDate(r.created_at), r.asset_name || '-', r.asset_code || '', r.borrower_name || '-', r.qty,
-        (STATUS[r.status] && STATUS[r.status][0]) || r.status, r.due_date ? String(r.due_date).slice(0, 10) : ''];
+    lastData.rows.forEach(function (r, i) {
+      var row = [i + 1, r.borrower_name || '', r.asset_name || '', fmtDate(r.created_at), r.due_date ? fmtDate(r.due_date) : '',
+        r.returned_at ? fmtDate(r.returned_at) : '', r.admin_name || '', r.verifikator_name || ''];
       lines.push(row.map(function (c) { var s = String(c == null ? '' : c); return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; }).join(','));
     });
     var blob = new Blob(['﻿' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
-    var a = el('a', { href: URL.createObjectURL(blob), download: 'laporan-peminjaman-' + state.period + '-' + lastData.start + '_' + lastData.end + '.csv' });
+    var a = el('a', { href: URL.createObjectURL(blob), download: 'laporan-peminjaman-' + lastData.start + '_' + lastData.end + '.csv' });
     document.body.appendChild(a); a.click(); a.remove();
+  }
+
+  // Print to a clean DAFTAR PEMINJAMAN BARANG INVENTARIS form in a new window.
+  function printPdf() {
+    if (!lastData || !lastData.rows.length) { toast('Tidak ada data untuk dicetak', 'error'); return; }
+    var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]; }); };
+    var rows = lastData.rows.map(function (r, i) {
+      return '<tr>' +
+        '<td class="c">' + (i + 1) + '</td>' +
+        '<td>' + esc(r.borrower_name) + '</td>' +
+        '<td>' + esc(r.asset_name) + (r.asset_code ? ' (' + esc(r.asset_code) + ')' : '') + '</td>' +
+        '<td class="c">' + esc(fmtDate(r.created_at)) + '</td>' +
+        '<td class="c">' + esc(r.due_date ? fmtDate(r.due_date) : '') + '</td>' +
+        '<td class="c">' + esc(r.returned_at ? fmtDate(r.returned_at) : '') + '</td>' +
+        '<td>' + esc(r.admin_name) + '</td>' +
+        '<td>' + esc(r.verifikator_name) + '</td>' +
+        '</tr>';
+    }).join('');
+    var html = '<!doctype html><html><head><meta charset="utf-8"><title>Laporan Peminjaman</title><style>' +
+      'body{font-family:"Times New Roman",serif;color:#000;padding:28px}' +
+      'h2{text-align:center;margin:0;font-size:16px;letter-spacing:.5px}' +
+      'h3{text-align:center;margin:2px 0 18px;font-size:14px}' +
+      'table{width:100%;border-collapse:collapse;font-size:11px}' +
+      'th,td{border:1px solid #000;padding:5px 7px;vertical-align:top}' +
+      'th{text-align:center;font-weight:bold}td.c{text-align:center}' +
+      '@media print{body{padding:0}}' +
+      '</style></head><body onload="window.print()">' +
+      '<h2>DAFTAR PEMINJAMAN BARANG INVENTARIS</h2>' +
+      '<h3>Periode ' + esc(fmtDate(lastData.start)) + ' s/d ' + esc(fmtDate(lastData.end)) + '</h3>' +
+      '<table><thead><tr>' +
+      '<th>No</th><th>Nama Peminjam</th><th>Nama Barang</th><th>Tgl Pinjam</th><th>Tgl Kembali</th><th>Tgl Pengembalian</th><th>Nama Admin</th><th>Nama Verifikator</th>' +
+      '</tr></thead><tbody>' + rows + '</tbody></table></body></html>';
+    var w = window.open('', '_blank');
+    if (!w) { toast('Izinkan popup untuk mencetak', 'error'); return; }
+    w.document.write(html); w.document.close();
   }
 
   function boot() {
@@ -133,7 +137,7 @@
     $$('[data-period]').forEach(function (b) { b.addEventListener('click', function () { setPeriod(b.getAttribute('data-period')); load(); }); });
     $('[data-apply]').addEventListener('click', load);
     $('[data-export]').addEventListener('click', exportCsv);
-    $('[data-print]').addEventListener('click', function () { window.print(); });
+    $('[data-print]').addEventListener('click', printPdf);
     setPeriod('daily');
     load();
   }

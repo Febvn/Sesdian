@@ -13,22 +13,6 @@
     />
     <link rel="stylesheet" href="assets/app.css?v=2" />
     <link rel="stylesheet" href="assets/preloader.css?v=2" />
-    <style>
-      @media print {
-        aside[data-shell],
-        [data-topbar],
-        [data-no-print] {
-          display: none !important;
-        }
-        body,
-        #root > div {
-          background: #fff !important;
-        }
-        main {
-          overflow: visible !important;
-        }
-      }
-    </style>
   </head>
   <body
     data-page="laporan"
@@ -70,7 +54,6 @@
           ></div>
           <div style="padding: 1.75rem">
             <div
-              data-no-print
               style="
                 display: flex;
                 justify-content: space-between;
@@ -85,18 +68,17 @@
                   Laporan Peminjaman
                 </h1>
                 <p style="color: var(--text-muted); font-size: 0.875rem">
-                  Rekap peminjaman harian, mingguan, dan bulanan.
+                  Rekap peminjaman per periode.
                 </p>
               </div>
               <div style="display: flex; gap: 8px; flex-wrap: wrap">
                 <button data-export class="sesd-btn sesd-btn-success">Export CSV</button>
-                <button data-print class="sesd-btn sesd-btn-ghost">Cetak / PDF</button>
+                <button data-print class="sesd-btn sesd-btn-primary">Cetak PDF</button>
               </div>
             </div>
 
             <!-- controls -->
             <div
-              data-no-print
               style="
                 background: #fff;
                 border-radius: 14px;
@@ -129,14 +111,7 @@
             </div>
 
             <!-- summary -->
-            <div
-              style="
-                display: grid;
-                grid-template-columns: 220px 1fr;
-                gap: 1rem;
-                margin-bottom: 1.25rem;
-              "
-            >
+            <div style="display: grid; grid-template-columns: 220px 1fr; gap: 1rem; margin-bottom: 1.25rem">
               <div style="background: linear-gradient(135deg, rgb(99, 102, 241), rgb(139, 92, 246)); color: #fff; border-radius: 16px; padding: 1.25rem; box-shadow: var(--shadow-lg)">
                 <div style="font-size: 0.8rem; opacity: 0.85; font-weight: 600">Total Peminjaman</div>
                 <div data-total style="font-size: 2.6rem; font-weight: 800; line-height: 1.1; margin-top: 6px">0</div>
@@ -148,35 +123,19 @@
               </div>
             </div>
 
-            <!-- chart -->
-            <div style="background: #fff; border-radius: 16px; padding: 1.25rem; box-shadow: var(--shadow); margin-bottom: 1.25rem">
-              <div style="font-size: 0.95rem; font-weight: 800; margin-bottom: 8px">Tren Peminjaman</div>
-              <div data-chart></div>
-            </div>
-
-            <!-- tops -->
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.25rem">
-              <div style="background: #fff; border-radius: 16px; padding: 1.25rem; box-shadow: var(--shadow)">
-                <div style="font-size: 0.95rem; font-weight: 800; margin-bottom: 8px">Aset Paling Sering Dipinjam</div>
-                <div data-top-assets></div>
-              </div>
-              <div style="background: #fff; border-radius: 16px; padding: 1.25rem; box-shadow: var(--shadow)">
-                <div style="font-size: 0.95rem; font-weight: 800; margin-bottom: 8px">Peminjam Teraktif</div>
-                <div data-top-borrowers></div>
-              </div>
-            </div>
-
             <!-- detail table -->
             <div style="background: #fff; border-radius: 16px; box-shadow: var(--shadow); overflow: auto">
-              <table style="width: 100%; border-collapse: collapse; min-width: 720px">
+              <table style="width: 100%; border-collapse: collapse; min-width: 920px">
                 <thead style="background: rgb(248, 250, 255)">
                   <tr>
-                    <th style="padding: 0.8rem 1rem; text-align: left; font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase">Tanggal</th>
-                    <th style="padding: 0.8rem 1rem; text-align: left; font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase">Aset</th>
-                    <th style="padding: 0.8rem 1rem; text-align: left; font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase">Peminjam</th>
-                    <th style="padding: 0.8rem 1rem; text-align: left; font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase">Jumlah</th>
-                    <th style="padding: 0.8rem 1rem; text-align: left; font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase">Status</th>
-                    <th style="padding: 0.8rem 1rem; text-align: left; font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase">Jatuh Tempo</th>
+                    <th style="padding: 0.7rem 0.8rem; text-align: left; font-size: 0.7rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase">No</th>
+                    <th style="padding: 0.7rem 0.8rem; text-align: left; font-size: 0.7rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase">Nama Peminjam</th>
+                    <th style="padding: 0.7rem 0.8rem; text-align: left; font-size: 0.7rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase">Nama Barang</th>
+                    <th style="padding: 0.7rem 0.8rem; text-align: left; font-size: 0.7rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase">Tgl Pinjam</th>
+                    <th style="padding: 0.7rem 0.8rem; text-align: left; font-size: 0.7rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase">Tgl Kembali</th>
+                    <th style="padding: 0.7rem 0.8rem; text-align: left; font-size: 0.7rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase">Tgl Pengembalian</th>
+                    <th style="padding: 0.7rem 0.8rem; text-align: left; font-size: 0.7rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase">Admin</th>
+                    <th style="padding: 0.7rem 0.8rem; text-align: left; font-size: 0.7rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase">Verifikator</th>
                   </tr>
                 </thead>
                 <tbody data-report-rows></tbody>

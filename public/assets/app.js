@@ -42,6 +42,7 @@
     approved: { label: 'Disetujui Admin', bg: '#dbeafe', fg: '#1e40af' },
     verified: { label: 'Terverifikasi', bg: '#cffafe', fg: '#155e75' },
     borrowed: { label: 'Dipinjam', bg: '#ede9fe', fg: '#5b21b6' },
+    return_pending: { label: 'Menunggu Verifikasi Kembali', bg: '#ffedd5', fg: '#9a3412' },
     returned: { label: 'Kembali', bg: '#dcfce7', fg: '#166534' },
     rejected: { label: 'Ditolak', bg: '#fee2e2', fg: '#991b1b' },
   };
@@ -266,20 +267,6 @@
             }, i * 100);
           }
         });
-        // Monitor Stok Aset header — dynamic from data (was hardcoded 14/64%/36%)
-        var st = d.stats || {};
-        var totalStock = st.total_stock || 0, avail = st.stock_available || 0;
-        var ap = totalStock ? Math.round(avail / totalStock * 100) : 0;
-        var bp = totalStock ? (100 - ap) : 0;
-        var setT = function (sel, txt) { var e = $(sel); if (e) e.textContent = txt; };
-        setT('[data-monitor-total]', 'Total ' + totalStock + ' unit stok');
-        setT('[data-monitor-avail-pct]', '● Tersedia ' + ap + '%');
-        setT('[data-monitor-borrowed-pct]', '● Dipinjam ' + bp + '%');
-        var ab = $('[data-monitor-avail-bar]'); if (ab) ab.style.width = ap + '%';
-        var bb = $('[data-monitor-borrowed-bar]'); if (bb) bb.style.width = bp + '%';
-        renderList('[data-monitor-template]', d.monitor, function (n, r) {
-          var t = $('[data-bind="total"]', n); if (t) t.textContent = ' / ' + (r.total != null ? r.total : 0);
-        });
         renderList('[data-recent-template]', d.recent);
       } else if (p === 'dataaset') {
         var assets = await DB.assets();
@@ -317,11 +304,7 @@
         var done = allb.filter(function (b) { return b.status === 'verified' || b.status === 'borrowed' || b.status === 'returned'; }).length;
         var dc = $('[data-count="verified"]'); if (dc) dc.textContent = done;
       } else if (p === 'ajukanpinjam') {
-        renderList('[data-template]', await DB.assets(), function (n, r) {
-          n.setAttribute('data-asset-id', r.id);
-          n.setAttribute('data-status', r.stock_available > 0 ? 'available' : 'unavailable');
-        });
-        wireAssetSelect();
+        buildAjukanList(groupAssets(await DB.assets()));
       } else if (p === 'users') {
         await renderUsers();
         await wireWaSettings();
@@ -524,6 +507,9 @@
       info.appendChild(el('div', { style: 'font-family:"JetBrains Mono",monospace;font-size:.75rem;font-weight:700' }, u.code || '-'));
       info.appendChild(el('div', { style: 'font-size:.7rem;color:var(--text-muted)' }, (u.condition || 'Baik') + ' · ' + (u.stock_available > 0 ? 'Tersedia' : 'Dipinjam') + (u.qr_code ? (' · ' + u.qr_code) : '')));
       row.appendChild(info);
+      var qrBtn = el('button', { class: 'sesd-btn sesd-btn-sm sesd-btn-ghost', html: ic('tag') + ' QR' });
+      qrBtn.addEventListener('click', function () { if (window.SESDIAN_QR) { ov.remove(); window.SESDIAN_QR.showFor(u); } else { toast('Modul QR belum siap', 'error'); } });
+      row.appendChild(qrBtn);
       if (IS_ADMIN) {
         var edit = el('button', { class: 'sesd-btn sesd-btn-sm sesd-btn-ghost', html: ic('pencil') });
         edit.addEventListener('click', function () { ov.remove(); openAssetForm(u); });
@@ -617,10 +603,13 @@
       else if (IS_VERIFIKATOR && rec.status === 'approved') { btns.push(['Verifikasi (Verifikasi 2)', 'success', function () { changeStatus(rec, 'verified'); }], ['Tolak', 'danger', function () { changeStatus(rec, 'rejected'); }]); }
       else if (rec.status === 'verified') { btns.push(['Pinjamkan', 'primary', function () { changeStatus(rec, 'borrowed'); }], ['Tolak', 'danger', function () { changeStatus(rec, 'rejected'); }]); }
       else if (rec.status === 'borrowed') { btns.push(['Kembalikan', 'ghost', function () { changeStatus(rec, 'returned'); }]); }
+      else if (rec.status === 'return_pending') { btns.push(['Verifikasi Pengembalian', 'success', function () { changeStatus(rec, 'returned'); }], ['Tolak', 'danger', function () { changeStatus(rec, 'borrowed'); }]); }
       else if (IS_ADMIN && rec.status === 'approved') { cell._note = 'Menunggu verifikator'; }
       if (isOverdue(rec) && (rec.status === 'approved' || rec.status === 'verified' || rec.status === 'borrowed')) btns.unshift(['Ingatkan WA', 'warning', function () { doNotify(rec, 'remind', 'Pengingat dikirim ke peminjam'); }]);
-    } else if (rec.status === 'approved' || rec.status === 'verified' || rec.status === 'borrowed') {
-      btns.push(['Konfirmasi Pengembalian', 'primary', function () { doNotify(rec, 'return-request', 'Konfirmasi dikirim ke admin'); }]);
+    } else if (rec.status === 'borrowed') {
+      btns.push(['Konfirmasi Pengembalian', 'primary', function () { changeStatus(rec, 'return_pending'); }]);
+    } else if (rec.status === 'return_pending') {
+      cell._note = 'Menunggu verifikasi admin';
     }
     if (!btns.length) cell.appendChild(el('span', { style: 'color:var(--text-muted);font-size:.78rem' }, cell._note || '-'));
     btns.forEach(function (a) {
@@ -644,7 +633,7 @@
   async function renderUsers() {
     var list = $('[data-users-list]'); if (!list) return;
     var users = [];
-    try { users = await DB.users(); } catch (e) { if (e && e.status === 401) { location.replace('login.html'); return; } toast((e && e.message) || 'Gagal memuat user', 'error'); }
+    try { users = await (DB.usersFresh ? DB.usersFresh() : DB.users()); } catch (e) { if (e && e.status === 401) { location.replace('login.html'); return; } toast((e && e.message) || 'Gagal memuat user', 'error'); }
     var cnt = $('[data-users-count]'); if (cnt) cnt.textContent = users.length;
     list.innerHTML = '';
     if (!users.length) { appendEmpty(list); return; }
@@ -764,7 +753,6 @@
     if (p === 'dataaset') bar([
       { label: 'Tambah Aset', icon: 'package', onClick: function () { openAssetForm(null); } },
       { label: 'Import Excel', variant: 'success', icon: 'archive', onClick: function () { if (window.SESDIAN_IMPORT) window.SESDIAN_IMPORT.open(); else toast('Modul import belum siap', 'error'); } },
-      { label: 'Cetak QR', variant: 'ghost', icon: 'tag', onClick: function () { location.href = 'qr-print.html'; } },
     ]);
     else if (p === 'kategoriaset') bar([{ label: 'Tambah Kategori', onClick: function () { openCategoryForm(null); } }]);
     else if (p === 'ruangan') bar([{ label: 'Tambah Ruangan', onClick: function () { openRoomForm(null); } }]);
@@ -870,12 +858,65 @@
       window.open('https://wa.me/' + s.wa_number + '?text=' + encodeURIComponent(msg), '_blank');
     } catch (e) {}
   }
+  /* ajukan pinjam: grouped by item type (like Data Aset), pick a quantity per
+     type. Each unit is still a separate borrowing in the DB. */
+  function refreshAjukan() {
+    var total = 0;
+    $$('[data-ajukan-qty]').forEach(function (inp) { total += parseInt(inp.value, 10) || 0; });
+    var submit = $('[data-action="submit-pinjam"]');
+    if (!submit) return;
+    if (total > 0) { submit.removeAttribute('disabled'); submit.style.background = 'linear-gradient(135deg, rgb(16,185,129), rgb(5,150,105))'; submit.style.color = '#fff'; submit.style.cursor = 'pointer'; submit.textContent = 'Ajukan Peminjaman (' + total + ' unit)'; }
+    else { submit.setAttribute('disabled', ''); submit.style.background = 'rgb(226,232,240)'; submit.style.color = 'rgb(148,163,184)'; submit.style.cursor = 'not-allowed'; submit.textContent = 'Pilih jumlah unit'; }
+  }
+  function buildAjukanList(groups) {
+    var container = $('[data-list="assets"]'); if (!container) return;
+    container.innerHTML = '';
+    if (!groups.length) { appendEmpty(container, 'Belum ada aset.'); refreshAjukan(); return; }
+    var availTotal = 0;
+    groups.forEach(function (g) {
+      var avail = g.units.filter(function (u) { return (u.stock_available || 0) > 0; });
+      availTotal += avail.length;
+      var card = el('div', { 'data-search-item': 'assets', 'data-status': avail.length > 0 ? 'available' : 'unavailable', style: 'border-radius:12px;background:#fff;padding:0.875rem 1.1rem;border:1px solid var(--border);display:flex;align-items:center;gap:12px;box-shadow:var(--shadow)' });
+      card.appendChild(el('div', { style: 'width:42px;height:42px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:rgb(241,245,249);color:var(--primary)', html: ic('package') }));
+      var info = el('div', { style: 'flex:1;min-width:0' });
+      info.appendChild(el('div', { style: 'font-weight:700;font-size:0.9rem' }, g.name || ''));
+      info.appendChild(el('div', { style: 'font-size:0.75rem;color:var(--text-muted);margin-top:2px' }, (g.category || '-') + ' · ' + (avail.length > 0 ? ('Tersedia ' + avail.length + ' dari ' + g.units.length + ' unit') : 'Tidak tersedia')));
+      card.appendChild(info);
+      if (avail.length > 0) {
+        var stepper = el('div', { style: 'display:flex;align-items:center;gap:6px;flex-shrink:0' });
+        var minus = el('button', { class: 'sesd-btn sesd-btn-sm sesd-btn-ghost', style: 'width:30px;padding:0' }, '−');
+        var input = el('input', { type: 'number', value: '0', min: '0', max: String(avail.length), 'data-ajukan-qty': '', style: 'width:50px;text-align:center;padding:0.45rem;border:1.5px solid var(--border);border-radius:8px;font-size:0.85rem' });
+        input._units = avail; input._name = g.name;
+        var plus = el('button', { class: 'sesd-btn sesd-btn-sm sesd-btn-ghost', style: 'width:30px;padding:0' }, '+');
+        var clamp = function (v) { input.value = String(Math.max(0, Math.min(avail.length, parseInt(v, 10) || 0))); refreshAjukan(); };
+        minus.addEventListener('click', function (e) { e.preventDefault(); clamp((parseInt(input.value, 10) || 0) - 1); });
+        plus.addEventListener('click', function (e) { e.preventDefault(); clamp((parseInt(input.value, 10) || 0) + 1); });
+        input.addEventListener('input', function () { clamp(input.value); });
+        stepper.appendChild(minus); stepper.appendChild(input); stepper.appendChild(plus);
+        card.appendChild(stepper);
+      } else {
+        card.appendChild(el('span', { style: 'background:rgb(254,226,226);color:rgb(153,27,27);padding:0.25rem 0.65rem;border-radius:20px;font-size:0.72rem;font-weight:700;flex-shrink:0' }, 'Habis'));
+      }
+      container.appendChild(card);
+    });
+    var sub = $('[data-ajukan-avail]'); if (sub) sub.textContent = availTotal + ' unit tersedia';
+    refreshAjukan();
+  }
   async function submitPinjam() {
     var picked = [];
-    $$('input[type="checkbox"]').forEach(function (c) { if (c.checked) { var v = parseInt(c.value, 10); if (v) picked.push({ id: v, name: nameOf(c.closest('label') || c.parentNode) || ('Aset #' + v) }); } });
-    $$('[data-asset-select].sesd-selected').forEach(function (e) { var v = parseInt(e.getAttribute('data-asset-id'), 10); if (v) picked.push({ id: v, name: nameOf(e) || ('Aset #' + v) }); });
-    var hasUI = $$('input[type="checkbox"]').length > 0 || $$('[data-asset-select]').length > 0;
-    if (hasUI && !picked.length) { toast('Pilih minimal satu aset', 'error'); return; }
+    var qtyInputs = $$('[data-ajukan-qty]');
+    if (qtyInputs.length) {
+      qtyInputs.forEach(function (inp) {
+        var qty = parseInt(inp.value, 10) || 0, units = inp._units || [];
+        for (var i = 0; i < qty && i < units.length; i++) picked.push({ id: units[i].id, name: inp._name || '' });
+      });
+      if (!picked.length) { toast('Pilih minimal 1 unit', 'error'); return; }
+    } else {
+      $$('input[type="checkbox"]').forEach(function (c) { if (c.checked) { var v = parseInt(c.value, 10); if (v) picked.push({ id: v, name: nameOf(c.closest('label') || c.parentNode) || ('Aset #' + v) }); } });
+      $$('[data-asset-select].sesd-selected').forEach(function (e) { var v = parseInt(e.getAttribute('data-asset-id'), 10); if (v) picked.push({ id: v, name: nameOf(e) || ('Aset #' + v) }); });
+      var hasUI = $$('input[type="checkbox"]').length > 0 || $$('[data-asset-select]').length > 0;
+      if (hasUI && !picked.length) { toast('Pilih minimal satu aset', 'error'); return; }
+    }
     var date = val('date') || ($('input[type="date"]') || {}).value || '';
     if ($('input[type="date"]') && !date) { toast('Pilih tanggal kembali', 'error'); return; }
     var notes = val('notes');
