@@ -65,13 +65,30 @@
     </header>
 
     <main style="max-width: 1180px; margin: 0 auto; padding: 1.75rem 1.25rem">
-      <div style="margin-bottom: 1.25rem">
-        <h1 style="font-size: 1.8rem; font-weight: 800; margin-bottom: 4px">
-          Katalog Aset
-        </h1>
-        <p data-catalog-sub style="color: var(--text-muted); font-size: 0.9rem">
-          Memuat katalog…
-        </p>
+      <div
+        class="animate-fade-up"
+        style="
+          background: linear-gradient(135deg, rgb(15, 23, 42) 0%, rgb(30, 41, 59) 50%, rgb(49, 46, 129) 100%);
+          border-radius: 20px;
+          padding: 2rem 2.5rem;
+          margin-bottom: 1.5rem;
+          position: relative;
+          overflow: hidden;
+        "
+      >
+        <div style="position: absolute; top: -40px; right: -40px; width: 200px; height: 200px; border-radius: 50%; background: rgba(99, 102, 241, 0.15)"></div>
+        <div style="position: absolute; bottom: -60px; right: 80px; width: 150px; height: 150px; border-radius: 50%; background: rgba(139, 92, 246, 0.1)"></div>
+        <div style="position: relative">
+          <div style="font-size: 0.72rem; color: rgb(99, 102, 241); font-weight: 700; letter-spacing: 2px; margin-bottom: 8px; font-family: 'JetBrains Mono'">
+            KATALOG PUBLIK
+          </div>
+          <h1 style="color: #fff; font-size: 1.75rem; font-weight: 800; margin-bottom: 6px">
+            Katalog Aset
+          </h1>
+          <p data-catalog-sub style="color: rgb(148, 163, 184); font-size: 0.9rem">
+            Memuat katalog…
+          </p>
+        </div>
       </div>
 
       <div
@@ -90,13 +107,14 @@
             transform: translateY(-50%);
             color: var(--text-muted);
           "
+          ><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="1em" height="1em" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></svg
         ></span>
         <input
           data-search
           placeholder="Cari nama, kode, atau merek aset…"
           style="
             width: 100%;
-            padding: 0.8rem 1rem;
+            padding: 0.8rem 1rem 0.8rem 2.8rem;
             border-radius: 12px;
             border: 1px solid var(--border);
             font-size: 0.9rem;

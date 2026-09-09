@@ -22,6 +22,7 @@
         [data-no-print] { display: none !important; }
         body { background: #fff !important; }
         .qr-grid { grid-template-columns: repeat(4, 1fr); }
+        .qr-card { box-shadow: none !important; border-color: #cbd5e1 !important; }
       }
     </style>
   </head>
@@ -45,14 +46,17 @@
           gap: 14px;
         "
       >
-        <a
-          href="dataaset.html"
-          style="color: rgb(148, 163, 184); text-decoration: none; font-size: 0.85rem; font-weight: 600"
-          >‹ Data Aset</a
-        >
-        <span style="color: #fff; font-weight: 800">Cetak QR Aset</span>
-        <span data-qr-sub style="color: rgb(100, 116, 139); font-size: 0.78rem"></span>
+        <a href="dataaset.html" style="text-decoration: none; display: flex; flex-direction: column">
+          <span style="font-size: 1.15rem; font-weight: 900; color: #fff; letter-spacing: -0.5px; line-height: 1">SES<span style="color: rgb(99, 102, 241)">DIAN</span></span>
+          <span style="font-size: 0.55rem; color: rgb(100, 116, 139); font-family: 'JetBrains Mono'; letter-spacing: 2px; margin-top: 3px">ASSET MANAGEMENT</span>
+        </a>
+        <div style="width: 1px; height: 28px; background: rgb(30, 41, 59)"></div>
+        <div>
+          <div style="color: #fff; font-weight: 800; font-size: 0.95rem">Cetak QR Aset</div>
+          <span data-qr-sub style="color: rgb(100, 116, 139); font-size: 0.72rem"></span>
+        </div>
         <div style="flex: 1"></div>
+        <a href="dataaset.html" style="color: rgb(148, 163, 184); text-decoration: none; font-size: 0.82rem; font-weight: 600">‹ Data Aset</a>
         <button data-print class="sesd-btn sesd-btn-primary">Cetak / PDF</button>
       </div>
     </div>

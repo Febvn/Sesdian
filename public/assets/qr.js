@@ -57,10 +57,10 @@
     assets.forEach(function (a) {
       var code = a.qr_code || ('id' + a.id);
       var url = a.qr_code ? (origin + 'aset-detail.html?qr=' + encodeURIComponent(a.qr_code)) : (origin + 'aset-detail.html?id=' + a.id);
-      var card = el('div', { class: 'qr-card', style: 'border:1px solid #cbd5e1;border-radius:10px;padding:10px;text-align:center;break-inside:avoid;background:#fff' });
-      card.appendChild(el('img', { src: qrDataUrl(url), alt: code, style: 'width:120px;height:120px;image-rendering:pixelated' }));
-      card.appendChild(el('div', { style: 'font-weight:700;font-size:0.8rem;margin-top:6px;word-break:break-word' }, a.name || ''));
-      card.appendChild(el('div', { style: 'font-family:"JetBrains Mono",monospace;font-size:0.7rem;color:#64748b' }, (a.code || '') + ' · ' + code));
+      var card = el('div', { class: 'qr-card', style: 'border:1px solid var(--border);border-radius:14px;padding:14px;text-align:center;break-inside:avoid;background:#fff;box-shadow:var(--shadow)' });
+      card.appendChild(el('div', { style: 'background:#fff;border:1px solid var(--border);border-radius:10px;padding:8px;display:inline-block', html: '<img src="' + qrDataUrl(url) + '" alt="' + code + '" style="width:118px;height:118px;image-rendering:pixelated;display:block">' }));
+      card.appendChild(el('div', { style: 'font-weight:700;font-size:0.8rem;margin-top:8px;word-break:break-word;color:var(--text)' }, a.name || ''));
+      card.appendChild(el('div', { style: 'font-family:"JetBrains Mono",monospace;font-size:0.68rem;color:var(--text-muted);margin-top:2px' }, (a.code || '') + ' · ' + code));
       grid.appendChild(card);
     });
 
