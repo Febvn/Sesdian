@@ -286,11 +286,13 @@
       } else if (p === 'ruangan') {
         renderList('[data-template]', await DB.rooms(), function (n, r) { n.setAttribute('data-id', r.id); if (IS_ADMIN) enhanceSimpleCard(n, r, 'room'); });
       } else if (p === 'daftarpinjam') {
-        var bs = await DB.borrowings();
+        // requests still in the approval/verification pipeline (not yet out, not returned)
+        var allbs = await DB.borrowings();
+        var bs = allbs.filter(function (b) { return b.status === 'pending' || b.status === 'approved' || b.status === 'rejected'; });
         ensureAksiHeader();
         renderList('[data-template]', bs, function (n, r) { n.setAttribute('data-status', r.status); enhanceBorrowingRow(n, r); });
-        var counts = { pending: 0, approved: 0, borrowed: 0, returned: 0 };
-        bs.forEach(function (b) { if (counts[b.status] != null) counts[b.status]++; });
+        var counts = { pending: 0, approved: 0, rejected: 0, returned: 0 };
+        allbs.forEach(function (b) { if (counts[b.status] != null) counts[b.status]++; });
         Object.keys(counts).forEach(function (k) { var e = $('[data-count="' + k + '"]'); if (e) e.textContent = counts[k]; });
         if ($('[data-asset-template]')) {
           renderList('[data-asset-template]', await DB.assets(), function (n, r) { var cb = $('[data-asset-checkbox]', n) || $('input[type="checkbox"]', n); if (cb) cb.value = String(r.id); });
@@ -305,11 +307,10 @@
         var dc = $('[data-count="verified"]'); if (dc) dc.textContent = done;
       } else if (p === 'dipinjam') {
         var alld = await DB.borrowings();
-        var out = alld.filter(function (b) { return b.status === 'borrowed' || b.status === 'return_pending'; });
-        ensureAksiHeader();
-        renderList('[data-template]', out, function (n, r) { n.setAttribute('data-status', r.status); enhanceBorrowingRow(n, r); });
-        var bc = $('[data-count="borrowed"]'); if (bc) bc.textContent = out.filter(function (b) { return b.status === 'borrowed'; }).length;
+        var out = alld.filter(function (b) { return b.status === 'borrowed' || b.status === 'verified' || b.status === 'return_pending'; });
+        var bc = $('[data-count="borrowed"]'); if (bc) bc.textContent = out.filter(function (b) { return b.status === 'borrowed' || b.status === 'verified'; }).length;
         var rc = $('[data-count="return_pending"]'); if (rc) rc.textContent = out.filter(function (b) { return b.status === 'return_pending'; }).length;
+        renderDipinjam(out);
       } else if (p === 'ajukanpinjam') {
         buildAjukanList(groupAssets(await DB.assets()));
       } else if (p === 'users') {
@@ -573,6 +574,82 @@
     refreshAjukan();
   }
 
+  /* ---- Sedang Dipinjam: per-user view (staff) + own items (user) ---- */
+  function borrowedItemRow(b, staff, onChange) {
+    var row = el('div', { style: 'display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--border);border-radius:12px;padding:0.7rem 1rem;box-shadow:var(--shadow)' });
+    var info = el('div', { style: 'flex:1;min-width:0' });
+    info.appendChild(el('div', { style: 'font-weight:700;font-size:0.9rem' }, b.asset_name || '-'));
+    var st = STATUS[b.status] ? STATUS[b.status].label : b.status;
+    info.appendChild(el('div', { style: 'font-size:0.72rem;color:var(--text-muted)' }, (b.asset_code ? b.asset_code + ' · ' : '') + st + (b.due_date ? ' · jatuh tempo ' + String(b.due_date).slice(0, 10) : '')));
+    row.appendChild(info);
+    if (staff) {
+      var verify = el('button', { class: 'sesd-btn sesd-btn-sm sesd-btn-success' }, b.status === 'return_pending' ? 'Verifikasi Dikembalikan' : 'Tandai Dikembalikan');
+      verify.addEventListener('click', async function () {
+        verify.disabled = true;
+        try { await DB.updateBorrowingStatus(b.id, 'returned'); toast('Diverifikasi dikembalikan', 'success'); if (onChange) onChange(b); }
+        catch (e) { toast((e && e.message) || 'Gagal', 'error'); verify.disabled = false; }
+      });
+      row.appendChild(verify);
+    } else if (b.status === 'borrowed' || b.status === 'verified') {
+      var conf = el('button', { class: 'sesd-btn sesd-btn-sm sesd-btn-primary' }, 'Konfirmasi Pengembalian');
+      conf.addEventListener('click', function () { changeStatus(b, 'return_pending'); });
+      row.appendChild(conf);
+    } else { row.appendChild(el('span', { style: 'font-size:0.75rem;color:var(--text-muted)' }, 'Menunggu verifikasi admin')); }
+    return row;
+  }
+  function openUserBorrowedModal(name, items) {
+    if (modalOpen()) return;
+    var changed = false;
+    var ov = overlay(), m = el('div', { class: 'sesd-modal', style: 'width:560px' });
+    m.appendChild(el('h3', {}, name || 'Peminjam'));
+    var subtitle = el('div', { style: 'color:var(--text-muted);font-size:.82rem;margin:-6px 0 12px' }, items.length + ' barang sedang dipinjam');
+    m.appendChild(subtitle);
+    var listWrap = el('div', { style: 'display:flex;flex-direction:column;gap:8px;max-height:340px;overflow:auto' });
+    function onChange(b) {
+      changed = true;
+      var idx = items.indexOf(b); if (idx !== -1) items.splice(idx, 1);
+      subtitle.textContent = items.length + ' barang sedang dipinjam';
+      draw();
+      if (!items.length) { ov.remove(); reloadData(); }
+    }
+    function draw() { listWrap.innerHTML = ''; items.forEach(function (b) { listWrap.appendChild(borrowedItemRow(b, true, onChange)); }); }
+    draw();
+    m.appendChild(listWrap);
+    var foot = el('div', { style: 'display:flex;gap:8px;margin-top:1rem' });
+    var close = el('button', { class: 'sesd-btn sesd-btn-ghost', style: 'flex:1' }, 'Tutup');
+    close.addEventListener('click', function () { ov.remove(); if (changed) reloadData(); });
+    foot.appendChild(close); m.appendChild(foot);
+    ov.appendChild(m); document.body.appendChild(ov);
+    ov.addEventListener('click', function (e) { if (e.target === ov) { ov.remove(); if (changed) reloadData(); } });
+  }
+  function renderDipinjam(out) {
+    var root = $('[data-dipinjam]'); if (!root) return;
+    root.innerHTML = '';
+    if (!out.length) { appendEmpty(root, 'Tidak ada barang yang sedang dipinjam.'); return; }
+    if (IS_STAFF) {
+      var byUser = {}, order = [];
+      out.forEach(function (b) { var k = b.borrower || '-'; if (!byUser[k]) { byUser[k] = []; order.push(k); } byUser[k].push(b); });
+      root.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:1rem';
+      order.forEach(function (name) {
+        var items = byUser[name];
+        var waiting = items.filter(function (b) { return b.status === 'return_pending'; }).length;
+        var card = el('div', { style: 'background:#fff;border-radius:16px;border:1px solid var(--border);box-shadow:var(--shadow);padding:1.1rem;cursor:pointer;transition:transform .15s' });
+        card.addEventListener('mouseenter', function () { card.style.transform = 'translateY(-3px)'; });
+        card.addEventListener('mouseleave', function () { card.style.transform = 'none'; });
+        card.addEventListener('click', function () { openUserBorrowedModal(name, items.slice()); });
+        var head = el('div', { style: 'display:flex;align-items:center;gap:10px;margin-bottom:8px' });
+        head.appendChild(el('div', { style: 'width:40px;height:40px;border-radius:11px;flex-shrink:0;background:linear-gradient(135deg,rgb(99,102,241),rgb(139,92,246));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:0.8rem' }, initials(name)));
+        head.appendChild(el('div', { style: 'font-weight:700;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap' }, name));
+        card.appendChild(head);
+        card.appendChild(el('div', { style: 'font-size:0.8rem;color:var(--text-muted)' }, items.length + ' barang' + (waiting ? (' · ' + waiting + ' menunggu verifikasi') : '')));
+        root.appendChild(card);
+      });
+    } else {
+      root.style.cssText = 'display:flex;flex-direction:column;gap:8px';
+      out.forEach(function (b) { root.appendChild(borrowedItemRow(b, false)); });
+    }
+  }
+
   function openCategoryForm(rec) {
     overlayForm({
       title: rec ? 'Edit Kategori' : 'Tambah Kategori', submitLabel: rec ? 'Simpan' : 'Tambah',
@@ -643,13 +720,12 @@
     // Dual verification: pending --admin--> approved --verifikator--> verified --staff--> borrowed --staff--> returned
     if (IS_STAFF) {
       if (IS_ADMIN && rec.status === 'pending') { btns.push(['Setujui (Verifikasi 1)', 'success', function () { changeStatus(rec, 'approved'); }], ['Tolak', 'danger', function () { changeStatus(rec, 'rejected'); }]); }
-      else if (IS_VERIFIKATOR && rec.status === 'approved') { btns.push(['Verifikasi (Verifikasi 2)', 'success', function () { changeStatus(rec, 'verified'); }], ['Tolak', 'danger', function () { changeStatus(rec, 'rejected'); }]); }
-      else if (rec.status === 'verified') { btns.push(['Pinjamkan', 'primary', function () { changeStatus(rec, 'borrowed'); }], ['Tolak', 'danger', function () { changeStatus(rec, 'rejected'); }]); }
-      else if (rec.status === 'borrowed') { btns.push(['Kembalikan', 'ghost', function () { changeStatus(rec, 'returned'); }]); }
+      else if (IS_VERIFIKATOR && rec.status === 'approved') { btns.push(['Verifikasi (Verifikasi 2)', 'success', function () { changeStatus(rec, 'borrowed'); }], ['Tolak', 'danger', function () { changeStatus(rec, 'rejected'); }]); }
+      else if (rec.status === 'borrowed' || rec.status === 'verified') { btns.push(['Kembalikan', 'success', function () { changeStatus(rec, 'returned'); }]); }
       else if (rec.status === 'return_pending') { btns.push(['Verifikasi Pengembalian', 'success', function () { changeStatus(rec, 'returned'); }], ['Tolak', 'danger', function () { changeStatus(rec, 'borrowed'); }]); }
       else if (IS_ADMIN && rec.status === 'approved') { cell._note = 'Menunggu verifikator'; }
-      if (isOverdue(rec) && (rec.status === 'approved' || rec.status === 'verified' || rec.status === 'borrowed')) btns.unshift(['Ingatkan WA', 'warning', function () { doNotify(rec, 'remind', 'Pengingat dikirim ke peminjam'); }]);
-    } else if (rec.status === 'borrowed') {
+      if (isOverdue(rec) && (rec.status === 'borrowed' || rec.status === 'verified')) btns.unshift(['Ingatkan WA', 'warning', function () { doNotify(rec, 'remind', 'Pengingat dikirim ke peminjam'); }]);
+    } else if (rec.status === 'borrowed' || rec.status === 'verified') {
       btns.push(['Konfirmasi Pengembalian', 'primary', function () { changeStatus(rec, 'return_pending'); }]);
     } else if (rec.status === 'return_pending') {
       cell._note = 'Menunggu verifikasi admin';

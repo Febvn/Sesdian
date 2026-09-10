@@ -8,23 +8,25 @@ const RESERVED = ['pending', 'approved', 'verified', 'borrowed', 'return_pending
 const STATUSES = ['pending', 'approved', 'verified', 'borrowed', 'return_pending', 'returned', 'rejected'];
 const STAFF = ['admin', 'verifikator'];
 
-// Workflow:
-//   pending --(admin approve)--> approved --(verifikator verify)--> verified
-//        --(staff lend)--> borrowed --(peminjam: konfirmasi kembali)--> return_pending
-//        --(admin/verifikator verifikasi pengembalian)--> returned
-//   Staff may also return a borrowed item directly. rejected/return-reject branches exist.
-// Each transition declares the required previous status and who may perform it.
+// Workflow (2 verifications, then the item is out — no separate "lend" step):
+//   pending --(admin approve = verif 1)--> approved
+//        --(verifikator verify = verif 2, serah terima)--> borrowed  (= sedang dipinjam)
+//        --(peminjam: konfirmasi kembali)--> return_pending
+//        --(admin verifikasi pengembalian)--> returned
+//   'verified' is kept only for legacy data and treated like 'borrowed' (out).
 function transitionError(prevStatus, target, role, isOwner) {
   const staff = STAFF.indexOf(role) !== -1;
-  const rule = {
-    approved: { from: ['pending'], ok: role === 'admin', msg: 'Persetujuan awal hanya oleh admin.' },
-    verified: { from: ['approved'], ok: role === 'verifikator', msg: 'Verifikasi kedua hanya oleh verifikator.' },
-    borrowed: { from: ['verified', 'return_pending'], ok: staff, msg: 'Hanya admin/verifikator.' },
-    return_pending: { from: ['borrowed'], ok: staff || isOwner, msg: 'Hanya peminjam atau admin yang dapat mengonfirmasi pengembalian.' },
-    returned: { from: ['borrowed', 'return_pending'], ok: staff, msg: 'Verifikasi pengembalian hanya oleh admin/verifikator.' },
-    rejected: { from: ['pending', 'approved', 'verified'], ok: staff, msg: 'Peminjaman ini tidak bisa ditolak.' },
-  }[target];
-  if (!rule) return 'Status tidak valid';
+  let rule;
+  if (target === 'approved') rule = { from: ['pending'], ok: role === 'admin', msg: 'Persetujuan awal hanya oleh admin.' };
+  else if (target === 'borrowed') {
+    // verifikator's 2nd verification hands the item over; staff may re-activate a rejected return
+    if (prevStatus === 'approved') rule = { from: ['approved'], ok: role === 'verifikator', msg: 'Verifikasi kedua (serah terima) hanya oleh verifikator.' };
+    else rule = { from: ['verified', 'return_pending'], ok: staff, msg: 'Hanya admin/verifikator.' };
+  }
+  else if (target === 'return_pending') rule = { from: ['borrowed', 'verified'], ok: staff || isOwner, msg: 'Hanya peminjam atau admin yang dapat mengonfirmasi pengembalian.' };
+  else if (target === 'returned') rule = { from: ['borrowed', 'verified', 'return_pending'], ok: staff, msg: 'Verifikasi pengembalian hanya oleh admin/verifikator.' };
+  else if (target === 'rejected') rule = { from: ['pending', 'approved', 'verified'], ok: staff, msg: 'Peminjaman ini tidak bisa ditolak.' };
+  else return 'Status tidak valid';
   if (!rule.ok) return rule.msg;
   if (rule.from.indexOf(prevStatus) === -1) return rule.msg;
   return null;

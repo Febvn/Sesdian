@@ -77,42 +77,7 @@
               </div>
             </div>
 
-            <div
-              class="animate-fade-up delay-2"
-              style="background: #fff; border-radius: 16px; box-shadow: var(--shadow); overflow: auto"
-            >
-              <table style="width: 100%; border-collapse: collapse; min-width: 640px">
-                <thead style="background: rgb(248, 250, 255)">
-                  <tr>
-                    <th style="padding: 0.875rem 1rem; text-align: left; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px">Aset</th>
-                    <th style="padding: 0.875rem 1rem; text-align: left; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px">Peminjam</th>
-                    <th style="padding: 0.875rem 1rem; text-align: left; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px">Status</th>
-                    <th style="padding: 0.875rem 1rem; text-align: left; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px">Jatuh Tempo</th>
-                  </tr>
-                </thead>
-                <tbody data-list="dipinjam">
-                  <tr
-                    data-template
-                    data-search-item="dipinjam"
-                    data-status="borrowed"
-                    style="border-top: 1px solid var(--border)"
-                  >
-                    <td data-bind="asset_name" style="padding: 0.875rem 1rem; font-weight: 600; font-size: 0.875rem">
-                      -
-                      <div data-bind="asset_code" style="font-size: 0.72rem; color: var(--text-muted); font-family: 'JetBrains Mono'">-</div>
-                    </td>
-                    <td data-bind="borrower" style="padding: 0.875rem 1rem; font-size: 0.875rem; color: var(--text-muted)">-</td>
-                    <td style="padding: 0.875rem 1rem">
-                      <span style="display: inline-flex; align-items: center; gap: 6px; background: rgb(237, 233, 254); color: rgb(91, 33, 182); padding: 0.25rem 0.65rem; border-radius: 20px; font-size: 0.75rem; font-weight: 700">
-                        <span style="width: 6px; height: 6px; border-radius: 50%; background: rgb(91, 33, 182); flex-shrink: 0"></span>
-                        <span data-bind="status_badge">-</span>
-                      </span>
-                    </td>
-                    <td data-bind="due_date" style="padding: 0.875rem 1rem; font-size: 0.85rem; font-family: 'JetBrains Mono'; color: var(--text-muted)">-</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+            <div class="animate-fade-up delay-2" data-dipinjam></div>
           </div>
         </main>
       </div>
