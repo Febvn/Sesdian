@@ -303,6 +303,13 @@
         var qc = $('[data-count="approved"]'); if (qc) qc.textContent = queue.length;
         var done = allb.filter(function (b) { return b.status === 'verified' || b.status === 'borrowed' || b.status === 'returned'; }).length;
         var dc = $('[data-count="verified"]'); if (dc) dc.textContent = done;
+      } else if (p === 'dipinjam') {
+        var alld = await DB.borrowings();
+        var out = alld.filter(function (b) { return b.status === 'borrowed' || b.status === 'return_pending'; });
+        ensureAksiHeader();
+        renderList('[data-template]', out, function (n, r) { n.setAttribute('data-status', r.status); enhanceBorrowingRow(n, r); });
+        var bc = $('[data-count="borrowed"]'); if (bc) bc.textContent = out.filter(function (b) { return b.status === 'borrowed'; }).length;
+        var rc = $('[data-count="return_pending"]'); if (rc) rc.textContent = out.filter(function (b) { return b.status === 'return_pending'; }).length;
       } else if (p === 'ajukanpinjam') {
         buildAjukanList(groupAssets(await DB.assets()));
       } else if (p === 'users') {
@@ -754,7 +761,13 @@
   /* ---------------- dynamic app shell (for new pages that opt in) ----------------
      A page using <aside data-shell></aside> + a sticky <div data-topbar></div>
      gets the standard sidebar + topbar built here, so it needs no copied markup. */
-  var PAGE_TITLES = { dashboard: 'Dashboard', dataaset: 'Data Aset', kategoriaset: 'Kategori Aset', ruangan: 'Ruangan', daftarpinjam: 'Daftar Pinjam', ajukanpinjam: 'Ajukan Pinjam', users: 'Kelola User', verifikasi: 'Verifikasi', laporan: 'Laporan' };
+  var PAGE_TITLES = { dashboard: 'Dashboard', dataaset: 'Data Aset', kategoriaset: 'Kategori Aset', ruangan: 'Ruangan', daftarpinjam: 'Daftar Pinjam', ajukanpinjam: 'Ajukan Pinjam', dipinjam: 'Sedang Dipinjam', users: 'Kelola User', verifikasi: 'Verifikasi', laporan: 'Laporan' };
+  // "Sedang Dipinjam" link for everyone (added into the PEMINJAMAN section).
+  function injectBorrowedNav() {
+    if ($('aside a[href="dipinjam.html"]')) return;
+    var ref = $('aside a[href="daftarpinjam.html"]'); if (!ref) return;
+    ref.parentNode.insertBefore(makeNavLink('dipinjam.html', 'clock', 'Sedang Dipinjam', 'Barang belum kembali'), ref.nextSibling);
+  }
   function navSection(label, links) { var d = el('div', { style: 'margin-bottom:0.25rem' }); d.appendChild(sectionHeader(label)); links.forEach(function (l) { d.appendChild(l); }); return d; }
   function buildShell() {
     var aside = $('aside[data-shell]');
@@ -1043,6 +1056,7 @@
     if (cold) showPageLoader();
     buildShell();                 // fill dynamic sidebar/topbar on pages that opt in
     fillIdentity(USER);
+    injectBorrowedNav();          // "Sedang Dipinjam" link for all authed users
     if (IS_STAFF) injectRoleNav();
     if (IS_ADMIN) injectAdminBars();
     await loadAndRender(page());
