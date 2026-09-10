@@ -1,5 +1,6 @@
 import { getSql } from './_db.js';
 import { getAuth, send } from './_auth.js';
+import { ensureSchema } from './_schema.js';
 
 // PUBLIC (no-auth) endpoints, combined to stay under the serverless function
 // limit. Routed by ?resource=:
@@ -11,6 +12,7 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return send(res, 204, {});
   if (req.method !== 'GET') return send(res, 405, { error: 'Method not allowed' });
   const sql = getSql();
+  await ensureSchema(sql);
   const resource = (req.query && req.query.resource) || 'catalog';
   try {
     if (resource === 'detail') {

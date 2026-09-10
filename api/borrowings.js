@@ -1,6 +1,7 @@
 import { getSql } from './_db.js';
 import { requireAuth, send, readJson } from './_auth.js';
 import { notifyAdminBorrow } from './_wa.js';
+import { ensureSchema } from './_schema.js';
 
 // Stock is counted as "out" while a borrowing is in any of these states.
 const RESERVED = ['pending', 'approved', 'verified', 'borrowed', 'return_pending'];
@@ -32,6 +33,7 @@ function transitionError(prevStatus, target, role, isOwner) {
 export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return send(res, 204, {});
   const sql = getSql();
+  await ensureSchema(sql);
 
   // ---------- list (staff see all; users see only their own) ----------
   if (req.method === 'GET') {

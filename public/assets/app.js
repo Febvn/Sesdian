@@ -499,35 +499,68 @@
       sum.appendChild(b);
     });
     m.appendChild(sum);
-    m.appendChild(el('div', { style: 'font-size:.72rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px' }, g.units.length + ' unit terdaftar'));
-    var listWrap = el('div', { style: 'max-height:300px;overflow:auto;border:1px solid var(--border);border-radius:12px' });
+    m.appendChild(el('div', { style: 'font-size:.72rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px' }, 'Pilih unit untuk dipinjam (' + g.units.length + ' terdaftar)'));
+    var selected = {};
+    var ajukan = el('button', { class: 'sesd-btn sesd-btn-success', style: 'flex:1' });
+    function refreshAjukan() {
+      var n = Object.keys(selected).length;
+      if (n) { ajukan.removeAttribute('disabled'); ajukan.style.opacity = '1'; ajukan.style.cursor = 'pointer'; ajukan.innerHTML = ic('clipboard') + ' Ajukan Pinjam (' + n + ')'; }
+      else { ajukan.setAttribute('disabled', ''); ajukan.style.opacity = '0.55'; ajukan.style.cursor = 'not-allowed'; ajukan.innerHTML = ic('clipboard') + ' Pilih unit untuk dipinjam'; }
+    }
+    var listWrap = el('div', { style: 'max-height:280px;overflow:auto;border:1px solid var(--border);border-radius:12px' });
     g.units.forEach(function (u) {
-      var row = el('div', { style: 'display:flex;align-items:center;gap:8px;padding:.55rem .75rem;border-top:1px solid var(--border)' });
+      var avail = (u.stock_available || 0) > 0;
+      var row = el('div', { style: 'display:flex;align-items:center;gap:8px;padding:.55rem .75rem;border-top:1px solid var(--border)' + (avail ? ';cursor:pointer' : '') });
+      if (avail) {
+        var box = el('div', { style: 'width:20px;height:20px;border-radius:6px;border:2px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#fff' });
+        var toggle = function () {
+          if (selected[u.id]) { delete selected[u.id]; box.style.background = 'transparent'; box.style.borderColor = 'var(--border)'; box.innerHTML = ''; row.style.background = ''; }
+          else { selected[u.id] = u; box.style.background = 'var(--primary)'; box.style.borderColor = 'var(--primary)'; box.innerHTML = ic('check'); row.style.background = 'var(--primary-light)'; }
+          refreshAjukan();
+        };
+        box.addEventListener('click', function (e) { e.stopPropagation(); toggle(); });
+        row.addEventListener('click', function (e) { if (e.target.closest('button')) return; toggle(); });
+        row.appendChild(box);
+      } else { row.appendChild(el('div', { style: 'width:20px;flex-shrink:0' })); }
       var info = el('div', { style: 'flex:1;min-width:0' });
       info.appendChild(el('div', { style: 'font-family:"JetBrains Mono",monospace;font-size:.75rem;font-weight:700' }, u.code || '-'));
-      info.appendChild(el('div', { style: 'font-size:.7rem;color:var(--text-muted)' }, (u.condition || 'Baik') + ' · ' + (u.stock_available > 0 ? 'Tersedia' : 'Dipinjam') + (u.qr_code ? (' · ' + u.qr_code) : '')));
+      info.appendChild(el('div', { style: 'font-size:.7rem;color:var(--text-muted)' }, (u.condition || 'Baik') + ' · ' + (avail ? 'Tersedia' : 'Dipinjam') + (u.qr_code ? (' · ' + u.qr_code) : '')));
       row.appendChild(info);
       var qrBtn = el('button', { class: 'sesd-btn sesd-btn-sm sesd-btn-ghost', html: ic('tag') + ' QR' });
-      qrBtn.addEventListener('click', function () { if (window.SESDIAN_QR) { ov.remove(); window.SESDIAN_QR.showFor(u); } else { toast('Modul QR belum siap', 'error'); } });
+      qrBtn.addEventListener('click', function (e) { e.stopPropagation(); if (window.SESDIAN_QR) { ov.remove(); window.SESDIAN_QR.showFor(u); } else { toast('Modul QR belum siap', 'error'); } });
       row.appendChild(qrBtn);
       if (IS_ADMIN) {
         var edit = el('button', { class: 'sesd-btn sesd-btn-sm sesd-btn-ghost', html: ic('pencil') });
-        edit.addEventListener('click', function () { ov.remove(); openAssetForm(u); });
+        edit.addEventListener('click', function (e) { e.stopPropagation(); ov.remove(); openAssetForm(u); });
         var del = el('button', { class: 'sesd-btn sesd-btn-sm sesd-btn-danger', html: ic('trash') });
-        del.addEventListener('click', function () { ov.remove(); confirmDelete('aset "' + (u.code || u.name) + '"', async function () { await DB.deleteAsset(u.id); toast('Aset dihapus', 'success'); reloadData(); }); });
+        del.addEventListener('click', function (e) { e.stopPropagation(); ov.remove(); confirmDelete('aset "' + (u.code || u.name) + '"', async function () { await DB.deleteAsset(u.id); toast('Aset dihapus', 'success'); reloadData(); }); });
         row.appendChild(edit); row.appendChild(del);
       }
       listWrap.appendChild(row);
     });
     m.appendChild(listWrap);
+    var dateWrap = el('div', { style: 'margin-top:.85rem' });
+    dateWrap.appendChild(el('label', { style: 'font-size:.72rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px' }, 'Tanggal Kembali'));
+    var dateInput = el('input', { type: 'date', value: '', style: 'width:100%;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:10px;font-size:.875rem;outline:none;box-sizing:border-box' });
+    dateWrap.appendChild(dateInput); m.appendChild(dateWrap);
     var foot = el('div', { style: 'display:flex;gap:8px;margin-top:1rem' });
-    var ajukan = el('button', { class: 'sesd-btn sesd-btn-success', style: 'flex:1', html: ic('clipboard') + ' Ajukan Pinjam' });
-    ajukan.addEventListener('click', function () { location.href = 'ajukanpinjam.html'; });
+    ajukan.addEventListener('click', async function () {
+      var ids = Object.keys(selected);
+      if (!ids.length) { toast('Pilih unit yang ingin dipinjam', 'error'); return; }
+      ajukan.disabled = true;
+      try {
+        for (var i = 0; i < ids.length; i++) await DB.requestBorrowing({ assetId: parseInt(ids[i], 10), qty: 1, dueDate: dateInput.value || null, notes: null });
+        toast('Pengajuan ' + ids.length + ' unit terkirim', 'success');
+        ov.remove();
+        if (page() === 'ajukanpinjam') setTimeout(function () { location.href = 'daftarpinjam.html'; }, 600); else reloadData();
+      } catch (e) { if (e && e.status === 401) { location.replace('login.html'); return; } toast((e && e.message) || 'Gagal mengirim pengajuan', 'error'); ajukan.disabled = false; }
+    });
     var close = el('button', { class: 'sesd-btn sesd-btn-ghost' }, 'Tutup');
     close.addEventListener('click', function () { ov.remove(); });
     foot.appendChild(ajukan); foot.appendChild(close); m.appendChild(foot);
     ov.appendChild(m); document.body.appendChild(ov);
     ov.addEventListener('click', function (e) { if (e.target === ov) ov.remove(); });
+    refreshAjukan();
   }
 
   function openCategoryForm(rec) {
@@ -860,47 +893,33 @@
   }
   /* ajukan pinjam: grouped by item type (like Data Aset), pick a quantity per
      type. Each unit is still a separate borrowing in the DB. */
-  function refreshAjukan() {
-    var total = 0;
-    $$('[data-ajukan-qty]').forEach(function (inp) { total += parseInt(inp.value, 10) || 0; });
-    var submit = $('[data-action="submit-pinjam"]');
-    if (!submit) return;
-    if (total > 0) { submit.removeAttribute('disabled'); submit.style.background = 'linear-gradient(135deg, rgb(16,185,129), rgb(5,150,105))'; submit.style.color = '#fff'; submit.style.cursor = 'pointer'; submit.textContent = 'Ajukan Peminjaman (' + total + ' unit)'; }
-    else { submit.setAttribute('disabled', ''); submit.style.background = 'rgb(226,232,240)'; submit.style.color = 'rgb(148,163,184)'; submit.style.cursor = 'not-allowed'; submit.textContent = 'Pilih jumlah unit'; }
-  }
+  // Ajukan Pinjam page: grouped cards (like Data Aset). Click a card -> detail
+  // modal where the exact unit(s) to borrow are picked. The old right-side
+  // "Detail Peminjaman" panel is hidden since borrowing now happens in the modal.
   function buildAjukanList(groups) {
     var container = $('[data-list="assets"]'); if (!container) return;
+    var leftCol = container.parentNode, grid = leftCol && leftCol.parentNode;
+    if (grid) { grid.style.gridTemplateColumns = '1fr'; var sb = grid.children[1]; if (sb && sb !== leftCol) sb.style.display = 'none'; }
+    container.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:1rem';
     container.innerHTML = '';
-    if (!groups.length) { appendEmpty(container, 'Belum ada aset.'); refreshAjukan(); return; }
     var availTotal = 0;
+    if (!groups.length) { appendEmpty(container, 'Belum ada aset.'); return; }
     groups.forEach(function (g) {
-      var avail = g.units.filter(function (u) { return (u.stock_available || 0) > 0; });
-      availTotal += avail.length;
-      var card = el('div', { 'data-search-item': 'assets', 'data-status': avail.length > 0 ? 'available' : 'unavailable', style: 'border-radius:12px;background:#fff;padding:0.875rem 1.1rem;border:1px solid var(--border);display:flex;align-items:center;gap:12px;box-shadow:var(--shadow)' });
-      card.appendChild(el('div', { style: 'width:42px;height:42px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:rgb(241,245,249);color:var(--primary)', html: ic('package') }));
-      var info = el('div', { style: 'flex:1;min-width:0' });
-      info.appendChild(el('div', { style: 'font-weight:700;font-size:0.9rem' }, g.name || ''));
-      info.appendChild(el('div', { style: 'font-size:0.75rem;color:var(--text-muted);margin-top:2px' }, (g.category || '-') + ' · ' + (avail.length > 0 ? ('Tersedia ' + avail.length + ' dari ' + g.units.length + ' unit') : 'Tidak tersedia')));
-      card.appendChild(info);
-      if (avail.length > 0) {
-        var stepper = el('div', { style: 'display:flex;align-items:center;gap:6px;flex-shrink:0' });
-        var minus = el('button', { class: 'sesd-btn sesd-btn-sm sesd-btn-ghost', style: 'width:30px;padding:0' }, '−');
-        var input = el('input', { type: 'number', value: '0', min: '0', max: String(avail.length), 'data-ajukan-qty': '', style: 'width:50px;text-align:center;padding:0.45rem;border:1.5px solid var(--border);border-radius:8px;font-size:0.85rem' });
-        input._units = avail; input._name = g.name;
-        var plus = el('button', { class: 'sesd-btn sesd-btn-sm sesd-btn-ghost', style: 'width:30px;padding:0' }, '+');
-        var clamp = function (v) { input.value = String(Math.max(0, Math.min(avail.length, parseInt(v, 10) || 0))); refreshAjukan(); };
-        minus.addEventListener('click', function (e) { e.preventDefault(); clamp((parseInt(input.value, 10) || 0) - 1); });
-        plus.addEventListener('click', function (e) { e.preventDefault(); clamp((parseInt(input.value, 10) || 0) + 1); });
-        input.addEventListener('input', function () { clamp(input.value); });
-        stepper.appendChild(minus); stepper.appendChild(input); stepper.appendChild(plus);
-        card.appendChild(stepper);
-      } else {
-        card.appendChild(el('span', { style: 'background:rgb(254,226,226);color:rgb(153,27,27);padding:0.25rem 0.65rem;border-radius:20px;font-size:0.72rem;font-weight:700;flex-shrink:0' }, 'Habis'));
-      }
+      var avail = g.units.filter(function (u) { return (u.stock_available || 0) > 0; }).length;
+      availTotal += avail;
+      var card = el('div', { 'data-search-item': 'assets', 'data-status': avail > 0 ? 'available' : 'unavailable', style: 'background:#fff;border-radius:16px;border:1px solid var(--border);box-shadow:var(--shadow);padding:1rem;cursor:pointer;transition:transform .15s' });
+      card.addEventListener('mouseenter', function () { card.style.transform = 'translateY(-3px)'; });
+      card.addEventListener('mouseleave', function () { card.style.transform = 'none'; });
+      card.addEventListener('click', function () { openGroupDetail(g); });
+      var top = el('div', { style: 'display:flex;justify-content:space-between;align-items:center;gap:6px;margin-bottom:8px' });
+      top.appendChild(el('span', { style: 'font-size:0.65rem;font-weight:800;padding:0.15rem 0.5rem;border-radius:20px;background:rgb(219,234,254);color:rgb(30,64,175)' }, g.type || 'BMN'));
+      top.appendChild(el('span', { style: 'font-size:0.68rem;font-weight:800;padding:0.15rem 0.55rem;border-radius:20px;' + (avail > 0 ? 'background:rgb(220,252,231);color:rgb(22,101,52)' : 'background:rgb(254,226,226);color:rgb(153,27,27)') }, avail > 0 ? ('Tersedia ' + avail) : 'Habis'));
+      card.appendChild(top);
+      card.appendChild(el('div', { style: 'font-weight:700;font-size:0.95rem;margin-bottom:6px' }, g.name || ''));
+      card.appendChild(el('div', { style: 'font-size:0.75rem;color:var(--text-muted)' }, (g.category || '-') + ' · ' + g.units.length + ' unit'));
       container.appendChild(card);
     });
     var sub = $('[data-ajukan-avail]'); if (sub) sub.textContent = availTotal + ' unit tersedia';
-    refreshAjukan();
   }
   async function submitPinjam() {
     var picked = [];

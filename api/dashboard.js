@@ -1,9 +1,11 @@
 import { getSql } from './_db.js';
 import { requireAuth, requireRoles, send } from './_auth.js';
+import { ensureSchema } from './_schema.js';
 
 export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return send(res, 204, {});
   const sql = getSql();
+  await ensureSchema(sql);
 
   // Borrowing reports (admin + verifikator), merged here to stay under the
   // serverless function limit: /api/dashboard?view=reports&period=&start=&end=

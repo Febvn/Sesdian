@@ -1,5 +1,6 @@
 import { getSql } from './_db.js';
 import { requireAdmin, hashPassword, send, readJson } from './_auth.js';
+import { ensureSchema } from './_schema.js';
 
 const ROLES = ['user', 'admin', 'verifikator'];
 
@@ -8,6 +9,7 @@ export default async function handler(req, res) {
   const admin = requireAdmin(req, res);
   if (!admin) return;
   const sql = getSql();
+  await ensureSchema(sql);
 
   if (req.method === 'GET') {
     try {

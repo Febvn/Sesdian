@@ -1,5 +1,6 @@
 import { getSql } from './_db.js';
 import { hashPassword, signToken, send, readJson } from './_auth.js';
+import { ensureSchema } from './_schema.js';
 
 // Self-registration is DISABLED. New accounts are created by an admin from the
 // "Kelola User" panel (POST /api/users). The only exception is a one-time
@@ -10,6 +11,7 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') return send(res, 405, { error: 'Method not allowed' });
   try {
     const sql = getSql();
+    await ensureSchema(sql);
     const [{ count }] = await sql`select count(*) from users`;
     if (parseInt(count, 10) > 0) {
       return send(res, 403, { error: 'Pendaftaran mandiri dinonaktifkan. Hubungi admin untuk membuat akun.' });
