@@ -523,7 +523,10 @@
         row.appendChild(box);
       } else { row.appendChild(el('div', { style: 'width:20px;flex-shrink:0' })); }
       var info = el('div', { style: 'flex:1;min-width:0' });
-      info.appendChild(el('div', { style: 'font-family:"JetBrains Mono",monospace;font-size:.75rem;font-weight:700' }, u.code || '-'));
+      var line1 = el('div', { style: 'display:flex;align-items:baseline;gap:8px;flex-wrap:wrap' });
+      line1.appendChild(el('span', { style: 'font-family:"JetBrains Mono",monospace;font-size:.75rem;font-weight:700' }, u.code || '-'));
+      if (u.brand) line1.appendChild(el('span', { style: 'font-size:.78rem;font-weight:600;color:var(--text)' }, u.brand));
+      info.appendChild(line1);
       info.appendChild(el('div', { style: 'font-size:.7rem;color:var(--text-muted)' }, (u.condition || 'Baik') + ' · ' + (avail ? 'Tersedia' : 'Dipinjam') + (u.qr_code ? (' · ' + u.qr_code) : '')));
       row.appendChild(info);
       var qrBtn = el('button', { class: 'sesd-btn sesd-btn-sm sesd-btn-ghost', html: ic('tag') + ' QR' });
