@@ -1113,30 +1113,26 @@
   }
 
   /* ---------------- boot ---------------- */
+  // expose the single page loader so page-specific scripts (reports.js) can use it
+  window.SESDIAN_LOADER = { show: showPageLoader, hide: hidePageLoader };
   async function boot() {
-    // If cached, immediately mark as ready to prevent top progress bar flash
-    if (window.SESDIAN_CACHE && window.SESDIAN_CACHE.loaded) {
-      document.body.classList.add('sesd-ready');
-    }
-    setTimeout(function () { document.body.classList.add('sesd-ready'); }, 4000); // safety: never get stuck on the loader
-    // No prepLoading() - preloader.js handles all loading states
+    setTimeout(function () { document.body.classList.add('sesd-ready'); }, 6000); // safety: never get stuck on the loader
     var g = guard();
     if (g.redirect) return;
     USER = g.user;
     IS_ADMIN = !!(USER && USER.role === 'admin');
     IS_VERIFIKATOR = !!(USER && USER.role === 'verifikator');
     IS_STAFF = IS_ADMIN || IS_VERIFIKATOR;
-    // Cold load (no warm cache) -> show one page loader while data is fetched.
-    // Warm cache -> skip it entirely so navigation is instant.
-    var cold = !(window.SESDIAN_CACHE && window.SESDIAN_CACHE.loaded);
-    if (cold) showPageLoader();
+    // No data caching: every page fetches fresh from the DB, so always show the
+    // loader while the data loads (the laporan page hands the loader to reports.js).
+    showPageLoader();
     buildShell();                 // fill dynamic sidebar/topbar on pages that opt in
     fillIdentity(USER);
     injectBorrowedNav();          // "Sedang Dipinjam" link for all authed users
     if (IS_STAFF) injectRoleNav();
     if (IS_ADMIN) injectAdminBars();
     await loadAndRender(page());
-    hidePageLoader();
+    if (page() !== 'laporan') hidePageLoader();
     setupMobileLayout();
     setupDates();
     translateBreadcrumbs();

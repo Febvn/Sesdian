@@ -139,7 +139,8 @@
     $('[data-export]').addEventListener('click', exportCsv);
     $('[data-print]').addEventListener('click', printPdf);
     setPeriod('daily');
-    load();
+    // app.js showed the page loader for laporan; hide it once the first report renders
+    load().then(function () { if (window.SESDIAN_LOADER) window.SESDIAN_LOADER.hide(); });
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();
