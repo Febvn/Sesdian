@@ -345,9 +345,9 @@
       fr.onload = function () {
         var img = new Image();
         img.onload = function () {
-          var max = 800, w = img.width, h = img.height;
+          var max = 400, w = img.width, h = img.height;
           if (w > max) { h = Math.round(h * max / w); w = max; }
-          try { var c = el('canvas'); c.width = w; c.height = h; c.getContext('2d').drawImage(img, 0, 0, w, h); resolve(c.toDataURL('image/jpeg', 0.82)); }
+          try { var c = el('canvas'); c.width = w; c.height = h; c.getContext('2d').drawImage(img, 0, 0, w, h); resolve(c.toDataURL('image/webp', 0.70)); }
           catch (e) { resolve(fr.result); }
         };
         img.onerror = function () { resolve(fr.result); };

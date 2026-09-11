@@ -66,11 +66,20 @@
   };
 
   /* ====================== reads ====================== */
-  var CACHE = {};
   async function cachedReq(key, ttlMs) {
-    if (CACHE[key] && Date.now() - CACHE[key].ts < ttlMs) return CACHE[key].data;
+    try {
+      var raw = sessionStorage.getItem('sesdian_cache_' + key);
+      if (raw) {
+        var item = JSON.parse(raw);
+        if (Date.now() - item.ts < ttlMs) return item.data;
+      }
+    } catch (e) {}
+
     var data = await req(key);
-    CACHE[key] = { data: data, ts: Date.now() };
+
+    try {
+      sessionStorage.setItem('sesdian_cache_' + key, JSON.stringify({ data: data, ts: Date.now() }));
+    } catch (e) {}
     return data;
   }
 
