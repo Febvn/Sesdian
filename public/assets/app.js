@@ -56,20 +56,26 @@
     setTimeout(function () { t.style.transition = 'opacity .3s,transform .3s'; t.style.opacity = '0'; t.style.transform = 'translateY(8px)'; setTimeout(function () { t.remove(); }, 320); }, 2800);
   }
 
-  /* ---------------- single page loader (three dots, content area) ----------------
-     The only loading indicator. Shown on a COLD load while the page's data is
-     fetched; hidden the moment it renders. On a warm cache nav it's never shown,
-     so switching pages is instant. */
+  /* ---------------- data loader (three dots, only in the data area) ----------------
+     The loader is shown ONLY inside the page's data container (the list/table that
+     the DB fills), so the title, cards, controls and table headers stay visible.
+     The subsequent render clears the container (removing the loader). */
+  function pageDataContainer() {
+    var tpl = $('[data-template]') || $('[data-recent-template]') || $('[data-monitor-template]');
+    if (tpl && tpl.parentNode) return tpl.parentNode;
+    return $('[data-dipinjam]') || $('[data-users-list]') || $('[data-report-rows]') || $('[data-list]');
+  }
   function showPageLoader() {
-    var main = $('main'); if (!main) return;
-    var content = main.lastElementChild; if (!content) return;
-    if (content.querySelector('.sesd-page-loader')) return;
-    content.classList.add('sesd-is-loading');
-    content.appendChild(el('div', { class: 'sesd-page-loader', html: '<span></span><span></span><span></span>' }));
+    var c = pageDataContainer(); if (!c) return;
+    if (c.querySelector('.sesd-page-loader')) return;
+    if (c.tagName === 'TBODY') {
+      c.appendChild(el('tr', { 'data-loader-row': '', html: '<td colspan="99" style="padding:0"><div class="sesd-page-loader" style="min-height:160px"><span></span><span></span><span></span></div></td>' }));
+    } else {
+      c.appendChild(el('div', { class: 'sesd-page-loader', style: 'min-height:180px;grid-column:1/-1', html: '<span></span><span></span><span></span>' }));
+    }
   }
   function hidePageLoader() {
-    $$('.sesd-page-loader').forEach(function (e) { e.remove(); });
-    $$('.sesd-is-loading').forEach(function (e) { e.classList.remove('sesd-is-loading'); });
+    $$('.sesd-page-loader').forEach(function (e) { var tr = e.closest && e.closest('tr[data-loader-row]'); if (tr) tr.remove(); else e.remove(); });
   }
 
   /* ---------------- session ---------------- */

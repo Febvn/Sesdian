@@ -42,11 +42,13 @@
   }
 
   async function load() {
+    if (window.SESDIAN_LOADER) window.SESDIAN_LOADER.show(); // dots inside the report table only
     var start = $('[data-start]').value, end = $('[data-end]').value;
     try {
       lastData = await DB.reports({ period: state.period, start: start, end: end });
       render(lastData);
     } catch (e) {
+      if (window.SESDIAN_LOADER) window.SESDIAN_LOADER.hide();
       if (e && e.status === 401) { location.replace('login.html'); return; }
       toast((e && e.message) || 'Gagal memuat laporan', 'error');
     }
