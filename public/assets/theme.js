@@ -2,6 +2,11 @@
    SESDIAN — Theme Manager (theme.js)
    Manages light/dark mode toggle with localStorage persistence.
    Default: light mode. Applies [data-theme="dark"] on <html>.
+
+   #4 — The toggle now lives inside the page header (top bar).
+        The bottom-right corner it used to occupy is repurposed
+        into a "back to top" button that appears once the page is
+        scrolled down and smooth-scrolls back to the very top.
    ============================================================ */
 (function () {
   'use strict';
@@ -32,12 +37,11 @@
   // Apply ASAP to prevent flash
   applyTheme(getPreferred());
 
-  /* ── Inject toggle button after DOM is ready ── */
-  function injectToggleButton() {
-    if (document.getElementById('sesd-theme-btn')) return;
-
+  /* ── Theme toggle button (placed inside the header) ── */
+  function buildThemeButton() {
     var btn = document.createElement('button');
     btn.id = 'sesd-theme-btn';
+    btn.type = 'button';
     btn.title = 'Toggle Light / Dark Mode';
     btn.setAttribute('aria-label', 'Toggle theme');
 
@@ -70,12 +74,78 @@
     });
 
     updateIcon();
-    document.body.appendChild(btn);
+    return btn;
+  }
+
+  /* ── Back-to-top button (the toggle's old corner) ── */
+  function buildToTopButton() {
+    var btn = document.createElement('button');
+    btn.id = 'sesd-totop-btn';
+    btn.type = 'button';
+    btn.title = 'Kembali ke atas';
+    btn.setAttribute('aria-label', 'Kembali ke atas');
+    btn.innerHTML =
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" ' +
+      'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+      '<path d="M12 19V5"/><path d="m5 12 7-7 7 7"/></svg>';
+
+    function scrollTopAll() {
+      try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) { window.scrollTo(0, 0); }
+      var m = document.querySelector('main');
+      if (m && m.scrollTop > 0) {
+        try { m.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) { m.scrollTop = 0; }
+      }
+    }
+    btn.addEventListener('click', scrollTopAll);
+    return btn;
+  }
+
+  /* ── Inject both buttons after DOM is ready ── */
+  function inject() {
+    // Theme toggle → into the page header's right-hand cluster
+    if (!document.getElementById('sesd-theme-btn')) {
+      var themeBtn = buildThemeButton();
+      var header =
+        document.querySelector('[data-topbar]') ||
+        (document.querySelector('main') && document.querySelector('main').firstElementChild);
+      var cluster = header && header.lastElementChild;
+      if (cluster && cluster !== header && cluster.nodeType === 1) {
+        themeBtn.classList.add('in-header');
+        cluster.appendChild(themeBtn);
+      } else {
+        // Fallback: keep it reachable as a floating button
+        document.body.appendChild(themeBtn);
+      }
+    }
+
+    // Back-to-top → fixed bottom-right corner
+    if (!document.getElementById('sesd-totop-btn')) {
+      var topBtn = buildToTopButton();
+      document.body.appendChild(topBtn);
+
+      var scrolledAmount = function () {
+        var m = document.querySelector('main');
+        return Math.max(
+          window.pageYOffset || 0,
+          document.documentElement.scrollTop || 0,
+          document.body.scrollTop || 0,
+          m ? m.scrollTop : 0
+        );
+      };
+      var onScroll = function () {
+        if (scrolledAmount() > 240) topBtn.classList.add('show');
+        else topBtn.classList.remove('show');
+      };
+      window.addEventListener('scroll', onScroll, { passive: true });
+      var mainEl = document.querySelector('main');
+      if (mainEl) mainEl.addEventListener('scroll', onScroll, { passive: true });
+      onScroll();
+    }
   }
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', injectToggleButton);
+    document.addEventListener('DOMContentLoaded', inject);
   } else {
-    injectToggleButton();
+    inject();
   }
 })();

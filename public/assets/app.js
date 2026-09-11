@@ -879,7 +879,34 @@
         var btn = el('button', { class: 'sesd-btn sesd-btn-' + (b.variant || 'primary'), html: (b.icon ? ic(b.icon) + ' ' : '') + b.label });
         btn.addEventListener('click', b.onClick); wrap.appendChild(btn);
       });
-      inner.insertBefore(wrap, inner.firstChild);
+      // #3 — dock the action buttons to the right of the page title instead of
+      // stacking them above the management area.
+      var h1 = inner.querySelector('h1');
+      if (h1) {
+        var titleBlock = h1.parentElement;                 // wrapper holding the <h1> (+ subtitle)
+        var row = titleBlock && titleBlock.parentElement;  // the row that the title block sits in
+        var rowIsFlexHeader = row && /space-between/.test(row.getAttribute('style') || '');
+        wrap.style.marginBottom = '0';
+        wrap.style.alignSelf = 'center';
+        if (rowIsFlexHeader) {
+          // Existing header is already a flex space-between row → just add the bar on the right.
+          wrap.style.marginLeft = 'auto';
+          row.appendChild(wrap);
+        } else {
+          // Title and subtitle live bare in their wrapper → turn it into a header row.
+          var textBlock = el('div');
+          while (titleBlock.firstChild) textBlock.appendChild(titleBlock.firstChild);
+          titleBlock.style.display = 'flex';
+          titleBlock.style.justifyContent = 'space-between';
+          titleBlock.style.alignItems = 'center';
+          titleBlock.style.flexWrap = 'wrap';
+          titleBlock.style.gap = '12px';
+          titleBlock.appendChild(textBlock);
+          titleBlock.appendChild(wrap);
+        }
+      } else {
+        inner.insertBefore(wrap, inner.firstChild);
+      }
     }
     if (p === 'dataaset') bar([
       { label: 'Tambah Aset', icon: 'package', onClick: function () { openAssetForm(null); } },

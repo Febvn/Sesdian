@@ -11,8 +11,8 @@
       href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="assets/app.css?v=6" />
-    <link rel="stylesheet" href="assets/preloader.css?v=6" />
+    <link rel="stylesheet" href="assets/app.css?v=7" />
+    <link rel="stylesheet" href="assets/preloader.css?v=7" />
   </head>
   <body data-page="dataaset" data-auth="required">
     <div id="root">
@@ -883,159 +883,35 @@
                   </button>
                 </div>
               </div>
+              <!-- #9 — stat cards: roomier spacing + one cohesive (theme-aware) palette -->
               <div
-                class="animate-fade-up delay-2"
+                class="animate-fade-up delay-2 sesd-stat-grid"
                 style="
                   display: grid;
-                  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-                  gap: 0.75rem;
-                  margin-bottom: 1.25rem;
+                  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                  gap: 1rem;
+                  margin-bottom: 1.5rem;
                 "
               >
-                <div
-                  style="
-                    background: rgb(239, 246, 255);
-                    border-radius: 12px;
-                    padding: 0.875rem 1rem;
-                    border-left: 4px solid rgb(99, 102, 241);
-                  "
-                >
-                  <div
-                    data-stat="total_assets"
-                    style="
-                      font-size: 1.5rem;
-                      font-weight: 800;
-                      color: rgb(99, 102, 241);
-                    "
-                  >
-                    1
-                  </div>
-                  <div
-                    style="
-                      font-size: 0.75rem;
-                      color: var(--text-muted);
-                      font-weight: 500;
-                      margin-top: 2px;
-                    "
-                  >
-                    Total Aset
-                  </div>
+                <div class="sesd-stat-card">
+                  <div data-stat="total_assets" class="sesd-stat-num">1</div>
+                  <div class="sesd-stat-label">Total Aset</div>
                 </div>
-                <div
-                  style="
-                    background: rgb(240, 249, 255);
-                    border-radius: 12px;
-                    padding: 0.875rem 1rem;
-                    border-left: 4px solid rgb(14, 165, 233);
-                  "
-                >
-                  <div
-                    data-stat="total_stock"
-                    style="
-                      font-size: 1.5rem;
-                      font-weight: 800;
-                      color: rgb(14, 165, 233);
-                    "
-                  >
-                    14
-                  </div>
-                  <div
-                    style="
-                      font-size: 0.75rem;
-                      color: var(--text-muted);
-                      font-weight: 500;
-                      margin-top: 2px;
-                    "
-                  >
-                    Total Stok
-                  </div>
+                <div class="sesd-stat-card">
+                  <div data-stat="total_stock" class="sesd-stat-num">14</div>
+                  <div class="sesd-stat-label">Total Stok</div>
                 </div>
-                <div
-                  style="
-                    background: rgb(240, 253, 244);
-                    border-radius: 12px;
-                    padding: 0.875rem 1rem;
-                    border-left: 4px solid rgb(16, 185, 129);
-                  "
-                >
-                  <div
-                    data-stat="stock_available"
-                    style="
-                      font-size: 1.5rem;
-                      font-weight: 800;
-                      color: rgb(16, 185, 129);
-                    "
-                  >
-                    14
-                  </div>
-                  <div
-                    style="
-                      font-size: 0.75rem;
-                      color: var(--text-muted);
-                      font-weight: 500;
-                      margin-top: 2px;
-                    "
-                  >
-                    Stok Tersedia
-                  </div>
+                <div class="sesd-stat-card">
+                  <div data-stat="stock_available" class="sesd-stat-num">14</div>
+                  <div class="sesd-stat-label">Stok Tersedia</div>
                 </div>
-                <div
-                  style="
-                    background: rgb(255, 251, 235);
-                    border-radius: 12px;
-                    padding: 0.875rem 1rem;
-                    border-left: 4px solid rgb(245, 158, 11);
-                  "
-                >
-                  <div
-                    data-stat="stock_borrowed"
-                    style="
-                      font-size: 1.5rem;
-                      font-weight: 800;
-                      color: rgb(245, 158, 11);
-                    "
-                  >
-                    5
-                  </div>
-                  <div
-                    style="
-                      font-size: 0.75rem;
-                      color: var(--text-muted);
-                      font-weight: 500;
-                      margin-top: 2px;
-                    "
-                  >
-                    Stok Dipinjam
-                  </div>
+                <div class="sesd-stat-card">
+                  <div data-stat="stock_borrowed" class="sesd-stat-num">5</div>
+                  <div class="sesd-stat-label">Stok Dipinjam</div>
                 </div>
-                <div
-                  style="
-                    background: rgb(255, 241, 242);
-                    border-radius: 12px;
-                    padding: 0.875rem 1rem;
-                    border-left: 4px solid rgb(239, 68, 68);
-                  "
-                >
-                  <div
-                    data-stat="maintenance"
-                    style="
-                      font-size: 1.5rem;
-                      font-weight: 800;
-                      color: rgb(239, 68, 68);
-                    "
-                  >
-                    0
-                  </div>
-                  <div
-                    style="
-                      font-size: 0.75rem;
-                      color: var(--text-muted);
-                      font-weight: 500;
-                      margin-top: 2px;
-                    "
-                  >
-                    Maintenance
-                  </div>
+                <div class="sesd-stat-card">
+                  <div data-stat="maintenance" class="sesd-stat-num">0</div>
+                  <div class="sesd-stat-label">Maintenance</div>
                 </div>
               </div>
               <div
@@ -1468,13 +1344,13 @@
         </main>
       </div>
     </div>
-    <script defer src="assets/config.js?v=6"></script>
-    <script defer src="assets/db.js?v=6"></script>
-    <script defer src="assets/icons.js?v=6"></script>
-    <script defer src="assets/preloader.js?v=6"></script>
-    <script defer src="assets/import.js?v=6"></script>
-    <script defer src="assets/qr.js?v=6"></script>
-    <script defer src="assets/app.js?v=6"></script>
-      <script defer src="assets/theme.js?v=6"></script>
+    <script defer src="assets/config.js?v=7"></script>
+    <script defer src="assets/db.js?v=7"></script>
+    <script defer src="assets/icons.js?v=7"></script>
+    <script defer src="assets/preloader.js?v=7"></script>
+    <script defer src="assets/import.js?v=7"></script>
+    <script defer src="assets/qr.js?v=7"></script>
+    <script defer src="assets/app.js?v=7"></script>
+      <script defer src="assets/theme.js?v=7"></script>
   </body>
 </html>

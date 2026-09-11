@@ -43,11 +43,13 @@
 
   /* Sidebar specifics */
   --sidebar-border:  rgba(99,102,241,0.1);
+  --sidebar-divider: rgba(15,23,42,0.42);          /* strong, near-black separators (light) */
+  --sidebar-card-bg: rgba(99,102,241,0.07);        /* account card surface (light) */
   --sidebar-link-hover: rgba(99,102,241,0.08);
-  --sidebar-link-active-bg: rgba(99,102,241,0.12);
-  --sidebar-link-active-border: rgba(99,102,241,0.3);
+  --sidebar-link-active-bg: rgba(139,92,246,0.16); /* soft light-purple highlight */
+  --sidebar-link-active-border: rgba(139,92,246,0.35);
   --sidebar-text:    #475569;
-  --sidebar-active:  #6366f1;
+  --sidebar-active:  #6d5ae6;                        /* readable light-purple */
 
   --radius:          14px;
   --radius-lg:       20px;
@@ -84,10 +86,13 @@
   --card-hover-shadow: 0 16px 48px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.12);
 
   --sidebar-border:  rgba(255,255,255,0.06);
+  --sidebar-divider: rgba(255,255,255,0.22);        /* clearly visible separators on dark sidebar */
+  --sidebar-card-bg: linear-gradient(135deg, rgba(30,41,70,0.9), rgba(10,15,30,0.92)); /* dark account card */
   --sidebar-link-hover: rgba(255,255,255,0.07);
-  --sidebar-link-active-bg: rgba(99,102,241,0.22);
-  --sidebar-link-active-border: rgba(99,102,241,0.4);
+  --sidebar-link-active-bg: rgba(139,92,246,0.26);  /* soft light-purple highlight */
+  --sidebar-link-active-border: rgba(139,92,246,0.5);
   --sidebar-text:    #94a3b8;
+  --sidebar-active:  #c4b5fd;                        /* readable light-purple on dark */
   --primary-glow:    rgba(99,102,241,0.35);
 }
 
@@ -150,9 +155,44 @@ a:hover { opacity: 0.8; }
 .delay-5 { animation-delay: 300ms !important; }
 
 /* ══════════════════════════════════════════════════════════
-   THEME TOGGLE BUTTON
+   THEME TOGGLE BUTTON — #4: lives inside the page header now
    ══════════════════════════════════════════════════════════ */
 #sesd-theme-btn {
+  width: 38px; height: 38px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.05rem;
+  color: var(--text);
+  transition: all var(--dur-fast) var(--ease-smooth);
+  user-select: none;
+  flex-shrink: 0;
+}
+#sesd-theme-btn.in-header { position: static; }
+/* Fallback only (no header found): keep it reachable, above the back-to-top button */
+#sesd-theme-btn:not(.in-header) {
+  position: fixed; bottom: 84px; right: 24px; z-index: 8888;
+  width: 48px; height: 48px; border-radius: 50%;
+  box-shadow: var(--card-shadow);
+}
+#sesd-theme-btn:hover {
+  transform: translateY(-2px) scale(1.06);
+  box-shadow: var(--card-shadow);
+  border-color: var(--primary);
+}
+#sesd-theme-btn:active { transform: scale(0.95); }
+#sesd-theme-btn .theme-icon { transition: transform 0.35s var(--ease-spring); }
+#sesd-theme-btn:hover .theme-icon { transform: rotate(20deg); }
+
+/* ══════════════════════════════════════════════════════════
+   BACK-TO-TOP BUTTON — #4: takes the toggle's old corner,
+   appears after scrolling and smooth-scrolls back to the top.
+   ══════════════════════════════════════════════════════════ */
+#sesd-totop-btn {
   position: fixed;
   bottom: 24px;
   right: 24px;
@@ -166,19 +206,22 @@ a:hover { opacity: 0.8; }
   box-shadow: var(--card-shadow);
   cursor: pointer;
   display: flex; align-items: center; justify-content: center;
-  font-size: 1.3rem;
-  color: var(--text);
-  transition: all var(--dur-fast) var(--ease-smooth);
-  user-select: none;
+  color: var(--primary);
+  opacity: 0; visibility: hidden;
+  transform: translateY(14px) scale(0.8);
+  transition: opacity var(--dur-normal) var(--ease-smooth),
+              transform var(--dur-normal) var(--ease-spring),
+              box-shadow var(--dur-fast) var(--ease-smooth),
+              border-color var(--dur-fast) var(--ease-smooth);
 }
-#sesd-theme-btn:hover {
-  transform: scale(1.12) rotate(12deg);
+#sesd-totop-btn.show { opacity: 1; visibility: visible; transform: translateY(0) scale(1); }
+#sesd-totop-btn:hover {
+  transform: translateY(-3px) scale(1.1);
   box-shadow: var(--card-hover-shadow);
   border-color: var(--primary);
 }
-#sesd-theme-btn:active { transform: scale(0.95); }
-#sesd-theme-btn .theme-icon { transition: transform 0.35s var(--ease-spring); }
-#sesd-theme-btn:hover .theme-icon { transform: rotate(20deg); }
+#sesd-totop-btn:active { transform: scale(0.95); }
+#sesd-totop-btn svg { width: 1.25rem; height: 1.25rem; }
 
 /* ══════════════════════════════════════════════════════════
    SKELETON
@@ -217,25 +260,51 @@ aside[style] {
   -webkit-backdrop-filter: var(--glass-blur) !important;
   border-right: 1px solid var(--sidebar-border) !important;
   box-shadow: 4px 0 24px rgba(99,102,241,0.08) !important;
+  /* #6 — square top corners, gently rounded bottom corners (distinctive) */
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg) !important;
   transition: background var(--dur-normal) var(--ease-smooth) !important;
 }
 aside a[style] {
   color: var(--sidebar-text) !important;
-  transition: all var(--dur-fast) var(--ease-smooth) !important;
+  /* #5 — animate only background/colour instantly; movement is reserved for hover */
+  transition: background var(--dur-fast) var(--ease-smooth),
+              color var(--dur-fast) var(--ease-smooth),
+              box-shadow var(--dur-fast) var(--ease-smooth),
+              transform var(--dur-normal) var(--ease-spring) !important;
   border-radius: var(--radius) !important;
   margin: 2px 8px !important;
 }
-aside a[style]:hover:not(.active) {
+/* #5 — micro-animation happens ONLY while the cursor hovers the button.
+   No :active rule on purpose: pressing/clicking introduces no transform change,
+   so the link never "jumps" on click — movement is reserved for hover. */
+aside a[style]:hover {
   background: var(--sidebar-link-hover) !important;
-  color: var(--primary) !important;
-  transform: translateX(3px);
+  color: var(--sidebar-active) !important;
+  transform: translateX(4px);
 }
-aside a.active[style] {
+
+/* #1 — active (selected) link: soft light-purple chip, readable light-purple text,
+   for every section colour (indigo / green / orange) and on both static + dynamic pages.
+   The link rests in place (no permanent translate) and only animates on hover. */
+aside a.active[style],
+aside a[style*="background: rgb(99, 102, 241)"],
+aside a[style*="background: rgb(16, 185, 129)"],
+aside a[style*="background: rgb(245, 158, 11)"] {
   background: var(--sidebar-link-active-bg) !important;
-  color: var(--primary) !important;
+  color: var(--sidebar-active) !important;
   border: 1px solid var(--sidebar-link-active-border) !important;
   box-shadow: 0 4px 16px var(--primary-glow) !important;
+  transform: none;
 }
+aside a.active[style] *,
+aside a[style*="background: rgb(99, 102, 241)"] *,
+aside a[style*="background: rgb(16, 185, 129)"] *,
+aside a[style*="background: rgb(245, 158, 11)"] * { color: var(--sidebar-active) !important; }
+aside a.active[style]:hover,
+aside a[style*="background: rgb(99, 102, 241)"]:hover,
+aside a[style*="background: rgb(16, 185, 129)"]:hover,
+aside a[style*="background: rgb(245, 158, 11)"]:hover { transform: translateX(4px); }
+
 aside [style*="color: rgb(255, 255, 255)"],
 aside [style*="color: #fff"] { color: var(--text) !important; }
 aside [style*="color: rgb(148, 163, 184)"],
@@ -244,9 +313,29 @@ aside [style*="color: rgb(100, 116, 139)"] { color: var(--text-muted) !important
 aside [style*="background: rgb(26, 37, 64)"],
 aside [style*="background: rgb(11, 17, 32)"] { background: var(--sidebar-bg) !important; }
 aside [style*="border-bottom: 1px solid rgb(26, 37, 64)"],
-aside [style*="border-bottom: 1px solid rgb(30, 41, 59)"] { border-color: var(--sidebar-border) !important; }
+aside [style*="border-bottom: 1px solid rgb(30, 41, 59)"] { border-color: var(--sidebar-divider) !important; }
+/* #2 — strong, near-black separators between every section (UTAMA/ASET/PEMINJAMAN/MANAJEMEN) */
 aside [style*="background: rgb(26, 37, 64)"][style*="height: 1px"],
-aside [style*="background: rgb(26, 37, 64)"][style*="flex: 1"] { background: var(--sidebar-border) !important; }
+aside [style*="background: rgb(26, 37, 64)"][style*="flex: 1"] { background: var(--sidebar-divider) !important; height: 1px !important; }
+
+/* #7 — account card at the bottom follows the active theme (dark in dark mode,
+   light in light mode) instead of always being a dark navy block. Targeted
+   structurally so the multi-line gradient markup is matched reliably. */
+aside > div:last-child { border-top: 1px solid var(--sidebar-divider) !important; }
+aside > div:last-child > div {
+  background: var(--sidebar-card-bg) !important;
+  border: 1px solid var(--sidebar-border) !important;
+}
+aside > div:last-child [data-user-name] { color: var(--text) !important; }
+aside > div:last-child [data-user-role] { color: var(--text-muted) !important; }
+aside > div:last-child button {
+  border: 1px solid var(--sidebar-border) !important;
+  color: var(--text-muted) !important;
+}
+aside > div:last-child button:hover {
+  background: var(--sidebar-link-hover) !important;
+  color: var(--sidebar-active) !important;
+}
 
 /* ══════════════════════════════════════════════════════════
    PAGE WRAPPERS
@@ -662,6 +751,45 @@ select {
   transition-duration: 0.1s !important;
 }
 
+/* ══════════════════════════════════════════════════════════
+   DATA ASET — STAT CARDS (#9)
+   One cohesive, theme-aware palette with comfortable spacing,
+   replacing the previous multi-colour pastel tiles.
+   ══════════════════════════════════════════════════════════ */
+.sesd-stat-card {
+  background: var(--glass-card);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--primary);
+  border-radius: var(--radius);
+  padding: 1.15rem 1.25rem;
+  transition: transform var(--dur-normal) var(--ease-spring),
+              box-shadow var(--dur-normal) var(--ease-smooth),
+              background var(--dur-normal) var(--ease-smooth);
+}
+.sesd-stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--card-shadow);
+  background: var(--glass-hover);
+}
+.sesd-stat-num {
+  font-size: 1.65rem;
+  font-weight: 800;
+  color: var(--primary);
+  line-height: 1.1;
+  letter-spacing: -0.5px;
+}
+.sesd-stat-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 600;
+  margin-top: 5px;
+}
+@media (max-width: 768px) {
+  .sesd-stat-grid { gap: 0.7rem !important; }
+  .sesd-stat-card { padding: 0.85rem 0.95rem; }
+  .sesd-stat-num { font-size: 1.35rem; }
+}
+
 /* Table container — subtle lift */
 [style*="border-collapse: collapse"] {
   transition: box-shadow var(--dur-normal) var(--ease-smooth);
@@ -812,8 +940,9 @@ select {
   /* Flexbox sections — allow wrapping */
   [style*="display: flex"][style*="gap"] { flex-wrap: wrap !important; }
 
-  /* Theme toggle position */
-  #sesd-theme-btn { bottom: 80px; right: 14px; width: 40px; height: 40px; font-size: 1.1rem; }
+  /* Theme toggle stays inline in the header; back-to-top sits in the corner */
+  #sesd-theme-btn { width: 36px; height: 36px; font-size: 1rem; }
+  #sesd-totop-btn { bottom: 80px; right: 14px; width: 42px; height: 42px; }
 }
 
 /* ── Small phones ──────────────────────────────────────── */
@@ -837,5 +966,5 @@ select {
 /* ── Print ─────────────────────────────────────────────── */
 @media print {
   body { background: #fff !important; color: #000 !important; }
-  aside, #sesd-theme-btn, .sesd-toast-wrap { display: none !important; }
+  aside, #sesd-theme-btn, #sesd-totop-btn, .sesd-toast-wrap { display: none !important; }
 }
