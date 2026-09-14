@@ -804,6 +804,22 @@ select {
     transform: scale(1.03) translateY(-3px) !important;
   }
 
+  .glass-stat-card {
+    background: var(--glass-card);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    padding: 0.875rem 1rem;
+    box-shadow: var(--glass-shadow);
+    transition: transform 0.2s, box-shadow 0.2s, background 0.3s;
+  }
+  .glass-stat-card:hover {
+    transform: translateY(-2px);
+    background: var(--glass-hover);
+    box-shadow: var(--glass-shadow-lg);
+  }
+
   /* Buttons */
   .sesd-admin-bar { gap: 6px; }
   .sesd-btn { padding: 0.5rem 0.85rem; font-size: 0.78rem; }
