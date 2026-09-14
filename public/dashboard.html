@@ -41,16 +41,14 @@
         transition: opacity 0.3s ease;
       }
 
-      /* From Uiverse.io - Horizontal Stat Card Style */
+      /* Modern Stat Card Style - Clean Cards */
       .stat-card {
-        --primary-clr: rgba(255,255,255,0.1);
-        --dot-clr: rgba(255,255,255,0.5);
-        background: linear-gradient(135deg, var(--card-color1), var(--card-color2));
+        background: #fff;
         width: 100%;
         border-radius: 16px;
         padding: 1.25rem;
         font-family: "Plus Jakarta Sans", "Arial", sans-serif;
-        color: #fff;
+        color: #1e293b;
         display: flex;
         align-items: center;
         gap: 1rem;
@@ -58,41 +56,26 @@
         overflow: hidden;
         position: relative;
         transition: transform 0.3s ease, box-shadow 0.3s ease;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        border: 1px solid #e2e8f0;
       }
       .stat-card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 8px 25px rgba(0,0,0,0.2);
-      }
-      .stat-card::before {
-        content: '';
-        position: absolute;
-        top: -50%;
-        right: -50%;
-        width: 100%;
-        height: 100%;
-        background: rgba(255,255,255,0.1);
-        border-radius: 50%;
-        transition: transform 0.5s ease;
-      }
-      .stat-card:hover::before {
-        transform: scale(2);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.12);
       }
       .stat-icon {
         width: 56px;
         height: 56px;
         min-width: 56px;
-        background: rgba(255,255,255,0.2);
-        border-radius: 12px;
+        border-radius: 14px;
         display: flex;
         align-items: center;
         justify-content: center;
-        backdrop-filter: blur(10px);
+        color: #fff;
       }
       .stat-icon svg {
-        width: 28px;
-        height: 28px;
-        stroke: #fff;
+        width: 26px;
+        height: 26px;
       }
       .stat-content {
         flex: 1;
@@ -101,18 +84,16 @@
       .stat-label {
         font-size: 0.85rem;
         font-weight: 500;
-        color: rgba(255,255,255,0.85);
+        color: #64748b;
         margin-bottom: 4px;
       }
       .stat-value {
-        font-size: 1.8rem;
+        font-size: 1.75rem;
         font-weight: 800;
-        color: #fff;
+        color: #0f172a;
         line-height: 1;
       }
-      .stat-card .dot {
-        display: none;
-      }
+      .stat-card .dot { display: none; }
     </style>
   </head>
   <body data-page="dashboard" data-auth="required">
@@ -923,9 +904,8 @@
                 <div
                 class="stat-card animate-fade-up delay-1 dashboard-stat-card"
                 data-stat-card="total_assets"
-                style="--card-color1: #6366f1; --card-color2: #8b5cf6;"
               >
-                <div class="stat-icon">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #6366f1, #8b5cf6);">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M21 8 12 3 3 8v8l9 5 9-5z" />
                     <path d="M3 8l9 5 9-5M12 13v8" />
@@ -941,9 +921,8 @@
               <div
                 class="stat-card animate-fade-up delay-2 dashboard-stat-card"
                 data-stat-card="total_stock"
-                style="--card-color1: #0ea5e9; --card-color2: #6366f1;"
               >
-                <div class="stat-icon">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #0ea5e9, #6366f1);">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <rect x="3" y="4" width="18" height="4" rx="1" />
                     <path d="M5 8v12h14V8" />
@@ -960,9 +939,8 @@
               <div
                 class="stat-card animate-fade-up delay-3 dashboard-stat-card"
                 data-stat-card="stock_available"
-                style="--card-color1: #10b981; --card-color2: #059669;"
               >
-                <div class="stat-icon">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #10b981, #059669);">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="12" cy="12" r="9" />
                     <path d="m8.5 12 2.5 2.5 4.5-5" />
@@ -978,9 +956,8 @@
               <div
                 class="stat-card animate-fade-up delay-4 dashboard-stat-card"
                 data-stat-card="stock_borrowed"
-                style="--card-color1: #f59e0b; --card-color2: #d97706;"
               >
-                <div class="stat-icon">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M3 12a9 9 0 0 1 15-6.7L21 8" />
                     <path d="M21 3v5h-5" />
@@ -998,9 +975,8 @@
               <div
                 class="stat-card animate-fade-up delay-5 dashboard-stat-card"
                 data-stat-card="pending"
-                style="--card-color1: #ef4444; --card-color2: #dc2626;"
               >
-                <div class="stat-icon">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #ef4444, #dc2626);">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="12" cy="12" r="9" />
                     <path d="M12 7v5l3 2" />
