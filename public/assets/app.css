@@ -508,6 +508,7 @@ input[type="text"],
 input[type="email"],
 input[type="password"],
 input[type="number"],
+input[type="tel"],
 input[type="date"] {
   background: var(--bg-card) !important;
   border: 1px solid var(--border) !important;

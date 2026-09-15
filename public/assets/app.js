@@ -815,7 +815,10 @@
   }
 
   function sectionHeader(label) {
-    return el('div', { style: 'display:flex;align-items:center;gap:6px;padding:0.6rem 0.5rem 0.25rem', html: '<div style="flex:1 1 0%;height:2px;background:rgb(71,85,105);border-radius:2px"></div><span style="font-size:0.55rem;color:rgb(51,65,85);font-weight:800;letter-spacing:1.5px;white-space:nowrap">' + label + '</span><div style="flex:1 1 0%;height:2px;background:rgb(71,85,105);border-radius:2px"></div>' });
+    // Theme-variable colours so every section header (UTAMA/ASET/PEMINJAMAN/MANAJEMEN)
+    // renders identically — including the ones injected by JS — and adapts to light/dark.
+    var divider = '<div style="flex:1 1 0%;height:2px;background:var(--sidebar-divider);border-radius:2px"></div>';
+    return el('div', { style: 'display:flex;align-items:center;gap:6px;padding:0.6rem 0.5rem 0.25rem', html: divider + '<span style="font-size:0.55rem;color:var(--text-muted);font-weight:800;letter-spacing:1.5px;white-space:nowrap">' + label + '</span>' + divider });
   }
   function makeNavLink(href, iconName, title, subtitle) {
     var active = (page() + '.html') === href;
@@ -823,7 +826,7 @@
     var style = active
       ? base + 'color:rgb(255,255,255);background:rgb(245,158,11);box-shadow:rgba(245,158,11,0.35) 0px 4px 12px;'
       : base + 'color:rgb(100,116,139);background:transparent;box-shadow:none;';
-    var sub = active ? 'rgba(255,255,255,0.6)' : 'rgb(51,65,85)';
+    var sub = active ? 'rgba(255,255,255,0.6)' : 'var(--text-muted)';
     var icon = (window.SESDIAN_ICONS && window.SESDIAN_ICONS[iconName]) || '';
     return el('a', { href: href, style: style, html: '<span class="ic" style="font-size:1rem;flex-shrink:0;line-height:1">' + icon + '</span><div style="overflow:hidden;flex:1 1 0%"><div style="font-size:0.8rem;font-weight:' + (active ? '700' : '500') + ';white-space:nowrap;color:inherit">' + title + '</div><div style="font-size:0.62rem;color:' + sub + ';white-space:nowrap;margin-top:1px">' + subtitle + '</div></div>' });
   }
@@ -854,7 +857,7 @@
   function buildShell() {
     var aside = $('aside[data-shell]');
     if (aside && !aside.children.length) {
-      aside.appendChild(el('div', { style: 'padding:1rem;border-bottom:1px solid rgb(26,37,64);display:flex;align-items:center;gap:8px;min-height:60px', html: '<div><div style="font-size:1.15rem;font-weight:900;color:#fff;letter-spacing:-0.5px;line-height:1">SES<span style="color:rgb(99,102,241)">DIAN</span></div><div style="font-size:0.55rem;color:rgb(51,65,85);margin-top:3px;font-family:\'JetBrains Mono\';letter-spacing:2px">ASSET MANAGEMENT</div></div>' }));
+      aside.appendChild(el('div', { style: 'padding:1rem;border-bottom:1px solid rgb(26,37,64);display:flex;align-items:center;gap:8px;min-height:60px', html: '<div><div style="font-size:1.15rem;font-weight:900;color:var(--text);letter-spacing:-0.5px;line-height:1">SES<span style="color:rgb(99,102,241)">DIAN</span></div><div style="font-size:0.55rem;color:var(--text-muted);margin-top:3px;font-family:\'JetBrains Mono\';letter-spacing:2px">ASSET MANAGEMENT</div></div>' }));
       var nav = el('div', { style: 'flex:1 1 0%;overflow:hidden auto;padding:0.5rem' });
       nav.appendChild(navSection('UTAMA', [makeNavLink('dashboard.html', 'zap', 'Dashboard', 'Ringkasan & statistik')]));
       nav.appendChild(navSection('ASET', [makeNavLink('dataaset.html', 'package', 'Data Aset', 'Lihat semua aset'), makeNavLink('kategoriaset.html', 'tag', 'Kategori Aset', 'Jenis-jenis aset'), makeNavLink('ruangan.html', 'home', 'Ruangan', 'Daftar ruangan')]));
@@ -864,7 +867,7 @@
     }
     var top = $('[data-topbar]');
     if (top && !top.children.length) {
-      top.appendChild(el('div', { style: 'display:flex;align-items:center;gap:10px', html: '<span class="ic" style="color:rgb(148,163,184)">' + ((window.SESDIAN_ICONS && window.SESDIAN_ICONS.home) || '') + '</span><span style="color:rgb(15,23,42);font-weight:600">' + (PAGE_TITLES[page()] || '') + '</span>' }));
+      top.appendChild(el('div', { style: 'display:flex;align-items:center;gap:10px', html: '<span class="ic" style="color:var(--text-muted)">' + ((window.SESDIAN_ICONS && window.SESDIAN_ICONS.home) || '') + '</span><span style="color:var(--text);font-weight:600">' + (PAGE_TITLES[page()] || '') + '</span>' }));
       top.appendChild(el('div', { style: 'display:flex;align-items:center;gap:6px', html: '<div style="width:7px;height:7px;border-radius:50%;background:rgb(16,185,129);box-shadow:rgba(16,185,129,0.2) 0px 0px 0px 3px"></div><span style="font-size:0.75rem;color:rgb(100,116,139);font-weight:500">Online</span>' }));
     }
   }

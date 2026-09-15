@@ -41,8 +41,16 @@
     });
   }
 
+  function clearData() {
+    // Wipe the previous period's data so it does not linger behind the loader.
+    var tbody = $('[data-report-rows]'); if (tbody) tbody.innerHTML = '';
+    var total = $('[data-total]'); if (total) total.textContent = '…';
+    var sb = $('[data-status-breakdown]'); if (sb) sb.innerHTML = '';
+  }
+
   async function load() {
-    if (window.SESDIAN_LOADER) window.SESDIAN_LOADER.show(); // dots inside the report table only
+    clearData();                                            // remove old data first
+    if (window.SESDIAN_LOADER) window.SESDIAN_LOADER.show(); // dots inside the now-empty report table
     var start = $('[data-start]').value, end = $('[data-end]').value;
     try {
       lastData = await DB.reports({ period: state.period, start: start, end: end });
@@ -137,7 +145,9 @@
     var today = new Date(); var def = new Date(today.getTime() - 29 * 86400000);
     $('[data-end]').value = iso(today); $('[data-start]').value = iso(def);
     $$('[data-period]').forEach(function (b) { b.addEventListener('click', function () { setPeriod(b.getAttribute('data-period')); load(); }); });
-    $('[data-apply]').addEventListener('click', load);
+    // No "Terapkan" button — changing either date re-runs the report automatically.
+    $('[data-start]').addEventListener('change', load);
+    $('[data-end]').addEventListener('change', load);
     $('[data-export]').addEventListener('click', exportCsv);
     $('[data-print]').addEventListener('click', printPdf);
     setPeriod('daily');

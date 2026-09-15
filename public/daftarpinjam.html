@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="id">
   <head>
     <meta charset="UTF-8" />
@@ -11,8 +11,8 @@
       href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="assets/app.css?v=8" />
-    <link rel="stylesheet" href="assets/preloader.css?v=8" />
+    <link rel="stylesheet" href="assets/app.css?v=9" />
+    <link rel="stylesheet" href="assets/preloader.css?v=9" />
   </head>
   <body data-page="daftarpinjam" data-auth="required">
     <div id="root">
@@ -751,29 +751,7 @@
                     1 total transaksi
                   </p>
                 </div>
-                <button
-                  data-modal-open="ajukan"
-                  style="
-                    padding: 0.65rem 1.25rem;
-                    background: linear-gradient(
-                      135deg,
-                      rgb(16, 185, 129),
-                      rgb(5, 150, 105)
-                    );
-                    color: rgb(255, 255, 255);
-                    border-width: medium;
-                    border-style: none;
-                    border-color: currentcolor;
-                    border-image: initial;
-                    border-radius: 10px;
-                    cursor: pointer;
-                    font-weight: 700;
-                    font-size: 0.875rem;
-                    box-shadow: rgba(16, 185, 129, 0.3) 0px 4px 12px;
-                    transition: transform 0.2s;
-                    transform: translateY(0px);
-                  "
-                >
+                <button data-modal-open="ajukan" class="sesd-btn sesd-btn-success">
                   Ajukan Pinjam
                 </button>
               </div>
@@ -1412,50 +1390,24 @@
         <div style="display: flex; gap: 10px">
           <button
             data-action="submit-pinjam"
-            style="
-              flex: 1 1 0%;
-              padding: 0.75rem;
-              background: linear-gradient(
-                135deg,
-                rgb(16, 185, 129),
-                rgb(5, 150, 105)
-              );
-              color: rgb(255, 255, 255);
-              border-width: medium;
-              border-style: none;
-              border-color: currentcolor;
-              border-image: initial;
-              border-radius: 10px;
-              cursor: pointer;
-              font-weight: 700;
-            "
+            class="sesd-btn sesd-btn-success"
+            style="flex: 1 1 0%"
           >
             Ajukan</button
           ><button
             data-modal-close="ajukan"
-            style="
-              padding: 0.75rem 1.25rem;
-              background: rgb(241, 245, 249);
-              color: var(--text-muted);
-              border-width: medium;
-              border-style: none;
-              border-color: currentcolor;
-              border-image: initial;
-              border-radius: 10px;
-              cursor: pointer;
-              font-weight: 600;
-            "
+            class="sesd-btn sesd-btn-ghost"
           >
             Batal
           </button>
         </div>
       </div>
     </div>
-    <script defer src="assets/config.js?v=8"></script>
-    <script defer src="assets/db.js?v=8"></script>
-    <script defer src="assets/icons.js?v=8"></script>
-    <script defer src="assets/preloader.js?v=8"></script>
-    <script defer src="assets/app.js?v=8"></script>
-      <script defer src="assets/theme.js?v=8"></script>
+    <script defer src="assets/config.js?v=9"></script>
+    <script defer src="assets/db.js?v=9"></script>
+    <script defer src="assets/icons.js?v=9"></script>
+    <script defer src="assets/preloader.js?v=9"></script>
+    <script defer src="assets/app.js?v=9"></script>
+      <script defer src="assets/theme.js?v=9"></script>
   </body>
 </html>
