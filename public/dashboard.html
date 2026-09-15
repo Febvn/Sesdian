@@ -11,8 +11,8 @@
       href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="assets/app.css?v=7" />
-    <link rel="stylesheet" href="assets/preloader.css?v=7" />
+    <link rel="stylesheet" href="assets/app.css?v=8" />
+    <link rel="stylesheet" href="assets/preloader.css?v=8" />
     <style>
       /* Dashboard specific styles - cards hidden initially for loading animation */
       .dashboard-stat-card {
@@ -41,29 +41,32 @@
         transition: opacity 0.3s ease;
       }
 
-      /* Clean Modern Stat Card Style */
+      /* Clean Modern Stat Card Style - theme-aware (light + dark) via design tokens */
       .stat-card {
-        background: #fff;
+        background: var(--glass-card);
+        backdrop-filter: var(--glass-blur);
+        -webkit-backdrop-filter: var(--glass-blur);
         width: 100%;
         border-radius: 16px;
         padding: 0;
         font-family: "Plus Jakarta Sans", "Arial", sans-serif;
-        color: #1e293b;
+        color: var(--text);
         display: flex;
         overflow: hidden;
         cursor: pointer;
         position: relative;
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-        border: 1px solid #e2e8f0;
+        transition: transform 0.35s var(--ease-spring), box-shadow 0.35s var(--ease-smooth), background 0.3s;
+        box-shadow: var(--card-shadow);
+        border: 1px solid var(--border);
       }
       .stat-card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 12px 35px rgba(0,0,0,0.1);
+        transform: translateY(-4px);
+        box-shadow: var(--card-hover-shadow);
+        background: var(--glass-hover);
       }
       .stat-icon-wrap {
-        width: 60px;
-        min-width: 60px;
+        width: 64px;
+        min-width: 64px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -73,36 +76,39 @@
         width: 24px;
         height: 24px;
         transform: rotate(-15deg);
-        transition: transform 0.3s ease;
+        transition: transform 0.35s var(--ease-spring);
+        filter: drop-shadow(0 2px 4px rgba(0,0,0,0.18));
       }
       .stat-card:hover .stat-icon-wrap svg {
-        transform: rotate(0deg);
+        transform: rotate(0deg) scale(1.08);
       }
       .stat-info {
         flex: 1;
-        padding: 1.25rem;
+        padding: 1.15rem 1.35rem;
         display: flex;
         flex-direction: column;
         justify-content: center;
       }
       .stat-label {
-        font-size: 0.8rem;
-        font-weight: 600;
-        color: #64748b;
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: var(--text-muted);
         text-transform: uppercase;
-        letter-spacing: 0.5px;
-        margin-bottom: 4px;
+        letter-spacing: 0.6px;
+        margin-bottom: 5px;
       }
       .stat-number {
-        font-size: 1.75rem;
+        font-size: 1.85rem;
         font-weight: 800;
-        color: #0f172a;
+        color: var(--text);
         line-height: 1;
+        letter-spacing: -0.5px;
+        font-feature-settings: "tnum" 1;
       }
       .stat-subtitle {
-        font-size: 0.75rem;
-        color: #94a3b8;
-        margin-top: 4px;
+        font-size: 0.72rem;
+        color: var(--text-muted);
+        margin-top: 5px;
       }
     </style>
   </head>
@@ -1201,11 +1207,11 @@
         </main>
       </div>
     </div>
-    <script defer src="assets/config.js?v=7"></script>
-    <script defer src="assets/icons.js?v=7"></script>
-    <script defer src="assets/preloader.js?v=7"></script>
-    <script defer src="assets/db.js?v=7"></script>
-    <script defer src="assets/app.js?v=7"></script>
-      <script defer src="assets/theme.js?v=7"></script>
+    <script defer src="assets/config.js?v=8"></script>
+    <script defer src="assets/icons.js?v=8"></script>
+    <script defer src="assets/preloader.js?v=8"></script>
+    <script defer src="assets/db.js?v=8"></script>
+    <script defer src="assets/app.js?v=8"></script>
+      <script defer src="assets/theme.js?v=8"></script>
   </body>
 </html>

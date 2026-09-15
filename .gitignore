@@ -17,3 +17,8 @@ node_modules/
 
 # stray binaries (not part of this project)
 *.exe
+
+# Agent skill tooling (local dev aids, not part of the website)
+.agents/
+.claude/
+skills-lock.json

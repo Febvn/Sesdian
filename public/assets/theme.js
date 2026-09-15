@@ -45,11 +45,13 @@
     btn.title = 'Toggle Light / Dark Mode';
     btn.setAttribute('aria-label', 'Toggle theme');
 
+    // Stroke icons matched to the app's icon language (no emoji) — sun in dark
+    // mode (tap to go light), moon in light mode (tap to go dark).
+    var SUN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.2M12 19.8V22M4.9 4.9l1.6 1.6M17.5 17.5l1.6 1.6M2 12h2.2M19.8 12H22M4.9 19.1l1.6-1.6M17.5 6.5l1.6-1.6"/></svg>';
+    var MOON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>';
     function updateIcon() {
       var isDark = document.documentElement.hasAttribute('data-theme');
-      btn.innerHTML = isDark
-        ? '<span class="theme-icon" style="line-height:1;display:inline-flex;align-items:center">☀️</span>'
-        : '<span class="theme-icon" style="line-height:1;display:inline-flex;align-items:center">🌙</span>';
+      btn.innerHTML = '<span class="theme-icon" style="line-height:0;display:inline-flex;align-items:center;justify-content:center">' + (isDark ? SUN : MOON) + '</span>';
       btn.title = isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode';
     }
 
