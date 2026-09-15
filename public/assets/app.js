@@ -815,7 +815,7 @@
   }
 
   function sectionHeader(label) {
-    return el('div', { style: 'display:flex;align-items:center;gap:6px;padding:0.6rem 0.5rem 0.25rem', html: '<div style="flex:1 1 0%;height:1px;background:rgb(26,37,64)"></div><span style="font-size:0.55rem;color:rgb(51,65,85);font-weight:800;letter-spacing:1.5px;white-space:nowrap">' + label + '</span><div style="flex:1 1 0%;height:1px;background:rgb(26,37,64)"></div>' });
+    return el('div', { style: 'display:flex;align-items:center;gap:6px;padding:0.6rem 0.5rem 0.25rem', html: '<div style="flex:1 1 0%;height:2px;background:rgb(71,85,105);border-radius:2px"></div><span style="font-size:0.55rem;color:rgb(51,65,85);font-weight:800;letter-spacing:1.5px;white-space:nowrap">' + label + '</span><div style="flex:1 1 0%;height:2px;background:rgb(71,85,105);border-radius:2px"></div>' });
   }
   function makeNavLink(href, iconName, title, subtitle) {
     var active = (page() + '.html') === href;
