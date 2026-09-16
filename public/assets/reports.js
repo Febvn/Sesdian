@@ -30,7 +30,7 @@
   function fmtDate(s) { if (!s) return ''; var d = new Date(s); if (isNaN(d)) return String(s).slice(0, 10); return d.getDate() + '/' + (d.getMonth() + 1) + '/' + d.getFullYear(); }
   function statusLabel(s) { return (STATUS[s] && STATUS[s][0]) || s; }
   var lastData = null;
-  var state = { period: 'daily' };
+  var state = { period: 'monthly' };
 
   function setPeriod(p) {
     state.period = p;
@@ -39,6 +39,26 @@
       b.style.background = on ? 'linear-gradient(135deg,rgb(99,102,241),rgb(139,92,246))' : 'transparent';
       b.style.color = on ? '#fff' : 'var(--text-muted)';
     });
+  }
+
+  // The API filters strictly by start/end (period is only a label), so each
+  // preset must drive its own date window: daily = today, weekly = last 7 days,
+  // monthly = last 30 days. This is what makes the Harian/Mingguan/Bulanan
+  // buttons actually filter instead of all showing the same rows.
+  function periodRange(p) {
+    var end = new Date();
+    var start = new Date();
+    if (p === 'weekly') start.setDate(start.getDate() - 6);
+    else if (p === 'monthly') start.setDate(start.getDate() - 29);
+    // daily: start stays today
+    return { start: iso(start), end: iso(end) };
+  }
+  function applyPeriod(p) {
+    setPeriod(p);
+    var r = periodRange(p);
+    $('[data-start]').value = r.start;
+    $('[data-end]').value = r.end;
+    load();
   }
 
   async function load() {
@@ -134,13 +154,14 @@
   }
 
   function boot() {
-    var today = new Date(); var def = new Date(today.getTime() - 29 * 86400000);
-    $('[data-end]').value = iso(today); $('[data-start]').value = iso(def);
-    $$('[data-period]').forEach(function (b) { b.addEventListener('click', function () { setPeriod(b.getAttribute('data-period')); load(); }); });
+    var init = periodRange(state.period);
+    $('[data-start]').value = init.start; $('[data-end]').value = init.end;
+    $$('[data-period]').forEach(function (b) { b.addEventListener('click', function () { applyPeriod(b.getAttribute('data-period')); }); });
+    // Terapkan uses whatever the date inputs hold (custom range)
     $('[data-apply]').addEventListener('click', load);
     $('[data-export]').addEventListener('click', exportCsv);
     $('[data-print]').addEventListener('click', printPdf);
-    setPeriod('daily');
+    setPeriod(state.period);
     // app.js showed the page loader for laporan; hide it once the first report renders
     load().then(function () { if (window.SESDIAN_LOADER) window.SESDIAN_LOADER.hide(); });
   }
