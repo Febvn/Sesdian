@@ -104,7 +104,7 @@
       tr.appendChild(el('td', { style: td }, (r.asset_name || '-') + (r.asset_code ? ' (' + r.asset_code + ')' : '')));
       tr.appendChild(el('td', { style: td }, fmtDate(r.created_at)));
       tr.appendChild(el('td', { style: td }, r.due_date ? fmtDate(r.due_date) : '-'));
-      tr.appendChild(el('td', { style: td }, r.returned_at ? fmtDate(r.returned_at) : '—'));
+      tr.appendChild(el('td', { style: td }, r.returned_at ? fmtDate(r.returned_at) : '-'));
       tr.appendChild(el('td', { style: td }, r.admin_name || '-'));
       tr.appendChild(el('td', { style: td }, r.verifikator_name || '-'));
       tbody.appendChild(tr);

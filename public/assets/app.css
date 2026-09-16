@@ -628,6 +628,24 @@ select {
   cursor: pointer !important;
 }
 
+/* AUTH SCREENS (login / register) sit on a fixed dark glass panel regardless of
+   the app theme, so their fields must stay light-on-dark in BOTH light and dark
+   mode. Without this, the global `input { color: var(--text) }` rule paints dark
+   text on the dark field in light mode and the input becomes unreadable. */
+body[data-page="login"] input,
+body[data-page="register"] input {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border-color: rgba(255, 255, 255, 0.14) !important;
+  color: #ffffff !important;
+}
+body[data-page="login"] input::placeholder,
+body[data-page="register"] input::placeholder { color: rgba(255, 255, 255, 0.5) !important; }
+body[data-page="login"] input:focus,
+body[data-page="register"] input:focus {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-color: rgba(99, 102, 241, 0.6) !important;
+}
+
 /* ══════════════════════════════════════════════════════════
    TOAST NOTIFICATIONS
    ══════════════════════════════════════════════════════════ */
