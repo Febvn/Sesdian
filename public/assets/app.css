@@ -705,22 +705,126 @@ select {
   cursor: pointer !important;
 }
 
-/* AUTH SCREENS (login / register) sit on a fixed dark glass panel regardless of
-   the app theme, so their fields must stay light-on-dark in BOTH light and dark
-   mode. Without this, the global `input { color: var(--text) }` rule paints dark
-   text on the dark field in light mode and the input becomes unreadable. */
-body[data-page="login"] input,
+/* REGISTER still sits on a fixed dark glass panel, so its fields stay light-on-dark
+   in BOTH light and dark mode. (The LOGIN page was re-skinned to Notion light — its
+   fields use the global light input styling, so it is deliberately NOT listed here.) */
 body[data-page="register"] input {
   background: rgba(255, 255, 255, 0.06) !important;
   border-color: rgba(255, 255, 255, 0.14) !important;
   color: #ffffff !important;
 }
-body[data-page="login"] input::placeholder,
 body[data-page="register"] input::placeholder { color: rgba(255, 255, 255, 0.5) !important; }
-body[data-page="login"] input:focus,
 body[data-page="register"] input:focus {
   background: rgba(255, 255, 255, 0.1) !important;
   border-color: rgba(99, 102, 241, 0.6) !important;
+}
+
+/* ── #1 — LOGIN (Notion light): paper canvas, white form card, single blue accent ── */
+.sesd-login {
+  min-height: 100vh;
+  display: flex;
+  background:
+    radial-gradient(680px 460px at 12% 22%, rgba(0,117,222,0.06), transparent 60%),
+    radial-gradient(620px 520px at 88% 80%, rgba(98,174,240,0.07), transparent 60%),
+    var(--bg);
+  position: relative;
+  overflow: hidden;
+}
+.sesd-login__brandpane {
+  flex: 1 1 0%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 4rem;
+  min-width: 0;
+}
+.sesd-login__logo {
+  width: 100%;
+  max-width: 320px;
+  height: auto;
+  aspect-ratio: 24 / 7;
+  object-fit: cover;
+  border-radius: 14px;
+  box-shadow: var(--card-shadow);
+  margin-bottom: 2rem;
+}
+.sesd-login__title {
+  color: var(--text);
+  font-size: 2.6rem;
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  margin-bottom: 1rem;
+}
+.sesd-login__title span { color: var(--primary); }
+.sesd-login__lead { color: var(--text-muted); font-size: 1rem; line-height: 1.65; max-width: 460px; }
+.sesd-login__trust { display: flex; gap: 0.6rem; margin-top: 2rem; flex-wrap: wrap; }
+.sesd-login__chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--bg-card); border: 1px solid var(--border);
+  color: var(--text-muted); font-size: 0.8rem; font-weight: 600;
+  padding: 0.4rem 0.75rem; border-radius: var(--radius-pill);
+  box-shadow: var(--card-shadow);
+}
+.sesd-login__chip .ic svg { width: 0.95rem; height: 0.95rem; color: var(--primary); }
+.sesd-login__formpane {
+  width: 480px; max-width: 100%;
+  display: flex; align-items: center; justify-content: center;
+  padding: 2rem;
+}
+.sesd-login__card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 2.5rem;
+  width: 100%;
+  box-shadow: var(--card-hover-shadow);
+}
+.sesd-login__card h2 { color: var(--text); font-weight: 800; font-size: 1.6rem; letter-spacing: -0.02em; margin-bottom: 0.4rem; }
+.sesd-login__card .sub { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.75rem; }
+.sesd-login__label {
+  font-size: 0.7rem; font-weight: 800; color: var(--text-muted);
+  display: block; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.6px;
+}
+.sesd-login__input {
+  display: block; width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-input) !important;
+  border: 1px solid var(--border) !important;
+  background: var(--bg-card) !important;
+  color: var(--text) !important;
+  font-size: 0.92rem; outline: none; box-sizing: border-box;
+  font-family: inherit;
+}
+.sesd-login__input:focus {
+  border-color: rgba(0,117,222,0.55) !important;
+  box-shadow: 0 0 0 3px var(--primary-glow) !important;
+  background: var(--bg-surface) !important;
+}
+.sesd-login__submit {
+  width: 100%; padding: 0.85rem;
+  background: var(--primary); color: #fff;
+  border: none; border-radius: var(--radius-pill);
+  cursor: pointer; font-weight: 700; font-size: 0.95rem;
+  box-shadow: 0 2px 10px var(--primary-glow);
+  transition: background var(--dur-fast) var(--ease-smooth), transform var(--dur-fast) var(--ease-smooth);
+}
+.sesd-login__submit:hover { background: var(--primary-dark); }
+.sesd-login__submit:active { transform: scale(0.98); }
+.sesd-login__eye {
+  position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+  background: none; border: none; color: var(--text-muted); cursor: pointer;
+  display: flex; padding: 4px;
+}
+.sesd-login__foot { text-align: center; margin-top: 1.25rem; font-size: 0.85rem; color: var(--text-muted); }
+@media (max-width: 860px) {
+  .sesd-login { flex-direction: column; }
+  .sesd-login__brandpane { padding: 2.5rem 1.5rem 0.5rem; flex: 0 0 auto; align-items: flex-start; }
+  .sesd-login__logo { max-width: 220px; margin-bottom: 1.25rem; }
+  .sesd-login__title { font-size: 1.9rem; }
+  .sesd-login__lead { font-size: 0.9rem; }
+  .sesd-login__formpane { width: 100%; padding: 1.5rem; }
+  .sesd-login__card { padding: 1.75rem; }
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -1011,6 +1115,227 @@ body[data-page="register"] input:focus {
   .sesd-stat-grid { gap: 0.7rem !important; }
   .sesd-stat-card { padding: 0.85rem 0.95rem; }
   .sesd-stat-num { font-size: 1.35rem; }
+}
+
+/* ══════════════════════════════════════════════════════════
+   REDESIGN PASS (v14) — see docs/REDESIGN-GUIDE.md
+   ══════════════════════════════════════════════════════════ */
+
+/* ── #1 — Brand logo in the sidebar header (replaces the text wordmark) ── */
+.sesd-brand-logo {
+  display: block;
+  width: 100%;
+  max-width: 168px;
+  height: 40px;
+  object-fit: cover;          /* crop into the SESDiAN text strip, trims the grey margins */
+  object-position: center;
+  border-radius: 8px;
+  flex-shrink: 1;
+}
+.sesd-brand-wordmark { display: none !important; }
+
+/* ── #3 — Make <main> a real scrollport so the sticky topbar actually sticks.
+   The app shell already sets `overflow: auto` on <main>, which makes <main> the
+   sticky scroll-container — but without a fixed height it never scrolls (the window
+   does), so on long pages the header scrolled away. Giving <main> a viewport height
+   moves the scroll inside it; the topbar then pins reliably on every page. ── */
+main[style*="overflow: auto"] {
+  height: 100vh;
+  overflow-y: auto !important;
+}
+/* ── #3/#5 — Topbar: always pinned, subtle shadow once scrolled ── */
+.sesd-topbar, [data-topbar] {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 50 !important;
+}
+.sesd-topbar.sesd-scrolled, [data-topbar].sesd-scrolled {
+  box-shadow: 0 1px 0 var(--border), 0 8px 20px rgba(0,0,0,0.07) !important;
+}
+[data-theme="dark"] .sesd-topbar.sesd-scrolled,
+[data-theme="dark"] [data-topbar].sesd-scrolled {
+  box-shadow: 0 1px 0 var(--border), 0 10px 26px rgba(0,0,0,0.5) !important;
+}
+
+/* ── #4 — Laporan "Total Peminjaman" card: crisp white text in BOTH modes ── */
+.sesd-report-total,
+.sesd-report-total * { color: #fff !important; opacity: 1 !important; }
+.sesd-report-total .sesd-report-sub { color: rgba(255,255,255,0.82) !important; }
+
+/* ── #10 — Shared stat-card (moved out of dashboard.html so Data Aset reuses it) ── */
+.stat-card {
+  background: var(--glass-card);
+  width: 100%;
+  border-radius: var(--radius-lg);
+  padding: 0;
+  font-family: "Inter", "Arial", sans-serif;
+  color: var(--text);
+  display: flex;
+  overflow: hidden;
+  cursor: default;
+  position: relative;
+  transition: transform 0.35s var(--ease-spring), box-shadow 0.35s var(--ease-smooth), background 0.3s;
+  box-shadow: var(--card-shadow);
+  border: 1px solid var(--border);
+}
+.stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--card-hover-shadow);
+  background: var(--glass-hover);
+}
+.stat-icon-wrap {
+  width: 60px;
+  min-width: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+}
+.stat-icon-wrap svg {
+  width: 24px;
+  height: 24px;
+  transform: rotate(-12deg);
+  transition: transform 0.35s var(--ease-spring);
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.18));
+}
+.stat-card:hover .stat-icon-wrap svg { transform: rotate(0deg) scale(1.08); }
+.stat-info {
+  flex: 1;
+  min-width: 0;
+  padding: 1.05rem 1.2rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.stat-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin-bottom: 5px;
+}
+.stat-number {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1;
+  letter-spacing: -0.5px;
+  font-feature-settings: "tnum" 1;
+}
+.stat-subtitle { font-size: 0.7rem; color: var(--text-muted); margin-top: 5px; }
+
+/* ── #4/#6/#7/#8 — Data Aset card (rendered by renderAssetGrid), fully tokenised ── */
+.sesd-aset-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(248px, 1fr));
+  gap: 1rem;
+}
+.sesd-aset-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  cursor: pointer;
+  box-shadow: var(--card-shadow);
+  display: flex;
+  flex-direction: column;
+  transition: transform var(--dur-normal) var(--ease-spring),
+              box-shadow var(--dur-normal) var(--ease-smooth),
+              border-color var(--dur-fast) var(--ease-smooth);
+}
+.sesd-aset-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--card-hover-shadow);
+  border-color: rgba(0,117,222,0.28);
+}
+.sesd-aset-img { height: 128px; overflow: hidden; background: var(--bg-mid); }
+.sesd-aset-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.sesd-aset-body { padding: 0.85rem 1rem 1rem; display: flex; flex-direction: column; gap: 6px; }
+.sesd-aset-top { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+.sesd-aset-type {
+  font-size: 0.62rem; font-weight: 800; letter-spacing: 0.3px;
+  padding: 0.18rem 0.55rem; border-radius: var(--radius-pill); white-space: nowrap;
+}
+.sesd-aset-type.is-bmn { background: var(--primary-light); color: var(--primary); }
+.sesd-aset-type.is-non { background: rgba(97,93,89,0.12); color: var(--text-muted); }
+[data-theme="dark"] .sesd-aset-type.is-non { background: rgba(255,255,255,0.09); }
+.sesd-aset-avail {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 0.66rem; font-weight: 700; white-space: nowrap;
+  padding: 0.18rem 0.55rem; border-radius: var(--radius-pill);
+}
+.sesd-aset-avail .ic svg { width: 0.82rem; height: 0.82rem; }
+.sesd-aset-avail.is-ok  { background: rgba(26,174,57,0.13);  color: var(--success); }
+.sesd-aset-avail.is-out { background: rgba(224,62,62,0.12);  color: var(--danger); }
+[data-theme="dark"] .sesd-aset-avail.is-ok  { background: rgba(26,174,57,0.2); color: #6ee7a0; }
+[data-theme="dark"] .sesd-aset-avail.is-out { background: rgba(224,62,62,0.2); color: #f6a5a5; }
+.sesd-aset-code { font-family: "JetBrains Mono", monospace; font-size: 0.66rem; color: var(--text-muted); }
+.sesd-aset-name { font-weight: 700; font-size: 0.95rem; letter-spacing: -0.01em; line-height: 1.25; color: var(--text); }
+.sesd-aset-chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.sesd-aset-chip {
+  display: inline-flex; align-items: center; gap: 4px; max-width: 100%;
+  background: var(--bg-mid); color: var(--text-muted);
+  padding: 0.12rem 0.5rem; border-radius: 6px; font-size: 0.7rem;
+}
+.sesd-aset-chip > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sesd-aset-chip .ic svg { width: 0.78rem; height: 0.78rem; flex-shrink: 0; }
+.sesd-aset-stock { margin-top: 2px; }
+.sesd-aset-stock-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+.sesd-aset-stock-label { font-size: 0.65rem; font-weight: 800; letter-spacing: 0.6px; color: var(--text-muted); }
+.sesd-aset-stock-num { font-size: 0.82rem; font-weight: 800; font-feature-settings: "tnum" 1; }
+.sesd-aset-stock-num .is-avail { color: var(--success); }
+.sesd-aset-stock-num .is-sep   { color: var(--text-muted); margin: 0 2px; font-weight: 600; }
+.sesd-aset-stock-num .is-total { color: var(--text-muted); }
+.sesd-aset-bar { height: 6px; border-radius: 999px; background: var(--bg-mid); overflow: hidden; }
+.sesd-aset-bar-fill { height: 100%; border-radius: 999px; background: var(--success); transition: width 0.6s var(--ease-smooth); }
+.sesd-aset-borrowed { display: flex; align-items: center; gap: 4px; font-size: 0.68rem; font-weight: 600; color: var(--warning); margin-top: 4px; }
+.sesd-aset-borrowed .ic svg { width: 0.8rem; height: 0.8rem; }
+.sesd-aset-cond {
+  align-self: flex-start; margin-top: 2px;
+  background: rgba(26,174,57,0.13); color: var(--success);
+  padding: 0.15rem 0.55rem; border-radius: var(--radius-pill);
+  font-size: 0.68rem; font-weight: 700;
+}
+[data-theme="dark"] .sesd-aset-cond { background: rgba(26,174,57,0.2); color: #6ee7a0; }
+
+/* ── #9 — Kelola User role <select>: rounded + height-matched to the action button ── */
+.sesd-role-select {
+  appearance: none; -webkit-appearance: none; -moz-appearance: none;
+  padding: 0.34rem 1.7rem 0.34rem 0.75rem !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius-pill) !important;
+  background: var(--bg-card)
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23615d59' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")
+    no-repeat right 0.6rem center / 11px !important;
+  font-size: 0.78rem; font-weight: 600; font-family: inherit;
+  color: var(--text) !important; cursor: pointer; line-height: 1.45;
+}
+.sesd-role-select:hover { border-color: var(--primary) !important; }
+.sesd-role-select:focus {
+  border-color: rgba(0,117,222,0.55) !important;
+  box-shadow: 0 0 0 3px var(--primary-glow) !important;
+  outline: none !important;
+}
+
+/* ── #11 — Mobile hardening: never let cards/buttons spill past the viewport.
+   overflow-x is scoped to phones (and to main/#root, NOT html/body) so it never
+   turns the document into a scroll container that would break the sticky header. */
+@media (max-width: 900px) {
+  [style*="grid-template-columns: 220px 1fr"] { grid-template-columns: 1fr !important; }
+}
+@media (max-width: 768px) {
+  #root, main, .sesd-aset-grid { max-width: 100%; overflow-x: hidden; }
+  .sesd-aset-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)) !important; gap: 0.65rem !important; }
+  .stat-card .stat-number { font-size: 1.4rem; }
+  .stat-icon-wrap { width: 48px; min-width: 48px; }
+  .stat-info { padding: 0.8rem 0.9rem; }
+  /* keep flex action rows from pushing controls off-screen */
+  .sesd-admin-bar, .sesd-headbar { flex-wrap: wrap; }
+}
+@media (max-width: 480px) {
+  .sesd-aset-grid { grid-template-columns: 1fr !important; }
+  .sesd-brand-logo { max-width: 150px; height: 36px; }
 }
 
 /* Table container — subtle lift */

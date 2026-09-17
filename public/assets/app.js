@@ -277,12 +277,7 @@
       } else if (p === 'dataaset') {
         var assets = await DB.assets();
         var groups = groupAssets(assets);                        // collapse identical items into tidy cards
-        renderList('[data-template]', groups, function (n, g) {
-          n.setAttribute('data-type', (g.type || '').toLowerCase() === 'non-bmn' ? 'non-bmn' : 'bmn');
-          n.setAttribute('data-status', g.available > 0 ? 'available' : 'borrowed');
-          n.removeAttribute('data-open-detail');                 // detail is a dynamic modal, not a static page
-          n.addEventListener('click', function (ev) { if (ev.target.closest('.sesd-admin-actions')) return; openGroupDetail(g); });
-        });
+        renderAssetGrid(groups);                                 // clean Notion cards (#6 empty chips, #7 stock X/Y, #8 status badge)
         var sum = function (k) { return assets.reduce(function (t, a) { return t + (a[k] || 0); }, 0); };
         var aStats = { total_assets: assets.length, total_stock: sum('stock_total'), stock_available: sum('stock_available'), stock_borrowed: sum('stock_borrowed'), maintenance: 0 };
         Object.keys(aStats).forEach(function (k) { var e = $('[data-stat="' + k + '"]'); if (e) e.textContent = aStats[k]; });
@@ -772,7 +767,7 @@
       tr.appendChild(roleTd);
       var actTd = el('td', { style: td });
       var wrap = el('div', { style: 'display:flex;gap:6px;align-items:center;flex-wrap:wrap' });
-      var sel = el('select', { style: 'padding:0.35rem 0.5rem;border:1.5px solid var(--border);border-radius:8px;font-size:0.78rem;font-family:inherit;cursor:pointer' });
+      var sel = el('select', { class: 'sesd-role-select' });   // #9 — rounded, height-matched to the action button
       ['user', 'verifikator', 'admin'].forEach(function (r) { var o = el('option', { value: r }, ROLE_META[r][0]); if (u.role === r) o.selected = true; sel.appendChild(o); });
       sel.addEventListener('change', async function () { try { await DB.setUserRole(u.id, sel.value); toast('Role diperbarui', 'success'); renderUsers(); } catch (e) { toast((e && e.message) || 'Gagal', 'error'); renderUsers(); } });
       var del = el('button', { class: 'sesd-btn sesd-btn-sm sesd-btn-danger', html: ic('trash') });
@@ -847,6 +842,12 @@
      A page using <aside data-shell></aside> + a sticky <div data-topbar></div>
      gets the standard sidebar + topbar built here, so it needs no copied markup. */
   var PAGE_TITLES = { dashboard: 'Dashboard', dataaset: 'Data Aset', kategoriaset: 'Kategori Aset', ruangan: 'Ruangan', daftarpinjam: 'Daftar Pinjam', ajukanpinjam: 'Ajukan Pinjam', dipinjam: 'Sedang Dipinjam', users: 'Kelola User', verifikasi: 'Verifikasi', laporan: 'Laporan' };
+  // Per-page chrome icons (topbar breadcrumb). NAV_ICONS keys map a sidebar link's
+  // href → the same icon, so the menu and the header always agree (fixes the old
+  // hard-coded "home" icon that showed on every page — see REDESIGN-GUIDE #2/#5).
+  var PAGE_ICONS = { dashboard: 'zap', dataaset: 'package', kategoriaset: 'tag', ruangan: 'home', daftarpinjam: 'refresh', ajukanpinjam: 'clipboard', dipinjam: 'clock', users: 'users', verifikasi: 'check_circle', laporan: 'chart', katalog: 'search' };
+  var NAV_ICONS = { 'dashboard.html': 'zap', 'dataaset.html': 'package', 'kategoriaset.html': 'tag', 'ruangan.html': 'home', 'daftarpinjam.html': 'refresh', 'ajukanpinjam.html': 'clipboard', 'dipinjam.html': 'clock', 'users.html': 'users', 'verifikasi.html': 'check_circle', 'laporan.html': 'chart', 'katalog.html': 'search' };
+  function pageIcon(p) { return (window.SESDIAN_ICONS && window.SESDIAN_ICONS[PAGE_ICONS[p] || 'home']) || ''; }
   // "Sedang Dipinjam" link for everyone (added into the PEMINJAMAN section).
   function injectBorrowedNav() {
     if ($('aside a[href="dipinjam.html"]')) return;
@@ -867,9 +868,58 @@
     }
     var top = $('[data-topbar]');
     if (top && !top.children.length) {
-      top.appendChild(el('div', { style: 'display:flex;align-items:center;gap:10px', html: '<span class="ic" style="color:var(--text-muted)">' + ((window.SESDIAN_ICONS && window.SESDIAN_ICONS.home) || '') + '</span><span style="color:var(--text);font-weight:600">' + (PAGE_TITLES[page()] || '') + '</span>' }));
+      top.appendChild(el('div', { class: 'sesd-topbar-crumb', style: 'display:flex;align-items:center;gap:8px', html: '<span class="ic" style="color:var(--text-muted);display:inline-flex">' + pageIcon(page()) + '</span><span style="color:var(--text);font-weight:600;font-size:0.9rem;white-space:nowrap">' + (PAGE_TITLES[page()] || '') + '</span>' }));
       top.appendChild(el('div', { style: 'display:flex;align-items:center;gap:6px', html: '<div style="width:7px;height:7px;border-radius:50%;background:rgb(16,185,129);box-shadow:rgba(16,185,129,0.2) 0px 0px 0px 3px"></div><span style="font-size:0.75rem;color:rgb(100,116,139);font-weight:500">Online</span>' }));
     }
+  }
+
+  /* ---------------- chrome normalizer (REDESIGN-GUIDE #1/#2/#3/#5) ----------------
+     One source of truth that runs on every authed page — static-shell or
+     dynamic-shell alike — so the brand logo, sidebar icons and topbar breadcrumb
+     are identical everywhere instead of being hand-maintained across 7 HTML files. */
+  function installBrandLogo() {
+    var aside = $('aside'); if (!aside) return;
+    var head = aside.firstElementChild; if (!head || head.querySelector('.sesd-brand-logo')) return;
+    var img = el('img', { class: 'sesd-brand-logo', src: 'logosesdian.png', alt: 'SESDIAN' });
+    head.insertBefore(img, head.firstChild);
+    // Hide the now-redundant text wordmark (the logo already reads "SESDiAN").
+    var wm = head.querySelector('div'); if (wm) wm.classList.add('sesd-brand-wordmark');
+  }
+  function normalizeSidebarIcons() {
+    $$('aside a[href]').forEach(function (a) {
+      var href = (a.getAttribute('href') || '').split('/').pop();
+      var name = NAV_ICONS[href]; if (!name) return;
+      var icon = (window.SESDIAN_ICONS && window.SESDIAN_ICONS[name]) || '';
+      var slot = a.querySelector('.ic'); if (slot && icon) slot.innerHTML = icon;
+    });
+  }
+  function normalizeTopbar() {
+    var header = $('[data-topbar]') || ($('main') && $('main').firstElementChild);
+    if (!header) return;
+    header.classList.add('sesd-topbar');
+    var left = header.firstElementChild; if (!left) return;
+    left.className = 'sesd-topbar-crumb';
+    left.setAttribute('style', 'display:flex;align-items:center;gap:8px;min-width:0');
+    left.innerHTML = '<span class="ic" style="color:var(--text-muted);display:inline-flex;flex-shrink:0">' + pageIcon(page()) +
+      '</span><span style="color:var(--text);font-weight:600;font-size:0.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' +
+      (PAGE_TITLES[page()] || '') + '</span>';
+    // #3 — header stays pinned and casts a subtle shadow once the page scrolls.
+    if (!header._sesdScroll) {
+      header._sesdScroll = true;
+      var mainEl = $('main');
+      var onScroll = function () {
+        var y = Math.max(window.pageYOffset || 0, document.documentElement.scrollTop || 0, mainEl ? mainEl.scrollTop : 0);
+        header.classList.toggle('sesd-scrolled', y > 4);
+      };
+      window.addEventListener('scroll', onScroll, { passive: true });
+      if (mainEl) mainEl.addEventListener('scroll', onScroll, { passive: true });
+      onScroll();
+    }
+  }
+  function normalizeChrome() {
+    installBrandLogo();
+    normalizeSidebarIcons();
+    normalizeTopbar();
   }
 
   function injectAdminBars() {
@@ -1024,6 +1074,74 @@
   // Ajukan Pinjam page: grouped cards (like Data Aset). Click a card -> detail
   // modal where the exact unit(s) to borrow are picked. The old right-side
   // "Detail Peminjaman" panel is hidden since borrowing now happens in the modal.
+  /* ---- Data Aset grid: built fully in JS so we control empty chips (#6),
+          the X/Y stock format (#7) and a meaningful availability badge (#8).
+          Theme-aware via CSS classes (no hard-coded colours) — see #4. ---- */
+  function assetChip(iconName, text) {
+    if (text == null || String(text).trim() === '') return null;   // #6 — never render an empty chip
+    var chip = el('span', { class: 'sesd-aset-chip' });
+    chip.innerHTML = ic(iconName);
+    chip.appendChild(el('span', {}, String(text)));
+    return chip;
+  }
+  function renderAssetGrid(groups) {
+    var grid = $('[data-list="assets"]'); if (!grid) return;
+    grid.innerHTML = '';                                          // drops the hidden seed template too
+    if (!groups.length) { appendEmpty(grid, 'Belum ada aset.'); return; }
+    groups.forEach(function (g, index) {
+      var avail = g.available || 0, total = g.stock_total || 0, borrowed = g.stock_borrowed || 0;
+      var isNon = (g.type || '').toLowerCase() === 'non-bmn';
+      var card = el('div', {
+        'data-search-item': 'assets',
+        'data-type': isNon ? 'non-bmn' : 'bmn',
+        'data-status': avail > 0 ? 'available' : 'borrowed',
+        class: 'sesd-aset-card' + (index < 16 ? ' animate-fade-up' : ''),
+      });
+      card.addEventListener('click', function (ev) { if (ev.target.closest('.sesd-admin-actions')) return; openGroupDetail(g); });
+      if (g.image) {
+        var band = el('div', { class: 'sesd-aset-img' });
+        band.appendChild(el('img', { src: g.image, alt: '', loading: 'lazy', decoding: 'async' }));
+        card.appendChild(band);
+      }
+      var body = el('div', { class: 'sesd-aset-body' });
+      var top = el('div', { class: 'sesd-aset-top' });
+      top.appendChild(el('span', { class: 'sesd-aset-type ' + (isNon ? 'is-non' : 'is-bmn') }, isNon ? 'Non-BMN' : 'BMN'));
+      var availBadge = el('span', { class: 'sesd-aset-avail ' + (avail > 0 ? 'is-ok' : 'is-out') });
+      availBadge.innerHTML = ic(avail > 0 ? 'check_circle' : 'x');   // #8 — clear status, no stray "-"
+      availBadge.appendChild(el('span', {}, avail > 0 ? ('Tersedia ' + avail) : 'Habis'));
+      top.appendChild(availBadge);
+      body.appendChild(top);
+      if (g.code) body.appendChild(el('div', { class: 'sesd-aset-code' }, g.code));
+      body.appendChild(el('div', { class: 'sesd-aset-name' }, g.name || '-'));
+      var chips = el('div', { class: 'sesd-aset-chips' });
+      [['tag', g.category], ['factory', g.brand], ['pin', g.room]].forEach(function (c) {
+        var ch = assetChip(c[0], c[1]); if (ch) chips.appendChild(ch);
+      });
+      if (chips.children.length) body.appendChild(chips);
+      var stock = el('div', { class: 'sesd-aset-stock' });
+      var sr = el('div', { class: 'sesd-aset-stock-row' });
+      sr.appendChild(el('span', { class: 'sesd-aset-stock-label' }, 'STOK'));
+      var num = el('span', { class: 'sesd-aset-stock-num' });       // #7 — "16/16" with a slash
+      num.appendChild(el('span', { class: 'is-avail' }, String(avail)));
+      num.appendChild(el('span', { class: 'is-sep' }, '/'));
+      num.appendChild(el('span', { class: 'is-total' }, String(total)));
+      sr.appendChild(num); stock.appendChild(sr);
+      var bar = el('div', { class: 'sesd-aset-bar' });
+      bar.appendChild(el('div', { class: 'sesd-aset-bar-fill', style: 'width:' + (total ? Math.round((avail / total) * 100) : 0) + '%' }));
+      stock.appendChild(bar);
+      if (borrowed > 0) {
+        var bnote = el('div', { class: 'sesd-aset-borrowed' });
+        bnote.innerHTML = ic('refresh');
+        bnote.appendChild(el('span', {}, borrowed + ' dipinjam'));
+        stock.appendChild(bnote);
+      }
+      body.appendChild(stock);
+      if (g.condition) body.appendChild(el('span', { class: 'sesd-aset-cond' }, g.condition));
+      card.appendChild(body);
+      grid.appendChild(card);
+    });
+  }
+
   function buildAjukanList(groups) {
     var container = $('[data-list="assets"]'); if (!container) return;
     var leftCol = container.parentNode, grid = leftCol && leftCol.parentNode;
@@ -1166,6 +1284,7 @@
     fillIdentity(USER);
     injectBorrowedNav();          // "Sedang Dipinjam" link for all authed users
     if (IS_STAFF) injectRoleNav();
+    normalizeChrome();            // brand logo + per-page sidebar/topbar icons (#1/#2/#5)
     if (IS_ADMIN) injectAdminBars();
     await loadAndRender(page());
     if (page() !== 'laporan') hidePageLoader();
