@@ -591,6 +591,9 @@ header[style*="background: rgb(11, 17, 32)"] {
 [style*="color:rgb(99,102,241)"],
 [style*="color: rgb(139, 92, 246)"],
 [style*="color:rgb(139,92,246)"] { color: var(--primary) !important; }
+/* Account-card + sidebar avatars: single blue accent (catches the multi-line
+   inline gradient the substring rules above can't match). */
+aside [data-user-initials] { background: var(--primary) !important; }
 
 /* ══════════════════════════════════════════════════════════
    TABLES
