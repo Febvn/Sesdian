@@ -16,10 +16,10 @@
     return e;
   }
   var STATUS = {
-    pending: ['Pending', '#f59e0b'], approved: ['Disetujui Admin', '#3b82f6'],
-    verified: ['Terverifikasi', '#06b6d4'], borrowed: ['Dipinjam', '#8b5cf6'],
-    return_pending: ['Menunggu Verifikasi Kembali', '#f97316'],
-    returned: ['Kembali', '#10b981'], rejected: ['Ditolak', '#ef4444'],
+    pending: ['Pending', '#dd5b00'], approved: ['Disetujui Admin', '#0075de'],
+    verified: ['Terverifikasi', '#2a9d99'], borrowed: ['Dipinjam', '#7b54c0'],
+    return_pending: ['Menunggu Verifikasi Kembali', '#c44a8a'],
+    returned: ['Kembali', '#1aae39'], rejected: ['Ditolak', '#e03e3e'],
   };
   function toast(msg, type) {
     var wrap = $('.sesd-toast-wrap'); if (!wrap) { wrap = el('div', { class: 'sesd-toast-wrap' }); document.body.appendChild(wrap); }

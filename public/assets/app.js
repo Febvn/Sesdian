@@ -38,13 +38,13 @@
   var PLACEHOLDER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='130'%3E%3Crect width='200' height='130' fill='%23e0e7ff'/%3E%3Cg fill='none' stroke='%236366f1' stroke-width='4'%3E%3Cpath d='M100 42 72 56v34l28 14 28-14V56z'/%3E%3Cpath d='M72 56l28 14 28-14M100 70v34'/%3E%3C/g%3E%3C/svg%3E";
 
   var STATUS = {
-    pending: { label: 'Pending', bg: '#fef3c7', fg: '#92400e' },
-    approved: { label: 'Disetujui Admin', bg: '#dbeafe', fg: '#1e40af' },
-    verified: { label: 'Terverifikasi', bg: '#cffafe', fg: '#155e75' },
-    borrowed: { label: 'Dipinjam', bg: '#ede9fe', fg: '#5b21b6' },
-    return_pending: { label: 'Menunggu Verifikasi Kembali', bg: '#ffedd5', fg: '#9a3412' },
-    returned: { label: 'Kembali', bg: '#dcfce7', fg: '#166534' },
-    rejected: { label: 'Ditolak', bg: '#fee2e2', fg: '#991b1b' },
+    pending: { label: 'Pending', bg: '#fdecd9', fg: '#7a3d00' },
+    approved: { label: 'Disetujui Admin', bg: '#e3f0fb', fg: '#005bab' },
+    verified: { label: 'Terverifikasi', bg: '#daf0ef', fg: '#1c6e6a' },
+    borrowed: { label: 'Dipinjam', bg: '#efe5fb', fg: '#3a1d58' },
+    return_pending: { label: 'Menunggu Verifikasi Kembali', bg: '#fce4ef', fg: '#8e2f63' },
+    returned: { label: 'Kembali', bg: '#e2f6e7', fg: '#127a2b' },
+    rejected: { label: 'Ditolak', bg: '#fbe4e4', fg: '#a02020' },
   };
 
   /* ---------------- toast ---------------- */
@@ -436,7 +436,7 @@
   function openAssetDetail(r) {
     if (modalOpen()) return;
     var ov = overlay(), m = el('div', { class: 'sesd-modal', style: 'width:520px' });
-    m.appendChild(el('img', { src: r.image || PLACEHOLDER, style: 'width:100%;height:180px;object-fit:cover;border-radius:12px;background:linear-gradient(135deg,#eef2ff,#e0e7ff)' }));
+    m.appendChild(el('img', { src: r.image || PLACEHOLDER, style: 'width:100%;height:180px;object-fit:cover;border-radius:12px;background:linear-gradient(135deg,#eef4fb,#e3f0fb)' }));
     m.appendChild(el('div', { style: 'font-family:"JetBrains Mono",monospace;font-size:.72rem;color:var(--text-muted);margin-top:.75rem' }, r.code || ''));
     m.appendChild(el('h3', { style: 'font-size:1.3rem;font-weight:800;margin:2px 0' }, r.name || ''));
     m.appendChild(el('p', { style: 'color:var(--text-muted);font-size:.85rem;margin-bottom:1rem' }, r.brand || ''));
@@ -747,9 +747,9 @@
   }
 
   var ROLE_META = {
-    admin: ['Admin', 'shield', '#ede9fe', '#5b21b6'],
-    verifikator: ['Verifikator', 'check_circle', '#cffafe', '#155e75'],
-    user: ['User', 'user', '#e2e8f0', '#475569'],
+    admin: ['Admin', 'shield', '#e3f0fb', '#005bab'],
+    verifikator: ['Verifikator', 'check_circle', '#daf0ef', '#1c6e6a'],
+    user: ['User', 'user', '#eceae7', '#615d59'],
   };
   function roleBadge(role) {
     var m = ROLE_META[role] || ROLE_META.user;

@@ -596,6 +596,54 @@ header[style*="background: rgb(11, 17, 32)"] {
 aside [data-user-initials] { background: var(--primary) !important; }
 
 /* ══════════════════════════════════════════════════════════
+   NOTION COLOUR NORMALIZATION (content area)
+   Remaps every legacy Tailwind/indigo inline colour inside <main> to the
+   Notion palette so badges, status pills, filter cards, stat numbers, dots
+   and inline buttons all speak one blue + a tight semantic set. Scoped to
+   <main> so the sidebar keeps its own (already-themed) overrides.
+   ══════════════════════════════════════════════════════════ */
+/* indigo / violet / blue accents → Notion blue (text) */
+main [style*="color: rgb(99, 102, 241)"], main [style*="color: rgb(139, 92, 246)"],
+main [style*="color: rgb(129, 140, 248)"], main [style*="color: rgb(49, 46, 129)"],
+main [style*="color: rgb(79, 70, 229)"],  main [style*="color: rgb(67, 56, 202)"],
+main [style*="color: rgb(59, 130, 246)"], main [style*="color: rgb(37, 99, 235)"],
+main [style*="color: rgb(30, 64, 175)"],  main [style*="color: rgb(30, 58, 138)"] { color: var(--primary) !important; }
+/* …and as solid backgrounds → Notion blue */
+main [style*="background: rgb(99, 102, 241)"], main [style*="background: rgb(139, 92, 246)"],
+main [style*="background: rgb(129, 140, 248)"],main [style*="background: rgb(59, 130, 246)"],
+main [style*="background: rgb(37, 99, 235)"],  main [style*="background: rgb(30, 64, 175)"] { background: var(--primary) !important; }
+/* light blue chips → blue tint */
+main [style*="background: rgb(219, 234, 254)"], main [style*="background: rgb(239, 246, 255)"],
+main [style*="background: rgb(224, 231, 255)"], main [style*="background: rgb(238, 242, 255)"] { background: rgba(0,117,222,0.10) !important; }
+
+/* emerald / green → Notion green */
+main [style*="color: rgb(16, 185, 129)"], main [style*="color: rgb(5, 150, 105)"],
+main [style*="color: rgb(22, 101, 52)"],  main [style*="color: rgb(6, 95, 70)"],
+main [style*="color: rgb(4, 120, 87)"] { color: var(--success) !important; }
+main [style*="background: rgb(16, 185, 129)"], main [style*="background: rgb(5, 150, 105)"] { background: var(--success) !important; }
+main [style*="background: rgb(220, 252, 231)"], main [style*="background: rgb(209, 250, 229)"],
+main [style*="background: rgb(236, 253, 245)"] { background: rgba(26,174,57,0.12) !important; }
+
+/* amber → Notion orange */
+main [style*="color: rgb(245, 158, 11)"], main [style*="color: rgb(217, 119, 6)"],
+main [style*="color: rgb(180, 83, 9)"],  main [style*="color: rgb(146, 64, 14)"],
+main [style*="color: rgb(120, 53, 15)"] { color: var(--warning) !important; }
+main [style*="background: rgb(245, 158, 11)"], main [style*="background: rgb(217, 119, 6)"] { background: var(--warning) !important; }
+main [style*="background: rgb(254, 243, 199)"], main [style*="background: rgb(254, 249, 195)"],
+main [style*="background: rgb(255, 251, 235)"], main [style*="background: rgb(255, 247, 237)"] { background: rgba(221,91,0,0.12) !important; }
+
+/* red → Notion red */
+main [style*="color: rgb(239, 68, 68)"],  main [style*="color: rgb(220, 38, 38)"],
+main [style*="color: rgb(185, 28, 28)"],  main [style*="color: rgb(153, 27, 27)"] { color: var(--danger) !important; }
+main [style*="background: rgb(239, 68, 68)"], main [style*="background: rgb(220, 38, 38)"] { background: var(--danger) !important; }
+main [style*="background: rgb(254, 226, 226)"], main [style*="background: rgb(254, 242, 242)"] { background: rgba(224,62,62,0.12) !important; }
+
+/* slate borders / neutral chips → hairline + neutral surface */
+main [style*="border: 1px solid rgb(226, 232, 240)"], main [style*="border: 1.5px solid rgb(226, 232, 240)"],
+main [style*="border: 1px solid rgb(203, 213, 225)"], main [style*="border-color: rgb(226, 232, 240)"] { border-color: var(--border) !important; }
+main [style*="background: rgb(248, 250, 252)"], main [style*="background: rgb(241, 245, 249)"] { background: var(--bg-mid) !important; }
+
+/* ══════════════════════════════════════════════════════════
    TABLES
    ══════════════════════════════════════════════════════════ */
 table {
