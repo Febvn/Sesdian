@@ -12,7 +12,7 @@
       rel="stylesheet"
     />
     <script>(function(){try{var d=document.documentElement;if(localStorage.getItem('sesdian_theme')==='dark')d.setAttribute('data-theme','dark');var ts=localStorage.getItem('sesdian_textsize');if(ts==='small'||ts==='large')d.setAttribute('data-textsize',ts);if(localStorage.getItem('sesdian_rail')==='1')d.classList.add('sesd-rail-pref');}catch(e){}})();</script>
-    <link rel="stylesheet" href="assets/app.css?v=17" />
+    <link rel="stylesheet" href="assets/app.css?v=18" />
     <link rel="stylesheet" href="assets/preloader.css?v=17" />
   </head>
   <body data-page="daftarpinjam" data-auth="required">
@@ -1086,6 +1086,10 @@
                           padding: 0.875rem 1rem;
                           font-weight: 600;
                           font-size: 0.875rem;
+                          max-width: 100px;
+                          overflow: hidden;
+                          text-overflow: ellipsis;
+                          white-space: nowrap;
                         "
                       >
                         -
@@ -1106,6 +1110,10 @@
                           padding: 0.875rem 1rem;
                           font-size: 0.875rem;
                           color: var(--text-muted);
+                          max-width: 80px;
+                          overflow: hidden;
+                          text-overflow: ellipsis;
+                          white-space: nowrap;
                         "
                       >
                         -

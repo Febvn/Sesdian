@@ -1448,28 +1448,181 @@ main[style*="overflow: auto"] {
   /* Modal */
   .sesd-modal { padding: 1.5rem; border-radius: var(--radius-lg); width: calc(100vw - 1.5rem) !important; }
 
-  /* TABLE — wrap in scrollable container */
+/* ══════════════════════════════════════════════════════════
+   RESPONSIVE TABLES - Mobile-first, no horizontal scroll
+   ══════════════════════════════════════════════════════════ */
+
+/* Dashboard & page tables - fit to viewport on mobile */
+.sesd-responsive-table {
+  width: 100%;
+  font-size: 0.75rem;
+}
+.sesd-responsive-table th,
+.sesd-responsive-table td {
+  padding: 0.5rem 0.4rem !important;
+  font-size: 0.7rem !important;
+  line-height: 1.3;
+  vertical-align: middle;
+}
+.sesd-responsive-table th {
+  font-size: 0.6rem !important;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+.sesd-responsive-table td {
+  max-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* Allow wrapping for certain columns */
+.sesd-responsive-table .col-status {
+  white-space: nowrap;
+}
+.sesd-responsive-table .col-qty {
+  text-align: center;
+  width: 40px;
+  max-width: 40px;
+}
+
+/* Truncate long names like "Adi Septriansyah" → "Adi..." */
+[data-bind="borrower"],
+.sesd-truncate {
+  max-width: 80px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: inline-block;
+}
+
+/* Status badge compact on mobile */
+.sesd-responsive-table .sesd-status-badge {
+  font-size: 0.6rem !important;
+  padding: 0.15rem 0.4rem !important;
+}
+
+/* Date cells */
+.sesd-responsive-table .col-date {
+  font-family: "JetBrains Mono", monospace !important;
+  font-size: 0.65rem !important;
+}
+
+/* ══════════════════════════════════════════════════════════
+   MOBILE RESPONSIVENESS - Enhanced table handling
+   ══════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  /* TABLE — fit to screen, no horizontal scroll */
   table {
-    min-width: 520px !important;
-    font-size: 0.78rem !important;
+    min-width: unset !important;
+    font-size: 0.72rem !important;
+    table-layout: fixed;
   }
-  /* Make every table container scrollable */
+
+  /* Remove overflow-x auto that forces scrolling */
   [style*="border-collapse"],
   [style*="box-shadow: var(--shadow)"] > table,
   [style*="border-radius: 16px"] > table {
-    display: block;
-    overflow-x: auto !important;
-    -webkit-overflow-scrolling: touch;
+    display: table !important;
+    overflow-x: visible !important;
+    width: 100% !important;
   }
-  /* force table parent to be scrollable if it contains a table */
-  *:has(> table) {
-    overflow-x: auto !important;
-    -webkit-overflow-scrolling: touch;
-  }
+
   th, td {
-    padding: 0.5rem 0.6rem !important;
-    white-space: nowrap !important;
+    padding: 0.45rem 0.35rem !important;
+    font-size: 0.7rem !important;
+    line-height: 1.3;
   }
+
+  /* Dashboard recent borrowings table */
+  [data-recent-list] table,
+  [data-list="borrowings"] table {
+    table-layout: fixed;
+    width: 100% !important;
+  }
+
+  /* Header row compact */
+  [data-recent-list] th,
+  [data-list="borrowings"] th {
+    font-size: 0.6rem !important;
+    padding: 0.4rem 0.3rem !important;
+    letter-spacing: 0.2px;
+  }
+
+  /* All data cells - truncate long text */
+  [data-recent-list] td,
+  [data-list="borrowings"] td {
+    max-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding: 0.5rem 0.35rem !important;
+    font-size: 0.72rem !important;
+  }
+
+  /* Asset name column - more space */
+  [data-recent-list] td:first-child,
+  [data-list="borrowings"] td:first-child {
+    max-width: 100px;
+  }
+
+  /* Borrower name - truncate */
+  [data-bind="borrower"] {
+    max-width: 70px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: block;
+  }
+
+  /* Status badge compact */
+  [data-recent-list] span[data-bind="status_badge"],
+  [data-list="borrowings"] span[data-bind="status_badge"] {
+    font-size: 0.6rem !important;
+    padding: 0.12rem 0.35rem !important;
+    white-space: nowrap;
+  }
+
+  /* Due date compact */
+  [data-bind="due_date"] {
+    font-size: 0.65rem !important;
+    font-family: "JetBrains Mono", monospace;
+  }
+
+  /* Qty column - fixed narrow */
+  [data-bind="qty"] {
+    width: 30px;
+    max-width: 30px;
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Even more compact for small phones */
+  table {
+    font-size: 0.68rem !important;
+  }
+
+  th, td {
+    padding: 0.35rem 0.25rem !important;
+    font-size: 0.65rem !important;
+  }
+
+  /* Dashboard recent table */
+  [data-recent-list] td,
+  [data-list="borrowings"] td {
+    font-size: 0.68rem !important;
+    padding: 0.4rem 0.25rem !important;
+  }
+
+  [data-bind="borrower"] {
+    max-width: 55px;
+  }
+
+  [data-recent-list] th,
+  [data-list="borrowings"] th {
+    font-size: 0.55rem !important;
+  }
+}
 
   /* Header padding */
   header > div[style],
