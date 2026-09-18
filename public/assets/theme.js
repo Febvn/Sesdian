@@ -136,6 +136,8 @@
     var sb = document.querySelector('aside [data-user-initials]');
     if (sb && av) sb.innerHTML = '<img alt="" src="' + av + '">';
   }
+  // let other scripts (the profile page) refresh the avatar after a photo change
+  window.SESDIAN_APPLY_AVATAR = function () { applyAvatarEverywhere(currentUserLS()); };
   function centerCropSquare(file, cb) {
     var fr = new FileReader();
     fr.onload = function () {
@@ -161,25 +163,13 @@
         '<div class="sesd-profile-av" data-pf-av>' + (av ? '<img alt="Foto profil" src="' + av + '">' : initialsOf(u && u.name)) + '</div>' +
         '<div style="min-width:0">' +
           '<div class="sesd-profile-name">' + ((u && u.name) || 'Pengguna') + '</div>' +
-          '<div class="sesd-profile-nip">' + ((u && u.nip) || '-') + '</div>' +
+          '<div class="sesd-profile-nip">NIP ' + ((u && u.nip) || '-') + '</div>' +
           '<span class="sesd-profile-role">' + ((u && u.role) || 'user') + '</span>' +
         '</div>' +
       '</div>' +
-      '<input type="file" accept="image/*" data-pf-file hidden>' +
-      '<button type="button" class="sesd-btn sesd-btn-ghost" data-pf-change>Ganti Foto Profil (1:1)</button>' +
+      '<a href="profil.html" class="sesd-btn sesd-btn-primary" data-pf-detail>Detail Profil</a>' +
       '<div class="sesd-profile-divider"></div>' +
       '<button type="button" class="sesd-btn sesd-btn-danger" data-pf-logout>Keluar</button>';
-    var file = menu.querySelector('[data-pf-file]');
-    menu.querySelector('[data-pf-change]').addEventListener('click', function () { file.click(); });
-    file.addEventListener('change', function () {
-      if (!file.files || !file.files[0]) return;
-      centerCropSquare(file.files[0], function (d) {
-        if (!d) return;
-        setAvatar(u, d);
-        var avEl = menu.querySelector('[data-pf-av]'); if (avEl) avEl.innerHTML = '<img alt="Foto profil" src="' + d + '">';
-        applyAvatarEverywhere(u);
-      });
-    });
     menu.querySelector('[data-pf-logout]').addEventListener('click', function () {
       var lo = document.querySelector('[data-action="logout"]');
       if (!lo) {
@@ -273,6 +263,7 @@
     // The dynamic shell pages build their topbar asynchronously; wait for it.
     if (header && !header.children.length && tries < 20) { tries++; return setTimeout(inject, 60); }
 
+    var controls = document.querySelector('[data-guest-controls]');
     if (header && !document.getElementById('sesd-theme-toggle')) {
       var cluster = buildHeaderCluster();
       if (header.children.length >= 2) {
@@ -281,6 +272,11 @@
         header.appendChild(cluster);
       }
       wireProfile();      // #4 — make the profile button open the per-user menu
+    } else if (controls && !document.getElementById('sesd-theme-toggle')) {
+      // #8 — guest pages (katalog): theme + text-size live in the page header,
+      // mirroring the dashboard chrome, instead of a floating toggle.
+      controls.insertBefore(buildTextSize(), controls.firstChild);
+      controls.insertBefore(buildSwitch(), controls.firstChild);
     } else if (!header && !document.getElementById('sesd-theme-toggle')) {
       // No header at all: keep the toggle reachable as a floating control.
       var fallback = buildSwitch();

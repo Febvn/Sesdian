@@ -11,8 +11,8 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap"
       rel="stylesheet"
     />
-    <script>(function(){try{if(localStorage.getItem('sesdian_theme')==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(e){}})();</script>
-    <link rel="stylesheet" href="assets/app.css?v=16" />
+    <script>(function(){try{var d=document.documentElement;if(localStorage.getItem('sesdian_theme')==='dark')d.setAttribute('data-theme','dark');var ts=localStorage.getItem('sesdian_textsize');if(ts==='small'||ts==='large')d.setAttribute('data-textsize',ts);if(localStorage.getItem('sesdian_rail')==='1')d.classList.add('sesd-rail-pref');}catch(e){}})();</script>
+    <link rel="stylesheet" href="assets/app.css?v=17" />
     <style>
       /* Catalog (guest) — Notion language, scoped to this page.
          Cards reuse the shared .sesd-aset-* primitives from app.css. */
@@ -27,9 +27,9 @@
         display: flex; align-items: center; gap: 14px;
       }
       .sesd-cat-nav__logo {
-        height: 42px; width: 150px; max-width: 150px;
-        object-fit: cover; background: #0b1120;
-        border-radius: 8px; display: block;
+        height: 34px; width: 158px; max-width: 158px;
+        object-fit: cover; object-position: center;
+        background: transparent; display: block;
       }
       .sesd-cat-main { max-width: 1180px; margin: 0 auto; padding: 1.75rem 1.25rem; }
 
@@ -136,6 +136,7 @@
           <img class="sesd-cat-nav__logo" src="assets/logosesdian.png" alt="SESDIAN" />
         </a>
         <div style="flex: 1"></div>
+        <div data-guest-controls></div>
         <div data-guest-auth></div>
       </div>
     </header>
@@ -169,10 +170,10 @@
       <a href="login.html">masuk</a> terlebih dahulu.
     </footer>
 
-    <script defer src="assets/config.js?v=16"></script>
-    <script defer src="assets/db.js?v=16"></script>
-    <script defer src="assets/icons.js?v=16"></script>
-    <script defer src="assets/guest.js?v=16"></script>
-    <script defer src="assets/theme.js?v=16"></script>
+    <script defer src="assets/config.js?v=17"></script>
+    <script defer src="assets/db.js?v=17"></script>
+    <script defer src="assets/icons.js?v=17"></script>
+    <script defer src="assets/guest.js?v=17"></script>
+    <script defer src="assets/theme.js?v=17"></script>
   </body>
 </html>

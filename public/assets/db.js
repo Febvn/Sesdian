@@ -183,6 +183,19 @@
     if (demo) { DEMO.users = DEMO.users.filter(function (x) { return x.id != id; }); return P({ ok: true }); }
     return req('users', { method: 'DELETE', body: { id: id } });
   }
+  /* ====================== self-service profile ====================== */
+  async function profile() {
+    if (demo) { var p = currentUserRaw() || {}; return P({ nip: p.nip || '123456789012345678', name: p.name || 'Pengguna Demo', phone: '', role: p.role || 'admin' }); }
+    return (await req('profile')).user;
+  }
+  async function updateProfile(d) {
+    if (demo) return P(Object.assign({}, currentUserRaw(), d));
+    return (await req('profile', { method: 'PATCH', body: { name: d.name, phone: d.phone } })).user;
+  }
+  async function changePassword(currentPassword, newPassword) {
+    if (demo) { if (!newPassword || newPassword.length < 8) return Promise.reject(new Error('Password baru minimal 8 karakter')); return P({ ok: true }); }
+    return req('profile', { method: 'PATCH', body: { currentPassword: currentPassword, newPassword: newPassword } });
+  }
 
   /* ====================== admin: assets ====================== */
   async function createAsset(d) {
@@ -243,6 +256,7 @@
     categories: categories, rooms: rooms, assets: assets, borrowings: borrowings, dashboard: dashboard, requestBorrowing: requestBorrowing,
     catalog: catalog, assetDetail: assetDetail, reports: reports, importAssets: importAssets,
     users: users, usersFresh: usersFresh, setUserRole: setUserRole, createUser: createUser, deleteUser: deleteUser,
+    profile: profile, updateProfile: updateProfile, changePassword: changePassword,
     createAsset: createAsset, updateAsset: updateAsset, deleteAsset: deleteAsset,
     createCategory: createCategory, updateCategory: updateCategory, deleteCategory: deleteCategory,
     createRoom: createRoom, updateRoom: updateRoom, deleteRoom: deleteRoom,

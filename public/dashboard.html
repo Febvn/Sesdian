@@ -11,9 +11,9 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap"
       rel="stylesheet"
     />
-    <script>(function(){try{if(localStorage.getItem('sesdian_theme')==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(e){}})();</script>
-    <link rel="stylesheet" href="assets/app.css?v=16" />
-    <link rel="stylesheet" href="assets/preloader.css?v=16" />
+    <script>(function(){try{var d=document.documentElement;if(localStorage.getItem('sesdian_theme')==='dark')d.setAttribute('data-theme','dark');var ts=localStorage.getItem('sesdian_textsize');if(ts==='small'||ts==='large')d.setAttribute('data-textsize',ts);if(localStorage.getItem('sesdian_rail')==='1')d.classList.add('sesd-rail-pref');}catch(e){}})();</script>
+    <link rel="stylesheet" href="assets/app.css?v=17" />
+    <link rel="stylesheet" href="assets/preloader.css?v=17" />
     <style>
       /* Dashboard specific styles - cards hidden initially for loading animation */
       .dashboard-stat-card {
@@ -828,86 +828,19 @@
           </div>
           <div style="padding: 1.75rem">
             <div>
-              <div
-                class="animate-fade-up"
-                style="
-                  background: linear-gradient(
-                    135deg,
-                    rgb(15, 23, 42) 0%,
-                    rgb(30, 41, 59) 50%,
-                    rgb(49, 46, 129) 100%
-                  );
-                  border-radius: 20px;
-                  padding: 2rem 2.5rem;
-                  margin-bottom: 1.5rem;
-                  position: relative;
-                  overflow: hidden;
-                "
-              >
-                <div
-                  style="
-                    position: absolute;
-                    top: -40px;
-                    right: -40px;
-                    width: 200px;
-                    height: 200px;
-                    border-radius: 50%;
-                    background: rgba(0, 117, 222, 0.12);
-                  "
-                ></div>
-                <div
-                  style="
-                    position: absolute;
-                    bottom: -60px;
-                    right: 80px;
-                    width: 150px;
-                    height: 150px;
-                    border-radius: 50%;
-                    background: rgba(42, 157, 153, 0.1);
-                  "
-                ></div>
-                <div style="position: relative">
-                  <div
-                    style="
-                      font-size: 0.72rem;
-                      color: rgb(99, 102, 241);
-                      font-weight: 700;
-                      letter-spacing: 2px;
-                      margin-bottom: 8px;
-                      font-family: &quot;JetBrains Mono&quot;;
-                    "
-                  >
-                    KAMIS, 18 JUNI 2026
-                  </div>
-                  <h1
-                    style="
-                      color: rgb(255, 255, 255);
-                      font-size: 1.75rem;
-                      font-weight: 800;
-                      margin-bottom: 6px;
-                    "
-                  >
-                    Selamat datang, <span data-user-firstname>Adi</span>
-                    <span class="ic"
-                      ><svg
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        width="1em"
-                        height="1em"
-                        aria-hidden="true"
-                      >
-                        <circle cx="12" cy="12" r="9" />
-                        <path d="M8 14.5s1.5 2 4 2 4-2 4-2" />
-                        <path d="M9 9h.01M15 9h.01" /></svg
-                    ></span>
+              <div class="sesd-greet animate-fade-up">
+                <div class="sesd-greet-inner">
+                  <div class="sesd-greet-eyebrow" data-greet-date>—</div>
+                  <h1 class="sesd-greet-title">
+                    <span data-greet-hi>Selamat datang</span>,
+                    <span data-user-firstname>Pengguna</span>
                   </h1>
-                  <p style="color: rgb(148, 163, 184); font-size: 0.9rem">
+                  <p class="sesd-greet-sub" data-greet-sub>
                     Pantau dan ajukan peminjaman aset dengan mudah.
                   </p>
+                  <div class="sesd-greet-badges">
+                    <span class="sesd-greet-role" data-greet-role>User</span>
+                  </div>
                 </div>
               </div>
               <div
@@ -1208,11 +1141,11 @@
         </main>
       </div>
     </div>
-    <script defer src="assets/config.js?v=16"></script>
-    <script defer src="assets/icons.js?v=16"></script>
-    <script defer src="assets/preloader.js?v=16"></script>
-    <script defer src="assets/db.js?v=16"></script>
-    <script defer src="assets/app.js?v=16"></script>
-      <script defer src="assets/theme.js?v=16"></script>
+    <script defer src="assets/config.js?v=17"></script>
+    <script defer src="assets/icons.js?v=17"></script>
+    <script defer src="assets/preloader.js?v=17"></script>
+    <script defer src="assets/db.js?v=17"></script>
+    <script defer src="assets/app.js?v=17"></script>
+      <script defer src="assets/theme.js?v=17"></script>
   </body>
 </html>

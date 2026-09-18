@@ -320,6 +320,8 @@
       } else if (p === 'users') {
         await renderUsers();
         await wireWaSettings();
+      } else if (p === 'profil') {
+        await renderProfile();
       }
     } catch (e) {
       if (e && e.status === 401) { location.replace('login.html'); return; }
@@ -770,7 +772,7 @@
       tr.appendChild(roleTd);
       var actTd = el('td', { style: td });
       var wrap = el('div', { class: 'sesd-role-actions' });   // #2 — one cohesive, equally-rounded control group
-      var sel = el('select', { class: 'sesd-role-select', 'aria-label': 'Ubah peran ' + u.name });
+      var sel = el('select', { class: 'sesd-role-select', 'aria-label': 'Ubah peran ' + u.name, style: 'border-radius:12px!important;-webkit-appearance:none!important;appearance:none!important' });
       ['user', 'verifikator', 'admin'].forEach(function (r) { var o = el('option', { value: r }, ROLE_META[r][0]); if (u.role === r) o.selected = true; sel.appendChild(o); });
       sel.addEventListener('change', async function () { try { await DB.setUserRole(u.id, sel.value); toast('Role diperbarui', 'success'); renderUsers(); } catch (e) { toast((e && e.message) || 'Gagal', 'error'); renderUsers(); } });
       var del = el('button', { class: 'sesd-btn sesd-btn-sm sesd-btn-danger sesd-role-del', html: ic('trash') });
@@ -780,6 +782,134 @@
       list.appendChild(tr);
     });
   }
+
+  /* ====================== #6 — Profile page ====================== */
+  function avatarKeyFor(u) { return 'sesdian_avatar_' + ((u && (u.nip || u.name)) || 'anon'); }
+  function getAvatarLS(u) { try { return localStorage.getItem(avatarKeyFor(u)) || ''; } catch (e) { return ''; } }
+  function setAvatarLS(u, d) { try { localStorage.setItem(avatarKeyFor(u), d); } catch (e) {} }
+  function cropSquare(file, cb) {
+    var fr = new FileReader();
+    fr.onload = function () {
+      var img = new Image();
+      img.onload = function () {
+        var s = Math.min(img.width, img.height), sx = (img.width - s) / 2, sy = (img.height - s) / 2, out = 320;
+        var c = el('canvas'); c.width = out; c.height = out;
+        c.getContext('2d').drawImage(img, sx, sy, s, s, 0, 0, out, out);
+        try { cb(c.toDataURL('image/webp', 0.85)); } catch (e) { try { cb(c.toDataURL('image/jpeg', 0.85)); } catch (e2) { cb(null); } }
+      };
+      img.onerror = function () { cb(null); };
+      img.src = fr.result;
+    };
+    fr.onerror = function () { cb(null); };
+    fr.readAsDataURL(file);
+  }
+  function pfCard(title, subtitle) {
+    var card = el('div', { class: 'sesd-prof-card' });
+    card.appendChild(el('div', { class: 'sesd-prof-card-title' }, title));
+    if (subtitle) card.appendChild(el('div', { class: 'sesd-prof-card-sub' }, subtitle));
+    return card;
+  }
+  function pfField(label, input, hint) {
+    var w = el('div', { class: 'sesd-field' });
+    w.appendChild(el('label', {}, label));
+    w.appendChild(input);
+    if (hint) w.appendChild(el('div', { style: 'font-size:0.72rem;color:var(--text-muted);margin-top:5px' }, hint));
+    return w;
+  }
+  async function renderProfile() {
+    var root = $('[data-profile-root]'); if (!root) return;
+    var prof = null;
+    try { prof = await DB.profile(); } catch (e) {}
+    var u = prof || USER || {};
+    var roleLabel = (ROLE_META[u.role] && ROLE_META[u.role][0]) || (u.role || 'user');
+    root.innerHTML = '';
+
+    /* hero header */
+    var hero = el('div', { class: 'sesd-prof-hero' });
+    var avWrap = el('div', { class: 'sesd-prof-av' });
+    var av = getAvatarLS(u);
+    if (av) avWrap.appendChild(el('img', { src: av, alt: 'Foto profil' }));
+    else avWrap.appendChild(el('span', {}, initials(u.name)));
+    var camBtn = el('button', { class: 'sesd-prof-av-edit', type: 'button', title: 'Ubah foto profil', html: ic('pencil') });
+    var fileInput = el('input', { type: 'file', accept: 'image/*', style: 'display:none' });
+    avWrap.appendChild(camBtn); avWrap.appendChild(fileInput);
+    hero.appendChild(avWrap);
+    var heroInfo = el('div', { style: 'min-width:0;flex:1' });
+    heroInfo.appendChild(el('div', { class: 'sesd-prof-name' }, u.name || 'Pengguna'));
+    var metaRow = el('div', { style: 'display:flex;align-items:center;gap:8px;margin-top:6px;flex-wrap:wrap' });
+    metaRow.appendChild(roleBadge(u.role));
+    metaRow.appendChild(el('span', { style: 'font-family:"JetBrains Mono",monospace;font-size:0.78rem;color:var(--text-muted)' }, 'NIP ' + (u.nip || '-')));
+    heroInfo.appendChild(metaRow);
+    hero.appendChild(heroInfo);
+    var logoutBtn = el('button', { class: 'sesd-btn sesd-btn-ghost sesd-prof-logout', html: ic('lock') + ' Keluar' });
+    logoutBtn.addEventListener('click', function () { withLoading(logoutBtn, doLogout); });
+    hero.appendChild(logoutBtn);
+    root.appendChild(hero);
+
+    function applyNewPhoto(dataurl) {
+      setAvatarLS(u, dataurl);
+      avWrap.innerHTML = '';
+      avWrap.appendChild(el('img', { src: dataurl, alt: 'Foto profil' }));
+      avWrap.appendChild(camBtn); avWrap.appendChild(fileInput);
+      $$('[data-user-initials]').forEach(function (e) { e.innerHTML = '<img alt="" src="' + dataurl + '" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;display:block">'; });
+      if (window.SESDIAN_APPLY_AVATAR) window.SESDIAN_APPLY_AVATAR();
+      toast('Foto profil diperbarui', 'success');
+    }
+    camBtn.addEventListener('click', function () { fileInput.click(); });
+    fileInput.addEventListener('change', function () { if (fileInput.files && fileInput.files[0]) cropSquare(fileInput.files[0], function (d) { if (d) applyNewPhoto(d); else toast('Gagal membaca gambar', 'error'); }); });
+
+    /* two-column body */
+    var grid = el('div', { class: 'sesd-prof-grid' });
+
+    /* account info card */
+    var info = pfCard('Informasi Akun', 'Perbarui identitas akun Anda.');
+    var nameInput = el('input', { type: 'text', value: u.name || '' });
+    var nipInput = el('input', { type: 'text', value: u.nip || '', readonly: 'readonly', style: 'font-family:"JetBrains Mono",monospace;opacity:0.75;cursor:not-allowed' });
+    var phoneInput = el('input', { type: 'tel', value: u.phone || '', placeholder: 'mis. 0812xxxxxxx' });
+    info.appendChild(pfField('Nama Lengkap', nameInput));
+    info.appendChild(pfField('NIP', nipInput, 'NIP tidak dapat diubah.'));
+    info.appendChild(pfField('Nomor WhatsApp', phoneInput));
+    var saveInfo = el('button', { class: 'sesd-btn sesd-btn-primary', style: 'margin-top:6px', html: ic('check') + ' Simpan Perubahan' });
+    saveInfo.addEventListener('click', function () {
+      withLoading(saveInfo, async function () {
+        if (!nameInput.value.trim()) { toast('Nama tidak boleh kosong', 'error'); return; }
+        try {
+          await DB.updateProfile({ name: nameInput.value.trim(), phone: phoneInput.value.trim() });
+          $$('[data-user-name]').forEach(function (e) { e.textContent = nameInput.value.trim(); });
+          var hn = root.querySelector('.sesd-prof-name'); if (hn) hn.textContent = nameInput.value.trim();
+          toast('Profil disimpan', 'success');
+        } catch (e) { toast((e && e.message) || 'Gagal menyimpan profil', 'error'); }
+      });
+    });
+    info.appendChild(saveInfo);
+    grid.appendChild(info);
+
+    /* security card */
+    var sec = pfCard('Keamanan', 'Ganti password akun secara berkala.');
+    var curPw = el('input', { type: 'password', placeholder: 'Password saat ini' });
+    var newPw = el('input', { type: 'password', placeholder: 'Min. 8 karakter' });
+    var confPw = el('input', { type: 'password', placeholder: 'Ulangi password baru' });
+    sec.appendChild(pfField('Password Saat Ini', curPw));
+    sec.appendChild(pfField('Password Baru', newPw));
+    sec.appendChild(pfField('Konfirmasi Password Baru', confPw));
+    var savePw = el('button', { class: 'sesd-btn sesd-btn-primary', style: 'margin-top:6px', html: ic('lock') + ' Perbarui Password' });
+    savePw.addEventListener('click', function () {
+      withLoading(savePw, async function () {
+        if (!newPw.value || newPw.value.length < 8) { toast('Password baru minimal 8 karakter', 'error'); return; }
+        if (newPw.value !== confPw.value) { toast('Konfirmasi password tidak cocok', 'error'); return; }
+        try {
+          await DB.changePassword(curPw.value, newPw.value);
+          curPw.value = newPw.value = confPw.value = '';
+          toast('Password berhasil diperbarui', 'success');
+        } catch (e) { toast((e && e.message) || 'Gagal memperbarui password', 'error'); }
+      });
+    });
+    sec.appendChild(savePw);
+    grid.appendChild(sec);
+
+    root.appendChild(grid);
+  }
+
   function openUserForm() {
     overlayForm({
       title: 'Tambah User', submitLabel: 'Tambah',
@@ -844,11 +974,11 @@
   /* ---------------- dynamic app shell (for new pages that opt in) ----------------
      A page using <aside data-shell></aside> + a sticky <div data-topbar></div>
      gets the standard sidebar + topbar built here, so it needs no copied markup. */
-  var PAGE_TITLES = { dashboard: 'Dashboard', dataaset: 'Data Aset', kategoriaset: 'Kategori Aset', ruangan: 'Ruangan', daftarpinjam: 'Daftar Pinjam', ajukanpinjam: 'Ajukan Pinjam', dipinjam: 'Sedang Dipinjam', users: 'Kelola User', verifikasi: 'Verifikasi', laporan: 'Laporan' };
+  var PAGE_TITLES = { dashboard: 'Dashboard', dataaset: 'Data Aset', kategoriaset: 'Kategori Aset', ruangan: 'Ruangan', daftarpinjam: 'Daftar Pinjam', ajukanpinjam: 'Ajukan Pinjam', dipinjam: 'Sedang Dipinjam', users: 'Kelola User', verifikasi: 'Verifikasi', laporan: 'Laporan', profil: 'Profil Saya' };
   // Per-page chrome icons (topbar breadcrumb). NAV_ICONS keys map a sidebar link's
   // href → the same icon, so the menu and the header always agree (fixes the old
   // hard-coded "home" icon that showed on every page — see REDESIGN-GUIDE #2/#5).
-  var PAGE_ICONS = { dashboard: 'zap', dataaset: 'package', kategoriaset: 'tag', ruangan: 'home', daftarpinjam: 'refresh', ajukanpinjam: 'clipboard', dipinjam: 'clock', users: 'users', verifikasi: 'check_circle', laporan: 'chart', katalog: 'search' };
+  var PAGE_ICONS = { dashboard: 'zap', dataaset: 'package', kategoriaset: 'tag', ruangan: 'home', daftarpinjam: 'refresh', ajukanpinjam: 'clipboard', dipinjam: 'clock', users: 'users', verifikasi: 'check_circle', laporan: 'chart', katalog: 'search', profil: 'user' };
   var NAV_ICONS = { 'dashboard.html': 'zap', 'dataaset.html': 'package', 'kategoriaset.html': 'tag', 'ruangan.html': 'home', 'daftarpinjam.html': 'refresh', 'ajukanpinjam.html': 'clipboard', 'dipinjam.html': 'clock', 'users.html': 'users', 'verifikasi.html': 'check_circle', 'laporan.html': 'chart', 'katalog.html': 'search' };
   function pageIcon(p) { return (window.SESDIAN_ICONS && window.SESDIAN_ICONS[PAGE_ICONS[p] || 'home']) || ''; }
   // "Sedang Dipinjam" link for everyone (added into the PEMINJAMAN section).
@@ -1272,7 +1402,12 @@
       var label = t ? ((t.firstElementChild ? t.firstElementChild.textContent : t.textContent) || '').trim() : '';
       if (label) a.title = label;
     });
+    // #1 — tag every section header so rail mode can drop the separators cleanly
+    $$('aside [style*="letter-spacing: 1.5px"], aside [style*="letter-spacing:1.5px"]').forEach(function (lbl) {
+      if (lbl.parentNode) lbl.parentNode.classList.add('sesd-navsec');
+    });
     var isMobile = function () { return window.matchMedia('(max-width: 768px)').matches; };
+    // sync the JS class with the pre-paint preference (set by the inline <head> script)
     try { if (localStorage.getItem('sesdian_rail') === '1' && !isMobile()) aside.classList.add('sesd-rail'); } catch (e) {}
     btn.addEventListener('click', function (e) {
       e.preventDefault();
@@ -1281,9 +1416,29 @@
         var bd = $('.sesd-mobile-backdrop'); if (bd) bd.classList.remove('sesd-open');
       } else {
         var railed = aside.classList.toggle('sesd-rail');
+        document.documentElement.classList.toggle('sesd-rail-pref', railed);   // keep pre-paint state in sync
         try { localStorage.setItem('sesdian_rail', railed ? '1' : '0'); } catch (e2) {}
       }
     });
+  }
+
+  // #7 — dashboard greeting: time-of-day + role-aware copy for all three actors
+  function setupGreeting() {
+    var hiEl = $('[data-greet-hi]'), subEl = $('[data-greet-sub]');
+    if (!hiEl && !subEl) return;
+    var h = new Date().getHours();
+    var hi = h < 11 ? 'Selamat pagi' : (h < 15 ? 'Selamat siang' : (h < 18 ? 'Selamat sore' : 'Selamat malam'));
+    if (hiEl) hiEl.textContent = hi;
+    var dEl = $('[data-greet-date]');
+    if (dEl) dEl.textContent = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).toUpperCase();
+    var role = (USER && USER.role) || 'user';
+    var rEl = $('[data-greet-role]'); if (rEl) rEl.textContent = (ROLE_META[role] && ROLE_META[role][0]) || role;
+    var subs = {
+      admin: 'Pantau, kelola, dan setujui peminjaman aset di seluruh organisasi.',
+      verifikator: 'Verifikasi peminjaman yang masuk dan pastikan aset tetap terpantau.',
+      user: 'Ajukan dan pantau peminjaman aset Anda dengan mudah.'
+    };
+    if (subEl) subEl.textContent = subs[role] || subs.user;
   }
 
   function setupDates() {
@@ -1324,6 +1479,7 @@
     fillIdentity(USER);
     injectBorrowedNav();          // "Sedang Dipinjam" link for all authed users
     if (IS_STAFF) injectRoleNav();
+    setupGreeting();              // dashboard greeting (role-aware)
     normalizeChrome();            // brand logo + per-page sidebar/topbar icons (#1/#2/#5)
     if (IS_ADMIN) injectAdminBars();
     await loadAndRender(page());

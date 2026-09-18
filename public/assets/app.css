@@ -738,17 +738,16 @@ body[data-page="register"] input:focus {
   padding: 4rem;
   min-width: 0;
 }
+/* #2 — clean transparent wordmark, framed via cover (zooms into the mark; the
+   source keeps its transparent padding, file untouched). Bigger on login. */
 .sesd-login__logo {
   width: 100%;
-  max-width: 300px;
-  height: auto;
-  aspect-ratio: 22 / 9;
-  object-fit: contain;
-  background: #0b1120;
-  border-radius: 16px;
-  padding: 18px 24px;
-  box-shadow: var(--card-shadow);
-  margin-bottom: 2rem;
+  max-width: 420px;
+  height: 104px;
+  object-fit: cover;
+  object-position: center;
+  background: transparent;
+  margin-bottom: 1.75rem;
 }
 .sesd-login__title {
   color: var(--text);
@@ -1129,12 +1128,11 @@ body[data-page="register"] input:focus {
 .sesd-brand-logo {
   display: block;
   width: 100%;
-  max-width: 160px;
-  height: 44px;
+  max-width: 152px;
+  height: 32px;
   object-fit: cover;
   object-position: center;
-  background: #0b1120;
-  border-radius: 9px;
+  background: transparent;
   flex-shrink: 1;
 }
 .sesd-brand-wordmark { display: none !important; }
@@ -1314,7 +1312,7 @@ main[style*="overflow: auto"] {
   margin: 0 !important;
   padding: 0 1.9rem 0 0.8rem !important;
   border: 1.5px solid var(--border) !important;
-  border-radius: 9px !important;
+  border-radius: 12px !important;
   background-color: var(--bg-card) !important;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%230075de' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") !important;
   background-repeat: no-repeat !important;
@@ -1330,10 +1328,10 @@ main[style*="overflow: auto"] {
   box-shadow: 0 0 0 3px var(--primary-glow) !important;
   outline: none !important;
 }
-/* delete button: same 34px box + same 9px rounding as the select (matched set) */
+/* delete button: same 34px box + same rounding as the select (matched set) */
 .sesd-role-actions .sesd-role-del {
   height: 34px; width: 34px; padding: 0 !important;
-  border-radius: 9px !important;
+  border-radius: 12px !important;
   display: inline-flex; align-items: center; justify-content: center;
 }
 .sesd-role-actions .sesd-role-del .ic svg { width: 1rem; height: 1rem; }
@@ -1591,45 +1589,61 @@ aside a:focus-visible { outline-offset: -2px !important; border-radius: var(--ra
   .sesd-btn-lg { padding: 0.62rem 1.1rem; font-size: 0.88rem; }
 }
 
-/* ── #3 — collapsible sidebar (desktop "rail" mode) + nicer toggle button ── */
+/* ── #1/#3/#4 — collapsible sidebar (desktop "rail" mode).
+   The rail is driven by EITHER aside.sesd-rail (set by JS) OR html.sesd-rail-pref
+   (set by the inline <head> script from localStorage). The second form applies the
+   narrow width before first paint, so the rail no longer "pops" open when you
+   navigate between menus — it stays collapsed. ── */
 .sesd-collapse-btn {
   background: var(--bg-mid) !important;
   border: 1px solid var(--border) !important;
   color: var(--text-muted) !important;
   width: 30px !important; height: 30px !important;
   min-width: 30px;
-  border-radius: 8px !important;
+  border-radius: 9px !important;
   display: flex !important; align-items: center; justify-content: center;
   cursor: pointer; flex-shrink: 0; padding: 0 !important;
   transition: background var(--dur-fast) var(--ease-smooth),
               color var(--dur-fast) var(--ease-smooth),
-              border-color var(--dur-fast) var(--ease-smooth);
+              border-color var(--dur-fast) var(--ease-smooth),
+              width var(--dur-normal) var(--ease-smooth),
+              height var(--dur-normal) var(--ease-smooth);
 }
 .sesd-collapse-btn:hover { background: var(--primary) !important; color: #fff !important; border-color: var(--primary) !important; }
 .sesd-collapse-btn svg { width: 18px; height: 18px; transition: transform var(--dur-normal) var(--ease-spring); }
-aside.sesd-rail .sesd-collapse-btn svg { transform: rotate(180deg); }
 
 @media (min-width: 769px) {
-  aside.sesd-rail { width: 78px !important; }
-  /* header: stack logo over the expand button, centered */
-  aside.sesd-rail > div:first-child {
-    flex-direction: column !important; gap: 8px !important;
-    padding: 0.7rem 0 !important; justify-content: center !important;
+  :is(aside.sesd-rail, html.sesd-rail-pref aside[style]) { width: 78px !important; }
+  /* header: only the prominent, centered expand button shows */
+  :is(aside.sesd-rail, html.sesd-rail-pref aside[style]) > div:first-child {
+    flex-direction: column !important; gap: 0 !important;
+    padding: 0.8rem 0 !important; justify-content: center !important;
   }
-  aside.sesd-rail .sesd-brand-logo { max-width: 54px; height: 34px; padding: 3px 6px; }
-  /* nav rows: icon only, centered */
-  aside.sesd-rail a[style] { justify-content: center !important; padding-left: 0 !important; padding-right: 0 !important; margin-left: 6px !important; margin-right: 6px !important; }
-  aside.sesd-rail a[style] > div { display: none !important; }            /* title + subtitle block */
-  aside.sesd-rail a[style] > span:first-child { margin: 0 !important; }
-  /* section divider labels hide; keep things tidy */
-  aside.sesd-rail [style*="letter-spacing: 1.5px"],
-  aside.sesd-rail [style*="letter-spacing:1.5px"] { display: none !important; }
-  aside.sesd-rail [data-role-nav] { margin-top: 4px; }
+  :is(aside.sesd-rail, html.sesd-rail-pref aside[style]) .sesd-brand-logo,
+  :is(aside.sesd-rail, html.sesd-rail-pref aside[style]) .sesd-brand-wordmark { display: none !important; }
+  /* #4 — expand button: centered, larger, primary-filled = clearly noticeable */
+  :is(aside.sesd-rail, html.sesd-rail-pref aside[style]) .sesd-collapse-btn {
+    width: 44px !important; height: 44px !important; margin: 0 auto !important;
+    background: var(--primary) !important; color: #fff !important; border-color: var(--primary) !important;
+    box-shadow: 0 6px 18px var(--primary-glow) !important;
+  }
+  :is(aside.sesd-rail, html.sesd-rail-pref aside[style]) .sesd-collapse-btn svg { width: 23px; height: 23px; transform: rotate(180deg); }
+  /* #1 — no separators in rail: drop whole section headers, even out every row */
+  :is(aside.sesd-rail, html.sesd-rail-pref aside[style]) .sesd-navsec { display: none !important; }
+  :is(aside.sesd-rail, html.sesd-rail-pref aside[style]) [data-role-nav] { margin-top: 0 !important; }
+  /* nav rows: uniform, centered, with BIGGER icons (fixed px, independent of text size) */
+  :is(aside.sesd-rail, html.sesd-rail-pref aside[style]) a[style] {
+    justify-content: center !important;
+    padding: 0.62rem 0 !important; margin: 5px 8px !important;
+  }
+  :is(aside.sesd-rail, html.sesd-rail-pref aside[style]) a[style] > div { display: none !important; }
+  :is(aside.sesd-rail, html.sesd-rail-pref aside[style]) a[style] > span:first-child { margin: 0 !important; }
+  :is(aside.sesd-rail, html.sesd-rail-pref aside[style]) a[style] .ic svg { width: 25px !important; height: 25px !important; }
   /* account card → avatar only */
-  aside.sesd-rail > div:last-child > div { justify-content: center !important; padding: 0.5rem !important; }
-  aside.sesd-rail > div:last-child [data-user-name],
-  aside.sesd-rail > div:last-child [data-user-role],
-  aside.sesd-rail > div:last-child button { display: none !important; }
+  :is(aside.sesd-rail, html.sesd-rail-pref aside[style]) > div:last-child > div { justify-content: center !important; padding: 0.5rem !important; }
+  :is(aside.sesd-rail, html.sesd-rail-pref aside[style]) > div:last-child [data-user-name],
+  :is(aside.sesd-rail, html.sesd-rail-pref aside[style]) > div:last-child [data-user-role],
+  :is(aside.sesd-rail, html.sesd-rail-pref aside[style]) > div:last-child button { display: none !important; }
 }
 
 /* ── #4 — profile menu (per-user) + avatar in header & sidebar ── */
@@ -1689,4 +1703,101 @@ html[data-textsize="large"] { font-size: 18px; }
 @media (max-width: 768px) {
   .sesd-head-iconbtn { display: none; }     /* drop the placeholder bell on phones to make room */
   .sesd-textsize button { width: 27px; height: 27px; }
+}
+
+/* ══════════════════════════════════════════════════════════
+   REDESIGN PASS (v17)
+   ══════════════════════════════════════════════════════════ */
+
+/* ── #6 — Profile page ── */
+.sesd-prof-hero {
+  display: flex; align-items: center; gap: 1.1rem; flex-wrap: wrap;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--card-shadow);
+  padding: 1.4rem 1.6rem;
+  margin-bottom: 1.25rem;
+}
+.sesd-prof-av {
+  position: relative; width: 84px; height: 84px; flex-shrink: 0;
+  border-radius: 20px; overflow: hidden;
+  background: var(--primary); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 1.7rem; letter-spacing: -1px;
+}
+.sesd-prof-av img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.sesd-prof-av-edit {
+  position: absolute; right: 4px; bottom: 4px;
+  width: 26px; height: 26px; border-radius: 50%;
+  background: var(--bg-card); color: var(--primary);
+  border: 1px solid var(--border); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: var(--card-shadow); padding: 0;
+}
+.sesd-prof-av-edit:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
+.sesd-prof-av-edit .ic svg { width: 14px; height: 14px; }
+.sesd-prof-name { font-size: 1.3rem; font-weight: 800; letter-spacing: -0.02em; color: var(--text); line-height: 1.15; }
+.sesd-prof-logout { margin-left: auto; flex-shrink: 0; }
+.sesd-prof-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.1rem; }
+.sesd-prof-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--card-shadow);
+  padding: 1.4rem 1.5rem;
+}
+.sesd-prof-card-title { font-size: 1.05rem; font-weight: 800; letter-spacing: -0.01em; color: var(--text); }
+.sesd-prof-card-sub { font-size: 0.82rem; color: var(--text-muted); margin: 4px 0 1rem; }
+@media (max-width: 760px) {
+  .sesd-prof-grid { grid-template-columns: 1fr; }
+  .sesd-prof-logout { margin-left: 0; width: 100%; }
+}
+
+/* ── #7 — Dashboard greeting hero (all actors), brand-gradient palette ── */
+.sesd-greet {
+  position: relative; overflow: hidden;
+  border-radius: var(--radius-lg);
+  padding: 2rem 2.4rem;
+  margin-bottom: 1.5rem;
+  background: linear-gradient(120deg, #06203b 0%, #0a4ea0 44%, #137d74 100%);
+  box-shadow: 0 14px 36px rgba(8,68,140,0.30);
+}
+.sesd-greet::before {
+  content: ""; position: absolute; top: -60px; right: -20px;
+  width: 240px; height: 240px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(221,91,0,0.38), transparent 64%);
+  pointer-events: none;
+}
+.sesd-greet::after {
+  content: ""; position: absolute; bottom: -80px; right: 150px;
+  width: 200px; height: 200px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(26,174,57,0.26), transparent 66%);
+  pointer-events: none;
+}
+.sesd-greet-inner { position: relative; z-index: 1; }
+.sesd-greet-eyebrow {
+  font-family: "JetBrains Mono", monospace; font-size: 0.7rem;
+  letter-spacing: 0.18em; color: rgba(255,255,255,0.72); font-weight: 700; margin-bottom: 10px;
+}
+.sesd-greet-title { color: #fff; font-size: 1.95rem; font-weight: 800; letter-spacing: -0.025em; line-height: 1.12; }
+.sesd-greet-sub { color: rgba(255,255,255,0.84); font-size: 0.95rem; margin-top: 8px; max-width: 580px; }
+.sesd-greet-badges { margin-top: 14px; display: flex; gap: 8px; flex-wrap: wrap; }
+.sesd-greet-role {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(255,255,255,0.18); color: #fff; font-weight: 800;
+  font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em;
+  padding: 0.34rem 0.75rem; border-radius: var(--radius-pill);
+}
+.sesd-greet-role::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: #5ee08a; box-shadow: 0 0 0 3px rgba(94,224,138,0.25); }
+@media (max-width: 768px) {
+  .sesd-greet { padding: 1.4rem 1.4rem; }
+  .sesd-greet-title { font-size: 1.5rem; }
+  .sesd-greet-sub { font-size: 0.88rem; }
+}
+
+/* ── #8 — guest (katalog) header theme/text-size controls ── */
+[data-guest-controls] { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+@media (max-width: 600px) {
+  [data-guest-controls] .sesd-textsize { display: none; }   /* keep the catalog header compact on phones */
 }
