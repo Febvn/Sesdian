@@ -13,33 +13,28 @@
     />
     <script>(function(){try{if(localStorage.getItem('sesdian_theme')==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(e){}})();</script>
     <link rel="stylesheet" href="assets/app.css?v=14" />
+    <style>
+      .sesd-cat-nav {
+        background: var(--bg-surface);
+        border-bottom: 1px solid var(--border);
+        position: sticky; top: 0; z-index: 50;
+      }
+      .sesd-cat-nav__inner {
+        max-width: 720px; margin: 0 auto;
+        padding: 0.7rem 1.25rem;
+        display: flex; align-items: center; gap: 14px;
+      }
+      .sesd-cat-nav__logo {
+        height: 34px; width: auto; max-width: 150px;
+        object-fit: cover; border-radius: 7px; display: block;
+      }
+    </style>
   </head>
   <body data-page="aset-detail" style="background: var(--bg)">
-    <header
-      style="
-        background: rgb(11, 17, 32);
-        position: sticky;
-        top: 0;
-        z-index: 10;
-        box-shadow: rgba(0, 0, 0, 0.25) 0 2px 16px;
-      "
-    >
-      <div
-        style="
-          max-width: 720px;
-          margin: 0 auto;
-          padding: 0.85rem 1.25rem;
-          display: flex;
-          align-items: center;
-          gap: 14px;
-        "
-      >
-        <a
-          href="katalog.html"
-          style="text-decoration: none; display: flex; flex-direction: column"
-        >
-          <span style="font-size: 1.15rem; font-weight: 900; color: #fff; letter-spacing: -0.5px; line-height: 1">SES<span style="color: rgb(99, 102, 241)">DIAN</span></span>
-          <span style="font-size: 0.55rem; color: rgb(100, 116, 139); font-family: 'JetBrains Mono'; letter-spacing: 2px; margin-top: 3px">ASSET MANAGEMENT</span>
+    <header class="sesd-cat-nav">
+      <div class="sesd-cat-nav__inner">
+        <a href="katalog.html" aria-label="SESDIAN — Katalog">
+          <img class="sesd-cat-nav__logo" src="assets/logosesdian.png" alt="SESDIAN" />
         </a>
         <div style="flex: 1"></div>
         <div data-guest-auth></div>
@@ -69,7 +64,7 @@
     <script defer src="assets/config.js?v=14"></script>
     <script defer src="assets/db.js?v=14"></script>
     <script defer src="assets/icons.js?v=14"></script>
-    <script defer src="assets/guest.js?v=14"></script>
-      <script defer src="assets/theme.js?v=14"></script>
+    <script defer src="assets/guest.js?v=15"></script>
+    <script defer src="assets/theme.js?v=15"></script>
   </body>
 </html>

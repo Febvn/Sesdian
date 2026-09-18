@@ -880,7 +880,7 @@
   function installBrandLogo() {
     var aside = $('aside'); if (!aside) return;
     var head = aside.firstElementChild; if (!head || head.querySelector('.sesd-brand-logo')) return;
-    var img = el('img', { class: 'sesd-brand-logo', src: 'logosesdian.png', alt: 'SESDIAN' });
+    var img = el('img', { class: 'sesd-brand-logo', src: 'assets/logosesdian.png', alt: 'SESDIAN' });
     head.insertBefore(img, head.firstChild);
     // Hide the now-redundant text wordmark (the logo already reads "SESDiAN").
     var wm = head.querySelector('div'); if (wm) wm.classList.add('sesd-brand-wordmark');

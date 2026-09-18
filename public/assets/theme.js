@@ -133,9 +133,15 @@
   /* ── Inject header cluster + back-to-top once the shell exists ── */
   var tries = 0;
   function inject() {
+    // Only app-shell pages (which have an <aside>) expose their topbar as
+    // main's first child. On guest pages (katalog / aset-detail / auth) there is
+    // no shell, so we must NOT treat main's first child as a topbar — doing so
+    // injected the theme cluster into the hero / back-link. Fall back to the
+    // floating toggle there instead.
+    var hasShell = !!document.querySelector('aside');
     var header =
       document.querySelector('[data-topbar]') ||
-      (document.querySelector('main') && document.querySelector('main').firstElementChild);
+      (hasShell && document.querySelector('main') ? document.querySelector('main').firstElementChild : null);
 
     // The dynamic shell pages build their topbar asynchronously; wait for it.
     if (header && !header.children.length && tries < 20) { tries++; return setTimeout(inject, 60); }

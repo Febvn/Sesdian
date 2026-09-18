@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="id">
   <head>
     <meta charset="UTF-8" />
@@ -13,158 +13,154 @@
     />
     <script>(function(){try{if(localStorage.getItem('sesdian_theme')==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(e){}})();</script>
     <link rel="stylesheet" href="assets/app.css?v=14" />
+    <style>
+      /* Catalog (guest) — Notion language, scoped to this page.
+         Cards reuse the shared .sesd-aset-* primitives from app.css. */
+      .sesd-cat-nav {
+        background: var(--bg-surface);
+        border-bottom: 1px solid var(--border);
+        position: sticky; top: 0; z-index: 50;
+      }
+      .sesd-cat-nav__inner {
+        max-width: 1180px; margin: 0 auto;
+        padding: 0.7rem 1.25rem;
+        display: flex; align-items: center; gap: 14px;
+      }
+      .sesd-cat-nav__logo {
+        height: 34px; width: auto; max-width: 150px;
+        object-fit: cover; border-radius: 7px; display: block;
+      }
+      .sesd-cat-main { max-width: 1180px; margin: 0 auto; padding: 1.75rem 1.25rem; }
+
+      .sesd-cat-hero {
+        position: relative; overflow: hidden;
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-xl);
+        box-shadow: var(--card-shadow);
+        padding: 2rem 2.25rem;
+        margin-bottom: 1.5rem;
+      }
+      .sesd-cat-hero::after {              /* subtle Notion-blue wash — decoration only */
+        content: ""; position: absolute; inset: 0; pointer-events: none;
+        background: radial-gradient(440px 220px at 100% 0%, rgba(0,117,222,0.07), transparent 70%);
+      }
+      .sesd-cat-hero > * { position: relative; }
+      .sesd-cat-eyebrow {
+        display: inline-flex; align-items: center; gap: 6px;
+        background: var(--primary-light); color: var(--primary);
+        font-size: 0.66rem; font-weight: 800; letter-spacing: 0.14em;
+        padding: 0.3rem 0.72rem; border-radius: var(--radius-pill);
+        text-transform: uppercase; margin-bottom: 0.85rem;
+      }
+      .sesd-cat-title {
+        font-size: 2rem; font-weight: 800; letter-spacing: -0.03em;
+        color: var(--text); line-height: 1.08;
+      }
+      .sesd-cat-lead { color: var(--text-muted); font-size: 0.95rem; margin-top: 0.5rem; }
+
+      .sesd-cat-toolbar { display: flex; flex-direction: column; gap: 0.85rem; margin-bottom: 1.25rem; }
+      .sesd-cat-search { position: relative; max-width: 460px; width: 100%; }
+      .sesd-cat-search .ic {
+        position: absolute; left: 13px; top: 50%; transform: translateY(-50%);
+        color: var(--text-muted); display: inline-flex; pointer-events: none;
+      }
+      .sesd-cat-search input {
+        width: 100%; box-sizing: border-box;
+        padding: 0.7rem 1rem 0.7rem 2.6rem;
+        border-radius: var(--radius-input) !important;
+        border: 1px solid var(--border) !important;
+        background: var(--bg-card) !important;
+        color: var(--text) !important;
+        font-size: 0.9rem; outline: none;
+      }
+      .sesd-cat-search input:focus {
+        border-color: rgba(0,117,222,0.55) !important;
+        box-shadow: 0 0 0 3px var(--primary-glow) !important;
+      }
+      .sesd-cat-chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; }
+
+      .sesd-cat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+        gap: 1rem;
+      }
+
+      /* unit-count badge + hover "Lihat detail" affordance for catalog cards */
+      .sesd-cat-count {
+        font-size: 0.66rem; font-weight: 800; white-space: nowrap;
+        padding: 0.18rem 0.55rem; border-radius: var(--radius-pill);
+        background: rgba(0,117,222,0.10); color: var(--primary);
+      }
+      .sesd-cat-more {
+        margin-top: 8px; display: inline-flex; align-items: center; gap: 4px;
+        font-size: 0.72rem; font-weight: 700; color: var(--primary);
+        opacity: 0; transform: translateX(-4px);
+        transition: opacity var(--dur-fast) var(--ease-smooth), transform var(--dur-fast) var(--ease-smooth);
+      }
+      .sesd-aset-card:hover .sesd-cat-more { opacity: 1; transform: translateX(0); }
+      @media (hover: none) { .sesd-cat-more { opacity: 1; transform: none; } }
+
+      .sesd-cat-footer {
+        background: var(--bg-mid);
+        border-top: 1px solid var(--border);
+        text-align: center; color: var(--text-muted);
+        font-size: 0.82rem; padding: 2rem 1rem; margin-top: 1rem;
+      }
+      .sesd-cat-footer a { font-weight: 700; }
+
+      @media (max-width: 560px) {
+        .sesd-cat-hero { padding: 1.4rem 1.25rem; }
+        .sesd-cat-title { font-size: 1.55rem; }
+        .sesd-cat-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 0.7rem; }
+      }
+    </style>
   </head>
   <body data-page="katalog" style="background: var(--bg)">
-    <!-- top bar -->
-    <header
-      style="
-        background: rgb(11, 17, 32);
-        position: sticky;
-        top: 0;
-        z-index: 10;
-        box-shadow: rgba(0, 0, 0, 0.25) 0 2px 16px;
-      "
-    >
-      <div
-        style="
-          max-width: 1180px;
-          margin: 0 auto;
-          padding: 0.85rem 1.25rem;
-          display: flex;
-          align-items: center;
-          gap: 14px;
-        "
-      >
-        <a
-          href="katalog.html"
-          style="text-decoration: none; display: flex; flex-direction: column"
-        >
-          <span
-            style="
-              font-size: 1.15rem;
-              font-weight: 900;
-              color: #fff;
-              letter-spacing: -0.5px;
-              line-height: 1;
-            "
-            >SES<span style="color: rgb(99, 102, 241)">DIAN</span></span
-          >
-          <span
-            style="
-              font-size: 0.55rem;
-              color: rgb(100, 116, 139);
-              font-family: 'JetBrains Mono';
-              letter-spacing: 2px;
-              margin-top: 3px;
-            "
-            >ASSET MANAGEMENT</span
-          >
+    <!-- top bar (Notion nav: white surface, hairline, single blue CTA) -->
+    <header class="sesd-cat-nav">
+      <div class="sesd-cat-nav__inner">
+        <a href="katalog.html" aria-label="SESDIAN — Katalog">
+          <img class="sesd-cat-nav__logo" src="assets/logosesdian.png" alt="SESDIAN" />
         </a>
         <div style="flex: 1"></div>
         <div data-guest-auth></div>
       </div>
     </header>
 
-    <main style="max-width: 1180px; margin: 0 auto; padding: 1.75rem 1.25rem">
-      <div
-        class="animate-fade-up"
-        style="
-          background: linear-gradient(135deg, rgb(15, 23, 42) 0%, rgb(30, 41, 59) 50%, rgb(49, 46, 129) 100%);
-          border-radius: 20px;
-          padding: 2rem 2.5rem;
-          margin-bottom: 1.5rem;
-          position: relative;
-          overflow: hidden;
-        "
-      >
-        <div style="position: absolute; top: -40px; right: -40px; width: 200px; height: 200px; border-radius: 50%; background: rgba(99, 102, 241, 0.15)"></div>
-        <div style="position: absolute; bottom: -60px; right: 80px; width: 150px; height: 150px; border-radius: 50%; background: rgba(139, 92, 246, 0.1)"></div>
-        <div style="position: relative">
-          <div style="font-size: 0.72rem; color: rgb(99, 102, 241); font-weight: 700; letter-spacing: 2px; margin-bottom: 8px; font-family: 'JetBrains Mono'">
-            KATALOG PUBLIK
-          </div>
-          <h1 style="color: #fff; font-size: 1.75rem; font-weight: 800; margin-bottom: 6px">
-            Katalog Aset
-          </h1>
-          <p data-catalog-sub style="color: rgb(148, 163, 184); font-size: 0.9rem">
-            Memuat katalog…
-          </p>
+    <main class="sesd-cat-main">
+      <!-- hero: calm light header card with a single decorative blue wash -->
+      <section class="sesd-cat-hero animate-fade-up">
+        <span class="sesd-cat-eyebrow">Katalog Publik</span>
+        <h1 class="sesd-cat-title">Katalog Aset</h1>
+        <p data-catalog-sub class="sesd-cat-lead">Memuat katalog&hellip;</p>
+      </section>
+
+      <!-- toolbar: search + category chips -->
+      <div class="sesd-cat-toolbar">
+        <div class="sesd-cat-search">
+          <span class="ic"
+            ><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="1em" height="1em" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></svg
+          ></span>
+          <input data-search placeholder="Cari nama, kode, atau merek aset&hellip;" aria-label="Cari aset" />
         </div>
+        <div data-cat-filters class="sesd-cat-chips"></div>
       </div>
 
-      <div
-        style="
-          position: relative;
-          margin-bottom: 1rem;
-          max-width: 460px;
-        "
-      >
-        <span
-          class="ic"
-          style="
-            position: absolute;
-            left: 14px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--text-muted);
-          "
-          ><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="1em" height="1em" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></svg
-        ></span>
-        <input
-          data-search
-          placeholder="Cari nama, kode, atau merek aset…"
-          style="
-            width: 100%;
-            padding: 0.8rem 1rem 0.8rem 2.8rem;
-            border-radius: 12px;
-            border: 1px solid var(--border);
-            font-size: 0.9rem;
-            outline: none;
-            background: #fff;
-            box-sizing: border-box;
-          "
-        />
-      </div>
-
-      <div
-        data-cat-filters
-        style="
-          display: flex;
-          gap: 8px;
-          overflow-x: auto;
-          padding-bottom: 6px;
-          margin-bottom: 1.25rem;
-        "
-      ></div>
-
-      <div
-        data-catalog-grid
-        style="
-          display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-          gap: 1rem;
-        "
-      >
-        <div class="sesd-loading">Memuat katalog…</div>
+      <div data-catalog-grid class="sesd-cat-grid">
+        <div class="sesd-page-loader"><span></span><span></span><span></span></div>
       </div>
     </main>
 
-    <footer
-      style="
-        text-align: center;
-        color: var(--text-muted);
-        font-size: 0.78rem;
-        padding: 2rem 1rem;
-      "
-    >
+    <footer class="sesd-cat-footer">
       Untuk meminjam aset, silakan
-      <a href="login.html" style="font-weight: 700">masuk</a> terlebih dahulu.
+      <a href="login.html">masuk</a> terlebih dahulu.
     </footer>
 
     <script defer src="assets/config.js?v=14"></script>
     <script defer src="assets/db.js?v=14"></script>
     <script defer src="assets/icons.js?v=14"></script>
-    <script defer src="assets/guest.js?v=14"></script>
-      <script defer src="assets/theme.js?v=14"></script>
+    <script defer src="assets/guest.js?v=15"></script>
+    <script defer src="assets/theme.js?v=15"></script>
   </body>
 </html>

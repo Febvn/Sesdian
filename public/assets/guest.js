@@ -46,34 +46,41 @@
     return order.map(function (k) { return map[k]; }).sort(function (x, y) { return (x.name || '').localeCompare(y.name || ''); });
   }
 
-  /* header auth button (Masuk / Buka Dashboard) */
+  /* header auth button (Masuk / Buka Dashboard) — Notion blue pill */
   function wireGuestAuth() {
     var slot = $('[data-guest-auth]'); if (!slot) return;
     var u = loggedIn();
     slot.innerHTML = '';
-    var style = 'padding:0.55rem 1.1rem;border-radius:10px;font-weight:700;font-size:0.85rem;text-decoration:none;color:#fff;background:linear-gradient(135deg,rgb(99,102,241),rgb(139,92,246));box-shadow:rgba(99,102,241,0.35) 0px 4px 14px';
-    slot.appendChild(el('a', { href: u ? 'dashboard.html' : 'login.html', style: style }, u ? 'Buka Dashboard' : 'Masuk'));
+    slot.appendChild(el('a', { href: u ? 'dashboard.html' : 'login.html', class: 'sesd-btn sesd-btn-primary' }, u ? 'Buka Dashboard' : 'Masuk'));
   }
 
-  /* ---------------- catalog ---------------- */
+  /* ---------------- catalog ----------------
+     Re-uses the same Notion card primitives (.sesd-aset-*) as the authed Data
+     Aset grid, so the public catalog and the internal app speak one card system. */
   function assetCard(g) {
-    var card = el('div', { style: 'background:#fff;border-radius:16px;overflow:hidden;box-shadow:rgba(0,0,0,0.08) 0px 8px 24px;border:1px solid var(--border);cursor:pointer;transition:transform .2s,box-shadow .2s' });
-    card.addEventListener('mouseenter', function () { card.style.transform = 'translateY(-4px)'; });
-    card.addEventListener('mouseleave', function () { card.style.transform = 'none'; });
+    var isNon = (g.type || '').toLowerCase() === 'non-bmn';
+    var card = el('div', { class: 'sesd-aset-card' });
     card.addEventListener('click', function () { location.href = 'aset-detail.html?' + (g.qr_code ? ('qr=' + encodeURIComponent(g.qr_code)) : ('id=' + g.repId)); });
-    card.appendChild(el('div', { style: 'height:130px;overflow:hidden', html: '<img loading="lazy" decoding="async" src="' + (g.image || PLACEHOLDER) + '" alt="" style="width:100%;height:100%;object-fit:cover;background:linear-gradient(135deg,#eef2ff,#e0e7ff)">' }));
-    var body = el('div', { style: 'padding:1rem' });
-    var top = el('div', { style: 'display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:6px' });
-    top.appendChild(el('span', { style: 'font-size:0.65rem;font-weight:800;padding:0.15rem 0.5rem;border-radius:20px;background:rgb(219,234,254);color:rgb(30,64,175)' }, g.type || 'BMN'));
-    if (g.count > 1) top.appendChild(el('span', { style: 'font-size:0.68rem;font-weight:800;padding:0.15rem 0.5rem;border-radius:20px;background:rgb(237,233,254);color:rgb(91,33,182);white-space:nowrap' }, g.count + ' unit'));
+    var band = el('div', { class: 'sesd-aset-img' });
+    band.appendChild(el('img', { src: g.image || PLACEHOLDER, alt: '', loading: 'lazy', decoding: 'async' }));
+    card.appendChild(band);
+    var body = el('div', { class: 'sesd-aset-body' });
+    var top = el('div', { class: 'sesd-aset-top' });
+    top.appendChild(el('span', { class: 'sesd-aset-type ' + (isNon ? 'is-non' : 'is-bmn') }, isNon ? 'Non-BMN' : 'BMN'));
+    if (g.count > 1) top.appendChild(el('span', { class: 'sesd-cat-count' }, g.count + ' unit'));
     body.appendChild(top);
-    body.appendChild(el('div', { style: 'font-weight:700;font-size:0.95rem;margin-bottom:8px' }, g.name || ''));
-    var chips = el('div', { style: 'display:flex;flex-wrap:wrap;gap:4px' });
-    [['tag', g.category], ['pin', g.room], ['factory', g.brand]].forEach(function (c) {
+    body.appendChild(el('div', { class: 'sesd-aset-name' }, g.name || ''));
+    var chips = el('div', { class: 'sesd-aset-chips' });
+    [['tag', g.category], ['factory', g.brand], ['pin', g.room]].forEach(function (c) {
       if (!c[1]) return;
-      chips.appendChild(el('span', { style: 'background:rgb(241,245,249);padding:0.1rem 0.5rem;border-radius:6px;font-size:0.72rem;color:var(--text-muted)', html: ic(c[0]) + ' ' + c[1] }));
+      var chip = el('span', { class: 'sesd-aset-chip' });
+      chip.innerHTML = ic(c[0]);
+      chip.appendChild(el('span', {}, c[1]));
+      chips.appendChild(chip);
     });
-    body.appendChild(chips);
+    if (chips.children.length) body.appendChild(chips);
+    var more = el('div', { class: 'sesd-cat-more', html: 'Lihat detail <span aria-hidden="true">&rarr;</span>' });
+    body.appendChild(more);
     card.appendChild(body);
     return card;
   }
@@ -100,7 +107,7 @@
       chipWrap.appendChild(mk('Semua', 'all'));
       cats.forEach(function (c) { chipWrap.appendChild(mk(c.name, c.name)); });
     }
-    function chipStyle(active) { return 'padding:0.5rem 1rem;border-radius:999px;border:1px solid ' + (active ? 'var(--primary)' : 'var(--border)') + ';background:' + (active ? 'var(--primary-light)' : '#fff') + ';color:' + (active ? 'var(--primary)' : 'var(--text-muted)') + ';cursor:pointer;font-size:0.8rem;font-weight:700;white-space:nowrap'; }
+    function chipStyle(active) { return 'padding:0.45rem 0.95rem;border-radius:999px;border:1px solid ' + (active ? 'var(--primary)' : 'var(--border)') + ';background:' + (active ? 'var(--primary-light)' : 'var(--bg-card)') + ';color:' + (active ? 'var(--primary)' : 'var(--text-muted)') + ';cursor:pointer;font-size:0.8rem;font-weight:700;white-space:nowrap;transition:border-color .15s,background .15s,color .15s'; }
 
     var search = $('[data-search]');
     if (search) search.addEventListener('input', function () { state.q = search.value.trim().toLowerCase(); draw(); });
@@ -145,7 +152,7 @@
 
     if (authed && a.stock_total != null) {
       var stock = el('div', { style: 'display:flex;gap:0.6rem;margin-bottom:1rem' });
-      [['Total', a.stock_total, 'var(--text)'], ['Tersedia', a.stock_available, 'rgb(16,185,129)'], ['Dipinjam', a.stock_borrowed, 'rgb(245,158,11)']].forEach(function (s) {
+      [['Total', a.stock_total, 'var(--text)'], ['Tersedia', a.stock_available, 'var(--success)'], ['Dipinjam', a.stock_borrowed, 'var(--warning)']].forEach(function (s) {
         var b = el('div', { style: 'flex:1;text-align:center;background:var(--bg);border-radius:10px;padding:0.6rem' });
         b.appendChild(el('div', { style: 'font-size:1.2rem;font-weight:800;color:' + s[2] }, String(s[1] != null ? s[1] : 0)));
         b.appendChild(el('div', { style: 'font-size:0.7rem;color:var(--text-muted)' }, s[0]));
@@ -153,7 +160,7 @@
       });
       root.appendChild(stock);
     } else {
-      root.appendChild(el('div', { style: 'background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;border-radius:10px;padding:0.75rem;font-size:0.82rem;margin-bottom:1rem' }, 'Masuk untuk melihat ketersediaan stok dan mengajukan peminjaman.'));
+      root.appendChild(el('div', { style: 'background:rgba(221,91,0,0.10);border:1px solid rgba(221,91,0,0.28);color:var(--warning);border-radius:10px;padding:0.75rem;font-size:0.82rem;margin-bottom:1rem;font-weight:500' }, 'Masuk untuk melihat ketersediaan stok dan mengajukan peminjaman.'));
     }
 
     var btn = el('button', { class: 'sesd-btn sesd-btn-success', style: 'width:100%', html: ic('clipboard') + ' Ajukan Pinjam' });
