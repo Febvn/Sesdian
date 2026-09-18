@@ -12,7 +12,7 @@
   var DB = window.SESDIAN_DB || { configured: false };
   var REAL = !!DB.configured && /^https?:$/.test(location.protocol);
   var KEY = 'sesdian_user';
-  var USER = null, IS_ADMIN = false;
+  var USER = null, IS_ADMIN = false, IS_VERIFIKATOR = false, IS_STAFF = false;
 
   var $ = function (s, r) { return (r || document).querySelector(s); };
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
@@ -38,11 +38,13 @@
   var PLACEHOLDER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='130'%3E%3Crect width='200' height='130' fill='%23e0e7ff'/%3E%3Cg fill='none' stroke='%236366f1' stroke-width='4'%3E%3Cpath d='M100 42 72 56v34l28 14 28-14V56z'/%3E%3Cpath d='M72 56l28 14 28-14M100 70v34'/%3E%3C/g%3E%3C/svg%3E";
 
   var STATUS = {
-    pending: { label: 'Pending', bg: '#fef3c7', fg: '#92400e' },
-    approved: { label: 'Disetujui', bg: '#dbeafe', fg: '#1e40af' },
-    borrowed: { label: 'Dipinjam', bg: '#ede9fe', fg: '#5b21b6' },
-    returned: { label: 'Kembali', bg: '#dcfce7', fg: '#166534' },
-    rejected: { label: 'Ditolak', bg: '#fee2e2', fg: '#991b1b' },
+    pending: { label: 'Pending', bg: '#fdecd9', fg: '#7a3d00' },
+    approved: { label: 'Disetujui Admin', bg: '#e3f0fb', fg: '#005bab' },
+    verified: { label: 'Terverifikasi', bg: '#daf0ef', fg: '#1c6e6a' },
+    borrowed: { label: 'Dipinjam', bg: '#efe5fb', fg: '#3a1d58' },
+    return_pending: { label: 'Menunggu Verifikasi Kembali', bg: '#fce4ef', fg: '#8e2f63' },
+    returned: { label: 'Kembali', bg: '#e2f6e7', fg: '#127a2b' },
+    rejected: { label: 'Ditolak', bg: '#fbe4e4', fg: '#a02020' },
   };
 
   /* ---------------- toast ---------------- */
@@ -52,6 +54,28 @@
     var t = el('div', { class: 'sesd-toast ' + (type || 'info') }, msg);
     wrap.appendChild(t);
     setTimeout(function () { t.style.transition = 'opacity .3s,transform .3s'; t.style.opacity = '0'; t.style.transform = 'translateY(8px)'; setTimeout(function () { t.remove(); }, 320); }, 2800);
+  }
+
+  /* ---------------- data loader (three dots, only in the data area) ----------------
+     The loader is shown ONLY inside the page's data container (the list/table that
+     the DB fills), so the title, cards, controls and table headers stay visible.
+     The subsequent render clears the container (removing the loader). */
+  function pageDataContainer() {
+    var tpl = $('[data-template]') || $('[data-recent-template]') || $('[data-monitor-template]');
+    if (tpl && tpl.parentNode) return tpl.parentNode;
+    return $('[data-dipinjam]') || $('[data-users-list]') || $('[data-report-rows]') || $('[data-list]');
+  }
+  function showPageLoader() {
+    var c = pageDataContainer(); if (!c) return;
+    if (c.querySelector('.sesd-page-loader')) return;
+    if (c.tagName === 'TBODY') {
+      c.appendChild(el('tr', { 'data-loader-row': '', html: '<td colspan="99" style="padding:0"><div class="sesd-page-loader" style="min-height:160px"><span></span><span></span><span></span></div></td>' }));
+    } else {
+      c.appendChild(el('div', { class: 'sesd-page-loader', style: 'min-height:180px;grid-column:1/-1', html: '<span></span><span></span><span></span>' }));
+    }
+  }
+  function hidePageLoader() {
+    $$('.sesd-page-loader').forEach(function (e) { var tr = e.closest && e.closest('tr[data-loader-row]'); if (tr) tr.remove(); else e.remove(); });
   }
 
   /* ---------------- session ---------------- */
@@ -103,10 +127,12 @@
   function guard() {
     var needsAuth = document.body.hasAttribute('data-auth');
     var needsAdmin = document.body.hasAttribute('data-admin');
+    var roleList = (document.body.getAttribute('data-roles') || '').split(',').map(function (s) { return s.trim(); }).filter(Boolean);
     var user = currentUser();
     if (needsAuth && !user) { location.replace('login.html'); return { redirect: true }; }
     if ((page() === 'login' || page() === 'register') && user) { location.replace('dashboard.html'); return { redirect: true }; }
     if (needsAdmin && (!user || user.role !== 'admin')) { location.replace('dashboard.html'); return { redirect: true }; }
+    if (roleList.length && (!user || roleList.indexOf(user.role) === -1)) { location.replace('dashboard.html'); return { redirect: true }; }
     return { redirect: false, user: user };
   }
 
@@ -148,7 +174,7 @@
       var f = e.getAttribute('data-bind');
       if (f === 'stock_bar') { var pct = rec.stock_total ? Math.round((rec.stock_available / rec.stock_total) * 100) : (rec.total ? Math.round(rec.available / rec.total * 100) : 0); e.style.width = pct + '%'; return; }
       if (f === 'status_badge') { setStatusBadge(e, rec.status); return; }
-      if (f === 'image') { e.src = rec.image || PLACEHOLDER; return; }
+      if (f === 'image') { e.loading = 'lazy'; e.decoding = 'async'; e.src = rec.image || PLACEHOLDER; return; }
       if (f === 'icon') { var nm = iconFor(rec.icon); if (nm) { e.innerHTML = window.SESDIAN_ICONS[nm]; e.style.color = 'var(--primary)'; } else { e.textContent = rec.icon || ''; } return; }
       var v = rec[f];
       if (v !== undefined && v !== null) e.textContent = v;
@@ -189,22 +215,25 @@
     entry.container.innerHTML = '';
     if (!records.length) { appendEmpty(entry.container); return; }
 
-    // Add staggered animation to items
+    // Build everything off-DOM, then append in ONE reflow (handles 1 or 1000 rows
+    // smoothly). Only the first few items fade in with a light stagger — the rest
+    // appear instantly, so large lists feel fast without dropping the polish.
+    var frag = document.createDocumentFragment();
+    var animated = [];
+    var STAGGER_MAX = 16;
     records.forEach(function (rec, index) {
       var n = entry.src.cloneNode(true);
       applyBinds(n, rec);
       if (fill) fill(n, rec);
-
-      // Add fade-in animation
-      n.style.opacity = '0';
-      n.style.transition = 'opacity 0.3s ease';
-      entry.container.appendChild(n);
-
-      // Stagger the animation
-      setTimeout(function() {
-        n.style.opacity = '1';
-      }, index * 50);
+      if (index < STAGGER_MAX) { n.style.opacity = '0'; n.style.transition = 'opacity 0.3s ease'; animated.push(n); }
+      frag.appendChild(n);
     });
+    entry.container.appendChild(frag);
+    if (animated.length) {
+      requestAnimationFrame(function () {
+        animated.forEach(function (n, i) { setTimeout(function () { n.style.opacity = '1'; }, i * 30); });
+      });
+    }
   }
 
   /* ====================== NO PREPLOADING - handled by preloader.js ====================== */
@@ -244,42 +273,47 @@
             }, i * 100);
           }
         });
-        renderList('[data-monitor-template]', d.monitor);
         renderList('[data-recent-template]', d.recent);
       } else if (p === 'dataaset') {
         var assets = await DB.assets();
-        renderList('[data-template]', assets, function (n, r) {
-          n.setAttribute('data-type', (r.type || '').toLowerCase() === 'non-bmn' ? 'non-bmn' : 'bmn');
-          n.setAttribute('data-status', r.stock_available > 0 ? 'available' : 'borrowed');
-          n.setAttribute('data-asset-id', r.id);
-          n.removeAttribute('data-open-detail');                 // detail is a dynamic modal, not a static page
-          n.addEventListener('click', function (ev) { if (ev.target.closest('.sesd-admin-actions')) return; openAssetDetail(r); });
-          if (IS_ADMIN) enhanceAssetCard(n, r);
-        });
+        var groups = groupAssets(assets);                        // collapse identical items into tidy cards
+        renderAssetGrid(groups);                                 // clean Notion cards (#6 empty chips, #7 stock X/Y, #8 status badge)
         var sum = function (k) { return assets.reduce(function (t, a) { return t + (a[k] || 0); }, 0); };
         var aStats = { total_assets: assets.length, total_stock: sum('stock_total'), stock_available: sum('stock_available'), stock_borrowed: sum('stock_borrowed'), maintenance: 0 };
         Object.keys(aStats).forEach(function (k) { var e = $('[data-stat="' + k + '"]'); if (e) e.textContent = aStats[k]; });
-        var sub = $('[data-asset-subtitle]'); if (sub) sub.textContent = aStats.total_assets + ' aset · ' + aStats.total_stock + ' total unit stok';
+        var sub = $('[data-asset-subtitle]'); if (sub) sub.textContent = groups.length + ' jenis · ' + assets.length + ' unit · ' + aStats.total_stock + ' total stok';
       } else if (p === 'kategoriaset') {
         renderList('[data-template]', await DB.categories(), function (n, r) { n.setAttribute('data-id', r.id); if (IS_ADMIN) enhanceSimpleCard(n, r, 'category'); });
       } else if (p === 'ruangan') {
         renderList('[data-template]', await DB.rooms(), function (n, r) { n.setAttribute('data-id', r.id); if (IS_ADMIN) enhanceSimpleCard(n, r, 'room'); });
       } else if (p === 'daftarpinjam') {
-        var bs = await DB.borrowings();
+        // requests still in the approval/verification pipeline (not yet out, not returned)
+        var allbs = await DB.borrowings();
+        var bs = allbs.filter(function (b) { return b.status === 'pending' || b.status === 'approved' || b.status === 'rejected'; });
         ensureAksiHeader();
         renderList('[data-template]', bs, function (n, r) { n.setAttribute('data-status', r.status); enhanceBorrowingRow(n, r); });
-        var counts = { pending: 0, approved: 0, borrowed: 0, returned: 0 };
-        bs.forEach(function (b) { if (counts[b.status] != null) counts[b.status]++; });
+        var counts = { pending: 0, approved: 0, rejected: 0, returned: 0 };
+        allbs.forEach(function (b) { if (counts[b.status] != null) counts[b.status]++; });
         Object.keys(counts).forEach(function (k) { var e = $('[data-count="' + k + '"]'); if (e) e.textContent = counts[k]; });
         if ($('[data-asset-template]')) {
           renderList('[data-asset-template]', await DB.assets(), function (n, r) { var cb = $('[data-asset-checkbox]', n) || $('input[type="checkbox"]', n); if (cb) cb.value = String(r.id); });
         }
+      } else if (p === 'verifikasi') {
+        var allb = await DB.borrowings();
+        var queue = allb.filter(function (b) { return b.status === 'approved'; });
+        ensureAksiHeader();
+        renderList('[data-template]', queue, function (n, r) { n.setAttribute('data-status', r.status); enhanceBorrowingRow(n, r); });
+        var qc = $('[data-count="approved"]'); if (qc) qc.textContent = queue.length;
+        var done = allb.filter(function (b) { return b.status === 'verified' || b.status === 'borrowed' || b.status === 'returned'; }).length;
+        var dc = $('[data-count="verified"]'); if (dc) dc.textContent = done;
+      } else if (p === 'dipinjam') {
+        var alld = await DB.borrowings();
+        var out = alld.filter(function (b) { return b.status === 'borrowed' || b.status === 'verified' || b.status === 'return_pending'; });
+        var bc = $('[data-count="borrowed"]'); if (bc) bc.textContent = out.filter(function (b) { return b.status === 'borrowed' || b.status === 'verified'; }).length;
+        var rc = $('[data-count="return_pending"]'); if (rc) rc.textContent = out.filter(function (b) { return b.status === 'return_pending'; }).length;
+        renderDipinjam(out);
       } else if (p === 'ajukanpinjam') {
-        renderList('[data-template]', await DB.assets(), function (n, r) {
-          n.setAttribute('data-asset-id', r.id);
-          n.setAttribute('data-status', r.stock_available > 0 ? 'available' : 'unavailable');
-        });
-        wireAssetSelect();
+        buildAjukanList(groupAssets(await DB.assets()));
       } else if (p === 'users') {
         await renderUsers();
         await wireWaSettings();
@@ -295,6 +329,10 @@
 
   /* ====================== ADMIN UI ====================== */
   function overlay() { return el('div', { class: 'sesd-overlay' }); }
+  // Only ever allow one modal at a time: spamming Edit/Tambah/etc. (e.g. on a
+  // laggy network) can't stack duplicate popups. Nested dialogs close their
+  // parent first (see openGroupDetail) so confirmations still work.
+  function modalOpen() { return !!$('.sesd-overlay'); }
 
   function fileToDataURL(file) {
     return new Promise(function (resolve, reject) {
@@ -302,9 +340,9 @@
       fr.onload = function () {
         var img = new Image();
         img.onload = function () {
-          var max = 800, w = img.width, h = img.height;
+          var max = 400, w = img.width, h = img.height;
           if (w > max) { h = Math.round(h * max / w); w = max; }
-          try { var c = el('canvas'); c.width = w; c.height = h; c.getContext('2d').drawImage(img, 0, 0, w, h); resolve(c.toDataURL('image/jpeg', 0.82)); }
+          try { var c = el('canvas'); c.width = w; c.height = h; c.getContext('2d').drawImage(img, 0, 0, w, h); resolve(c.toDataURL('image/webp', 0.70)); }
           catch (e) { resolve(fr.result); }
         };
         img.onerror = function () { resolve(fr.result); };
@@ -315,6 +353,7 @@
   }
 
   function overlayForm(opts) {
+    if (modalOpen()) return;
     var ov = overlay(), m = el('div', { class: 'sesd-modal' });
     m.appendChild(el('h3', {}, opts.title));
     var inputs = {};
@@ -351,6 +390,7 @@
   }
 
   function confirmDelete(label, onYes) {
+    if (modalOpen()) return;
     var ov = overlay(), m = el('div', { class: 'sesd-modal', style: 'width:360px' });
     m.appendChild(el('h3', {}, 'Hapus ' + label + '?'));
     m.appendChild(el('p', { style: 'color:var(--text-muted);font-size:.85rem;margin-bottom:1rem' }, 'Tindakan ini tidak dapat dibatalkan.'));
@@ -389,8 +429,9 @@
     });
   }
   function openAssetDetail(r) {
+    if (modalOpen()) return;
     var ov = overlay(), m = el('div', { class: 'sesd-modal', style: 'width:520px' });
-    m.appendChild(el('img', { src: r.image || PLACEHOLDER, style: 'width:100%;height:180px;object-fit:cover;border-radius:12px;background:linear-gradient(135deg,#eef2ff,#e0e7ff)' }));
+    m.appendChild(el('img', { src: r.image || PLACEHOLDER, style: 'width:100%;height:180px;object-fit:cover;border-radius:12px;background:linear-gradient(135deg,#eef4fb,#e3f0fb)' }));
     m.appendChild(el('div', { style: 'font-family:"JetBrains Mono",monospace;font-size:.72rem;color:var(--text-muted);margin-top:.75rem' }, r.code || ''));
     m.appendChild(el('h3', { style: 'font-size:1.3rem;font-weight:800;margin:2px 0' }, r.name || ''));
     m.appendChild(el('p', { style: 'color:var(--text-muted);font-size:.85rem;margin-bottom:1rem' }, r.brand || ''));
@@ -429,6 +470,185 @@
     edit.addEventListener('click', function (e) { e.stopPropagation(); openAssetForm(rec); });
     del.addEventListener('click', function (e) { e.stopPropagation(); confirmDelete('aset "' + rec.name + '"', async function () { await DB.deleteAsset(rec.id); toast('Aset dihapus', 'success'); reloadData(); }); });
     bar.appendChild(edit); bar.appendChild(del); card.appendChild(bar);
+  }
+
+  /* ---- grouped asset view: many identical items (same name+category) collapse
+          into one tidy card, while each physical unit stays individual in the DB ---- */
+  function groupAssets(list) {
+    var map = {}, order = [];
+    list.forEach(function (a) {
+      var key = (a.name || '').trim().toLowerCase() + '|' + (a.category || '').toLowerCase();
+      var g = map[key];
+      if (!g) { g = map[key] = { name: a.name, category: a.category, brand: a.brand, room: a.room, type: a.type, condition: a.condition, image: a.image, units: [], stock_total: 0, stock_available: 0, stock_borrowed: 0 }; order.push(key); }
+      g.units.push(a);
+      g.stock_total += (a.stock_total != null ? a.stock_total : 1);
+      g.stock_available += (a.stock_available || 0);
+      g.stock_borrowed += (a.stock_borrowed || 0);
+      if (!g.image && a.image) g.image = a.image;
+      if (g.brand && a.brand && g.brand !== a.brand) g.brand = 'Beragam';
+      if (g.room && a.room && g.room !== a.room) g.room = 'Beberapa ruangan';
+    });
+    return order.map(function (k) {
+      var g = map[k];
+      g.available = g.stock_available;
+      g.code = g.units.length > 1 ? (g.units.length + ' unit') : (g.units[0].code || '');
+      return g;
+    }).sort(function (x, y) { return (x.name || '').localeCompare(y.name || ''); });
+  }
+  function openGroupDetail(g) {
+    if (modalOpen()) return;
+    var ov = overlay(), m = el('div', { class: 'sesd-modal', style: 'width:560px' });
+    m.appendChild(el('h3', {}, g.name || 'Aset'));
+    m.appendChild(el('div', { style: 'color:var(--text-muted);font-size:.82rem;margin:-6px 0 12px' }, (g.category || '-') + (g.brand ? (' · ' + g.brand) : '')));
+    var sum = el('div', { style: 'display:flex;gap:.6rem;margin-bottom:1rem' });
+    [['Total', g.stock_total, 'var(--text)'], ['Tersedia', g.stock_available, 'rgb(16,185,129)'], ['Dipinjam', g.stock_borrowed, 'rgb(245,158,11)']].forEach(function (s) {
+      var b = el('div', { style: 'flex:1;text-align:center;background:var(--bg);border-radius:10px;padding:.6rem' });
+      b.appendChild(el('div', { style: 'font-size:1.2rem;font-weight:800;color:' + s[2] }, String(s[1] != null ? s[1] : 0)));
+      b.appendChild(el('div', { style: 'font-size:.7rem;color:var(--text-muted)' }, s[0]));
+      sum.appendChild(b);
+    });
+    m.appendChild(sum);
+    m.appendChild(el('div', { style: 'font-size:.72rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px' }, 'Pilih unit untuk dipinjam (' + g.units.length + ' terdaftar)'));
+    var selected = {};
+    var ajukan = el('button', { class: 'sesd-btn sesd-btn-success', style: 'flex:1' });
+    function refreshAjukan() {
+      var n = Object.keys(selected).length;
+      if (n) { ajukan.removeAttribute('disabled'); ajukan.style.opacity = '1'; ajukan.style.cursor = 'pointer'; ajukan.innerHTML = ic('clipboard') + ' Ajukan Pinjam (' + n + ')'; }
+      else { ajukan.setAttribute('disabled', ''); ajukan.style.opacity = '0.55'; ajukan.style.cursor = 'not-allowed'; ajukan.innerHTML = ic('clipboard') + ' Pilih unit untuk dipinjam'; }
+    }
+    var listWrap = el('div', { style: 'max-height:280px;overflow:auto;border:1px solid var(--border);border-radius:12px' });
+    g.units.forEach(function (u) {
+      var avail = (u.stock_available || 0) > 0;
+      var row = el('div', { style: 'display:flex;align-items:center;gap:8px;padding:.55rem .75rem;border-top:1px solid var(--border)' + (avail ? ';cursor:pointer' : '') });
+      if (avail) {
+        var box = el('div', { style: 'width:20px;height:20px;border-radius:6px;border:2px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#fff' });
+        var toggle = function () {
+          if (selected[u.id]) { delete selected[u.id]; box.style.background = 'transparent'; box.style.borderColor = 'var(--border)'; box.innerHTML = ''; row.style.background = ''; }
+          else { selected[u.id] = u; box.style.background = 'var(--primary)'; box.style.borderColor = 'var(--primary)'; box.innerHTML = ic('check'); row.style.background = 'var(--primary-light)'; }
+          refreshAjukan();
+        };
+        box.addEventListener('click', function (e) { e.stopPropagation(); toggle(); });
+        row.addEventListener('click', function (e) { if (e.target.closest('button')) return; toggle(); });
+        row.appendChild(box);
+      } else { row.appendChild(el('div', { style: 'width:20px;flex-shrink:0' })); }
+      var info = el('div', { style: 'flex:1;min-width:0' });
+      var line1 = el('div', { style: 'display:flex;align-items:baseline;gap:8px;flex-wrap:wrap' });
+      line1.appendChild(el('span', { style: 'font-family:"JetBrains Mono",monospace;font-size:.75rem;font-weight:700' }, u.code || '-'));
+      if (u.brand) line1.appendChild(el('span', { style: 'font-size:.78rem;font-weight:600;color:var(--text)' }, u.brand));
+      info.appendChild(line1);
+      info.appendChild(el('div', { style: 'font-size:.7rem;color:var(--text-muted)' }, (u.condition || 'Baik') + ' · ' + (avail ? 'Tersedia' : 'Dipinjam') + (u.qr_code ? (' · ' + u.qr_code) : '')));
+      row.appendChild(info);
+      var qrBtn = el('button', { class: 'sesd-btn sesd-btn-sm sesd-btn-ghost', html: ic('tag') + ' QR' });
+      qrBtn.addEventListener('click', function (e) { e.stopPropagation(); if (window.SESDIAN_QR) { ov.remove(); window.SESDIAN_QR.showFor(u); } else { toast('Modul QR belum siap', 'error'); } });
+      row.appendChild(qrBtn);
+      if (IS_ADMIN) {
+        var edit = el('button', { class: 'sesd-btn sesd-btn-sm sesd-btn-ghost', html: ic('pencil') });
+        edit.addEventListener('click', function (e) { e.stopPropagation(); ov.remove(); openAssetForm(u); });
+        var del = el('button', { class: 'sesd-btn sesd-btn-sm sesd-btn-danger', html: ic('trash') });
+        del.addEventListener('click', function (e) { e.stopPropagation(); ov.remove(); confirmDelete('aset "' + (u.code || u.name) + '"', async function () { await DB.deleteAsset(u.id); toast('Aset dihapus', 'success'); reloadData(); }); });
+        row.appendChild(edit); row.appendChild(del);
+      }
+      listWrap.appendChild(row);
+    });
+    m.appendChild(listWrap);
+    var dateWrap = el('div', { style: 'margin-top:.85rem' });
+    dateWrap.appendChild(el('label', { style: 'font-size:.72rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px' }, 'Tanggal Kembali'));
+    var dateInput = el('input', { type: 'date', value: '', style: 'width:100%;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:10px;font-size:.875rem;outline:none;box-sizing:border-box' });
+    dateWrap.appendChild(dateInput); m.appendChild(dateWrap);
+    var foot = el('div', { style: 'display:flex;gap:8px;margin-top:1rem' });
+    ajukan.addEventListener('click', async function () {
+      var ids = Object.keys(selected);
+      if (!ids.length) { toast('Pilih unit yang ingin dipinjam', 'error'); return; }
+      ajukan.disabled = true;
+      try {
+        for (var i = 0; i < ids.length; i++) await DB.requestBorrowing({ assetId: parseInt(ids[i], 10), qty: 1, dueDate: dateInput.value || null, notes: null });
+        toast('Pengajuan ' + ids.length + ' unit terkirim', 'success');
+        ov.remove();
+        if (page() === 'ajukanpinjam') setTimeout(function () { location.href = 'daftarpinjam.html'; }, 600); else reloadData();
+      } catch (e) { if (e && e.status === 401) { location.replace('login.html'); return; } toast((e && e.message) || 'Gagal mengirim pengajuan', 'error'); ajukan.disabled = false; }
+    });
+    var close = el('button', { class: 'sesd-btn sesd-btn-ghost' }, 'Tutup');
+    close.addEventListener('click', function () { ov.remove(); });
+    foot.appendChild(ajukan); foot.appendChild(close); m.appendChild(foot);
+    ov.appendChild(m); document.body.appendChild(ov);
+    ov.addEventListener('click', function (e) { if (e.target === ov) ov.remove(); });
+    refreshAjukan();
+  }
+
+  /* ---- Sedang Dipinjam: per-user view (staff) + own items (user) ---- */
+  function borrowedItemRow(b, staff, onChange) {
+    var row = el('div', { style: 'display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--border);border-radius:12px;padding:0.7rem 1rem;box-shadow:var(--shadow)' });
+    var info = el('div', { style: 'flex:1;min-width:0' });
+    info.appendChild(el('div', { style: 'font-weight:700;font-size:0.9rem' }, b.asset_name || '-'));
+    var st = STATUS[b.status] ? STATUS[b.status].label : b.status;
+    info.appendChild(el('div', { style: 'font-size:0.72rem;color:var(--text-muted)' }, (b.asset_code ? b.asset_code + ' · ' : '') + st + (b.due_date ? ' · jatuh tempo ' + String(b.due_date).slice(0, 10) : '')));
+    row.appendChild(info);
+    if (staff) {
+      var verify = el('button', { class: 'sesd-btn sesd-btn-sm sesd-btn-success' }, b.status === 'return_pending' ? 'Verifikasi Dikembalikan' : 'Tandai Dikembalikan');
+      verify.addEventListener('click', async function () {
+        verify.disabled = true;
+        try { await DB.updateBorrowingStatus(b.id, 'returned'); toast('Diverifikasi dikembalikan', 'success'); if (onChange) onChange(b); }
+        catch (e) { toast((e && e.message) || 'Gagal', 'error'); verify.disabled = false; }
+      });
+      row.appendChild(verify);
+    } else if (b.status === 'borrowed' || b.status === 'verified') {
+      var conf = el('button', { class: 'sesd-btn sesd-btn-sm sesd-btn-primary' }, 'Konfirmasi Pengembalian');
+      conf.addEventListener('click', function () { changeStatus(b, 'return_pending'); });
+      row.appendChild(conf);
+    } else { row.appendChild(el('span', { style: 'font-size:0.75rem;color:var(--text-muted)' }, 'Menunggu verifikasi admin')); }
+    return row;
+  }
+  function openUserBorrowedModal(name, items) {
+    if (modalOpen()) return;
+    var changed = false;
+    var ov = overlay(), m = el('div', { class: 'sesd-modal', style: 'width:560px' });
+    m.appendChild(el('h3', {}, name || 'Peminjam'));
+    var subtitle = el('div', { style: 'color:var(--text-muted);font-size:.82rem;margin:-6px 0 12px' }, items.length + ' barang sedang dipinjam');
+    m.appendChild(subtitle);
+    var listWrap = el('div', { style: 'display:flex;flex-direction:column;gap:8px;max-height:340px;overflow:auto' });
+    function onChange(b) {
+      changed = true;
+      var idx = items.indexOf(b); if (idx !== -1) items.splice(idx, 1);
+      subtitle.textContent = items.length + ' barang sedang dipinjam';
+      draw();
+      if (!items.length) { ov.remove(); reloadData(); }
+    }
+    function draw() { listWrap.innerHTML = ''; items.forEach(function (b) { listWrap.appendChild(borrowedItemRow(b, true, onChange)); }); }
+    draw();
+    m.appendChild(listWrap);
+    var foot = el('div', { style: 'display:flex;gap:8px;margin-top:1rem' });
+    var close = el('button', { class: 'sesd-btn sesd-btn-ghost', style: 'flex:1' }, 'Tutup');
+    close.addEventListener('click', function () { ov.remove(); if (changed) reloadData(); });
+    foot.appendChild(close); m.appendChild(foot);
+    ov.appendChild(m); document.body.appendChild(ov);
+    ov.addEventListener('click', function (e) { if (e.target === ov) { ov.remove(); if (changed) reloadData(); } });
+  }
+  function renderDipinjam(out) {
+    var root = $('[data-dipinjam]'); if (!root) return;
+    root.innerHTML = '';
+    if (!out.length) { appendEmpty(root, 'Tidak ada barang yang sedang dipinjam.'); return; }
+    if (IS_STAFF) {
+      var byUser = {}, order = [];
+      out.forEach(function (b) { var k = b.borrower || '-'; if (!byUser[k]) { byUser[k] = []; order.push(k); } byUser[k].push(b); });
+      root.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:1rem';
+      order.forEach(function (name) {
+        var items = byUser[name];
+        var waiting = items.filter(function (b) { return b.status === 'return_pending'; }).length;
+        var card = el('div', { style: 'background:#fff;border-radius:16px;border:1px solid var(--border);box-shadow:var(--shadow);padding:1.1rem;cursor:pointer;transition:transform .15s' });
+        card.addEventListener('mouseenter', function () { card.style.transform = 'translateY(-3px)'; });
+        card.addEventListener('mouseleave', function () { card.style.transform = 'none'; });
+        card.addEventListener('click', function () { openUserBorrowedModal(name, items.slice()); });
+        var head = el('div', { style: 'display:flex;align-items:center;gap:10px;margin-bottom:8px' });
+        head.appendChild(el('div', { style: 'width:40px;height:40px;border-radius:11px;flex-shrink:0;background:linear-gradient(135deg,rgb(99,102,241),rgb(139,92,246));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:0.8rem' }, initials(name)));
+        head.appendChild(el('div', { style: 'font-weight:700;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap' }, name));
+        card.appendChild(head);
+        card.appendChild(el('div', { style: 'font-size:0.8rem;color:var(--text-muted)' }, items.length + ' barang' + (waiting ? (' · ' + waiting + ' menunggu verifikasi') : '')));
+        root.appendChild(card);
+      });
+    } else {
+      root.style.cssText = 'display:flex;flex-direction:column;gap:8px';
+      out.forEach(function (b) { root.appendChild(borrowedItemRow(b, false)); });
+    }
   }
 
   function openCategoryForm(rec) {
@@ -498,15 +718,20 @@
     var cell = el('td', { style: 'padding:0.875rem 1rem' });           // dedicated Aksi cell (never the date cell)
     var bar = el('div', { class: 'sesd-admin-actions' });
     var btns = [];
-    if (IS_ADMIN) {
-      if (rec.status === 'pending') { btns.push(['Setujui', 'success', function () { changeStatus(rec, 'approved'); }], ['Tolak', 'danger', function () { changeStatus(rec, 'rejected'); }]); }
-      else if (rec.status === 'approved') { btns.push(['Pinjamkan', 'primary', function () { changeStatus(rec, 'borrowed'); }], ['Tolak', 'danger', function () { changeStatus(rec, 'rejected'); }]); }
-      else if (rec.status === 'borrowed') { btns.push(['Kembalikan', 'ghost', function () { changeStatus(rec, 'returned'); }]); }
-      if (isOverdue(rec) && (rec.status === 'approved' || rec.status === 'borrowed')) btns.unshift(['Ingatkan WA', 'warning', function () { doNotify(rec, 'remind', 'Pengingat dikirim ke peminjam'); }]);
-    } else if (rec.status === 'approved' || rec.status === 'borrowed') {
-      btns.push(['Konfirmasi Pengembalian', 'primary', function () { doNotify(rec, 'return-request', 'Konfirmasi dikirim ke admin'); }]);
+    // Dual verification: pending --admin--> approved --verifikator--> verified --staff--> borrowed --staff--> returned
+    if (IS_STAFF) {
+      if (IS_ADMIN && rec.status === 'pending') { btns.push(['Setujui (Verifikasi 1)', 'success', function () { changeStatus(rec, 'approved'); }], ['Tolak', 'danger', function () { changeStatus(rec, 'rejected'); }]); }
+      else if (IS_VERIFIKATOR && rec.status === 'approved') { btns.push(['Verifikasi (Verifikasi 2)', 'success', function () { changeStatus(rec, 'borrowed'); }], ['Tolak', 'danger', function () { changeStatus(rec, 'rejected'); }]); }
+      else if (rec.status === 'borrowed' || rec.status === 'verified') { btns.push(['Kembalikan', 'success', function () { changeStatus(rec, 'returned'); }]); }
+      else if (rec.status === 'return_pending') { btns.push(['Verifikasi Pengembalian', 'success', function () { changeStatus(rec, 'returned'); }], ['Tolak', 'danger', function () { changeStatus(rec, 'borrowed'); }]); }
+      else if (IS_ADMIN && rec.status === 'approved') { cell._note = 'Menunggu verifikator'; }
+      if (isOverdue(rec) && (rec.status === 'borrowed' || rec.status === 'verified')) btns.unshift(['Ingatkan WA', 'warning', function () { doNotify(rec, 'remind', 'Pengingat dikirim ke peminjam'); }]);
+    } else if (rec.status === 'borrowed' || rec.status === 'verified') {
+      btns.push(['Konfirmasi Pengembalian', 'primary', function () { changeStatus(rec, 'return_pending'); }]);
+    } else if (rec.status === 'return_pending') {
+      cell._note = 'Menunggu verifikasi admin';
     }
-    if (!btns.length) cell.appendChild(el('span', { style: 'color:var(--text-muted);font-size:.78rem' }, '-'));
+    if (!btns.length) cell.appendChild(el('span', { style: 'color:var(--text-muted);font-size:.78rem' }, cell._note || '-'));
     btns.forEach(function (a) {
       var b = el('button', { class: 'sesd-btn sesd-btn-sm sesd-btn-' + a[1] }, a[0]);
       b.addEventListener('click', function (e) { e.stopPropagation(); a[2](); });
@@ -516,10 +741,19 @@
     row.appendChild(cell);
   }
 
+  var ROLE_META = {
+    admin: ['Admin', 'shield', '#e3f0fb', '#005bab'],
+    verifikator: ['Verifikator', 'check_circle', '#daf0ef', '#1c6e6a'],
+    user: ['User', 'user', '#eceae7', '#615d59'],
+  };
+  function roleBadge(role) {
+    var m = ROLE_META[role] || ROLE_META.user;
+    return el('span', { class: 'sesd-role', style: 'background:' + m[2] + ';color:' + m[3], html: ic(m[1]) + ' ' + m[0] });
+  }
   async function renderUsers() {
     var list = $('[data-users-list]'); if (!list) return;
     var users = [];
-    try { users = await DB.users(); } catch (e) { if (e && e.status === 401) { location.replace('login.html'); return; } toast((e && e.message) || 'Gagal memuat user', 'error'); }
+    try { users = await (DB.usersFresh ? DB.usersFresh() : DB.users()); } catch (e) { if (e && e.status === 401) { location.replace('login.html'); return; } toast((e && e.message) || 'Gagal memuat user', 'error'); }
     var cnt = $('[data-users-count]'); if (cnt) cnt.textContent = users.length;
     list.innerHTML = '';
     if (!users.length) { appendEmpty(list); return; }
@@ -529,14 +763,36 @@
       tr.appendChild(el('td', { style: td + ';font-weight:600' }, u.name));
       tr.appendChild(el('td', { style: td + ';color:var(--text-muted);font-family:"JetBrains Mono",monospace;font-size:0.8rem' }, u.nip));
       var roleTd = el('td', { style: td });
-      roleTd.appendChild(el('span', { class: 'sesd-role sesd-role-' + (u.role === 'admin' ? 'admin' : 'user'), html: (u.role === 'admin' ? ic('shield') + ' Admin' : ic('user') + ' User') }));
+      roleTd.appendChild(roleBadge(u.role));
       tr.appendChild(roleTd);
       var actTd = el('td', { style: td });
-      var toAdmin = u.role !== 'admin';
-      var btn = el('button', { class: 'sesd-btn sesd-btn-sm ' + (toAdmin ? 'sesd-btn-primary' : 'sesd-btn-ghost') }, toAdmin ? 'Jadikan Admin' : 'Jadikan User');
-      btn.addEventListener('click', async function () { try { await DB.setUserRole(u.id, toAdmin ? 'admin' : 'user'); toast('Role diperbarui', 'success'); renderUsers(); } catch (e) { toast((e && e.message) || 'Gagal', 'error'); } });
-      actTd.appendChild(btn); tr.appendChild(actTd);
+      var wrap = el('div', { style: 'display:flex;gap:6px;align-items:center;flex-wrap:wrap' });
+      var sel = el('select', { class: 'sesd-role-select' });   // #9 — rounded, height-matched to the action button
+      ['user', 'verifikator', 'admin'].forEach(function (r) { var o = el('option', { value: r }, ROLE_META[r][0]); if (u.role === r) o.selected = true; sel.appendChild(o); });
+      sel.addEventListener('change', async function () { try { await DB.setUserRole(u.id, sel.value); toast('Role diperbarui', 'success'); renderUsers(); } catch (e) { toast((e && e.message) || 'Gagal', 'error'); renderUsers(); } });
+      var del = el('button', { class: 'sesd-btn sesd-btn-sm sesd-btn-danger', html: ic('trash') });
+      del.addEventListener('click', function () { confirmDelete('user "' + u.name + '"', async function () { await DB.deleteUser(u.id); toast('User dihapus', 'success'); renderUsers(); }); });
+      wrap.appendChild(sel); wrap.appendChild(del);
+      actTd.appendChild(wrap); tr.appendChild(actTd);
       list.appendChild(tr);
+    });
+  }
+  function openUserForm() {
+    overlayForm({
+      title: 'Tambah User', submitLabel: 'Tambah',
+      fields: [
+        { name: 'name', label: 'Nama Lengkap' },
+        { name: 'nip', label: 'NIP' },
+        { name: 'password', label: 'Password (min. 8 karakter)', type: 'password' },
+        { name: 'role', label: 'Role', type: 'select', value: 'user', options: [{ value: 'user', label: 'User' }, { value: 'verifikator', label: 'Verifikator' }, { value: 'admin', label: 'Admin' }] },
+        { name: 'phone', label: 'No. HP / WhatsApp (opsional)' },
+      ],
+      onSave: async function (v) {
+        if (!v.name || !v.nip) throw new Error('Nama dan NIP wajib diisi');
+        if (!v.password || v.password.length < 8) throw new Error('Password minimal 8 karakter');
+        await DB.createUser({ nip: v.nip, name: v.name, password: v.password, role: v.role, phone: v.phone });
+        toast('User ditambahkan', 'success'); reloadData();
+      },
     });
   }
 
@@ -553,31 +809,165 @@
     });
   }
 
-  function injectAdminNav() {
-    if ($('aside a[href="users.html"]')) { markUsersActive(); return; }
+  function sectionHeader(label) {
+    // Theme-variable colours so every section header (UTAMA/ASET/PEMINJAMAN/MANAJEMEN)
+    // renders identically — including the ones injected by JS — and adapts to light/dark.
+    var divider = '<div style="flex:1 1 0%;height:2px;background:var(--sidebar-divider);border-radius:2px"></div>';
+    return el('div', { style: 'display:flex;align-items:center;gap:6px;padding:0.6rem 0.5rem 0.25rem', html: divider + '<span style="font-size:0.55rem;color:var(--text-muted);font-weight:800;letter-spacing:1.5px;white-space:nowrap">' + label + '</span>' + divider });
+  }
+  function makeNavLink(href, iconName, title, subtitle) {
+    var active = (page() + '.html') === href;
+    var base = 'display:flex;align-items:center;gap:10px;padding:0.55rem 0.75rem;border-radius:10px;margin-bottom:2px;text-decoration:none;transition:0.18s;justify-content:flex-start;';
+    var style = active
+      ? base + 'color:rgb(255,255,255);background:rgb(245,158,11);box-shadow:rgba(245,158,11,0.35) 0px 4px 12px;'
+      : base + 'color:rgb(100,116,139);background:transparent;box-shadow:none;';
+    var sub = active ? 'rgba(255,255,255,0.6)' : 'var(--text-muted)';
+    var icon = (window.SESDIAN_ICONS && window.SESDIAN_ICONS[iconName]) || '';
+    return el('a', { href: href, style: style, html: '<span class="ic" style="font-size:1rem;flex-shrink:0;line-height:1">' + icon + '</span><div style="overflow:hidden;flex:1 1 0%"><div style="font-size:0.8rem;font-weight:' + (active ? '700' : '500') + ';white-space:nowrap;color:inherit">' + title + '</div><div style="font-size:0.62rem;color:' + sub + ';white-space:nowrap;margin-top:1px">' + subtitle + '</div></div>' });
+  }
+  function injectRoleNav() {
+    if (!IS_STAFF) return;
+    if ($('aside [data-role-nav]')) return;
     var ref = $('aside a[href="ajukanpinjam.html"]'); if (!ref) return;
     var navContainer = ref.parentNode.parentNode;
-    var sec = el('div', { style: 'margin-bottom:0.25rem' });
-    sec.appendChild(el('div', { style: 'display:flex;align-items:center;gap:6px;padding:0.6rem 0.5rem 0.25rem', html: '<div style="flex:1 1 0%;height:1px;background:rgb(26,37,64)"></div><span style="font-size:0.55rem;color:rgb(51,65,85);font-weight:800;letter-spacing:1.5px;white-space:nowrap">ADMIN</span><div style="flex:1 1 0%;height:1px;background:rgb(26,37,64)"></div>' }));
-    var a = el('a', { href: 'users.html', style: 'display:flex;align-items:center;gap:10px;padding:0.55rem 0.75rem;border-radius:10px;margin-bottom:2px;color:rgb(100,116,139);background:transparent;text-decoration:none', html: '<span class="ic" style="font-size:1rem;flex-shrink:0;line-height:1">' + (window.SESDIAN_ICONS && window.SESDIAN_ICONS.users || '') + '</span><div style="overflow:hidden;flex:1 1 0%"><div style="font-size:0.8rem;font-weight:500;white-space:nowrap;color:inherit">Kelola User</div><div style="font-size:0.62rem;color:rgb(51,65,85);white-space:nowrap;margin-top:1px">User &amp; admin</div></div>' });
-    sec.appendChild(a); navContainer.appendChild(sec);
-    markUsersActive();
+    var sec = el('div', { 'data-role-nav': '', style: 'margin-bottom:0.25rem' });
+    sec.appendChild(sectionHeader('MANAJEMEN'));
+    sec.appendChild(makeNavLink('laporan.html', 'chart', 'Laporan', 'Harian · bulanan'));
+    sec.appendChild(makeNavLink('verifikasi.html', 'check_circle', 'Verifikasi', 'Persetujuan ke-2'));
+    if (IS_ADMIN) sec.appendChild(makeNavLink('users.html', 'users', 'Kelola User', 'User & admin'));
+    navContainer.appendChild(sec);
   }
-  function markUsersActive() {
-    if (page() !== 'users') return;
-    var a = $('aside a[href="users.html"]'); if (!a) return;
-    a.style.color = 'rgb(255,255,255)'; a.style.background = 'rgb(245,158,11)'; a.style.boxShadow = 'rgba(245,158,11,0.35) 0px 4px 12px';
-    var lbl = a.querySelector('div div'); if (lbl) lbl.style.fontWeight = '700';
+
+  /* ---------------- dynamic app shell (for new pages that opt in) ----------------
+     A page using <aside data-shell></aside> + a sticky <div data-topbar></div>
+     gets the standard sidebar + topbar built here, so it needs no copied markup. */
+  var PAGE_TITLES = { dashboard: 'Dashboard', dataaset: 'Data Aset', kategoriaset: 'Kategori Aset', ruangan: 'Ruangan', daftarpinjam: 'Daftar Pinjam', ajukanpinjam: 'Ajukan Pinjam', dipinjam: 'Sedang Dipinjam', users: 'Kelola User', verifikasi: 'Verifikasi', laporan: 'Laporan' };
+  // Per-page chrome icons (topbar breadcrumb). NAV_ICONS keys map a sidebar link's
+  // href → the same icon, so the menu and the header always agree (fixes the old
+  // hard-coded "home" icon that showed on every page — see REDESIGN-GUIDE #2/#5).
+  var PAGE_ICONS = { dashboard: 'zap', dataaset: 'package', kategoriaset: 'tag', ruangan: 'home', daftarpinjam: 'refresh', ajukanpinjam: 'clipboard', dipinjam: 'clock', users: 'users', verifikasi: 'check_circle', laporan: 'chart', katalog: 'search' };
+  var NAV_ICONS = { 'dashboard.html': 'zap', 'dataaset.html': 'package', 'kategoriaset.html': 'tag', 'ruangan.html': 'home', 'daftarpinjam.html': 'refresh', 'ajukanpinjam.html': 'clipboard', 'dipinjam.html': 'clock', 'users.html': 'users', 'verifikasi.html': 'check_circle', 'laporan.html': 'chart', 'katalog.html': 'search' };
+  function pageIcon(p) { return (window.SESDIAN_ICONS && window.SESDIAN_ICONS[PAGE_ICONS[p] || 'home']) || ''; }
+  // "Sedang Dipinjam" link for everyone (added into the PEMINJAMAN section).
+  function injectBorrowedNav() {
+    if ($('aside a[href="dipinjam.html"]')) return;
+    var ref = $('aside a[href="daftarpinjam.html"]'); if (!ref) return;
+    ref.parentNode.insertBefore(makeNavLink('dipinjam.html', 'clock', 'Sedang Dipinjam', 'Barang belum kembali'), ref.nextSibling);
+  }
+  function navSection(label, links) { var d = el('div', { style: 'margin-bottom:0.25rem' }); d.appendChild(sectionHeader(label)); links.forEach(function (l) { d.appendChild(l); }); return d; }
+  function buildShell() {
+    var aside = $('aside[data-shell]');
+    if (aside && !aside.children.length) {
+      aside.appendChild(el('div', { style: 'padding:1rem;border-bottom:1px solid rgb(26,37,64);display:flex;align-items:center;gap:8px;min-height:60px', html: '<div><div style="font-size:1.15rem;font-weight:900;color:var(--text);letter-spacing:-0.5px;line-height:1">SES<span style="color:rgb(99,102,241)">DIAN</span></div><div style="font-size:0.55rem;color:var(--text-muted);margin-top:3px;font-family:\'JetBrains Mono\';letter-spacing:2px">ASSET MANAGEMENT</div></div>' }));
+      var nav = el('div', { style: 'flex:1 1 0%;overflow:hidden auto;padding:0.5rem' });
+      nav.appendChild(navSection('UTAMA', [makeNavLink('dashboard.html', 'zap', 'Dashboard', 'Ringkasan & statistik')]));
+      nav.appendChild(navSection('ASET', [makeNavLink('dataaset.html', 'package', 'Data Aset', 'Lihat semua aset'), makeNavLink('kategoriaset.html', 'tag', 'Kategori Aset', 'Jenis-jenis aset'), makeNavLink('ruangan.html', 'home', 'Ruangan', 'Daftar ruangan')]));
+      nav.appendChild(navSection('PEMINJAMAN', [makeNavLink('daftarpinjam.html', 'refresh', 'Daftar Pinjam', 'Riwayat peminjaman'), makeNavLink('ajukanpinjam.html', 'clipboard', 'Ajukan Pinjam', 'Request baru')]));
+      aside.appendChild(nav);
+      aside.appendChild(el('div', { style: 'padding:0.75rem;border-top:1px solid rgb(26,37,64)', html: '<div style="display:flex;align-items:center;gap:8px;padding:0.6rem;border-radius:10px;background:linear-gradient(135deg,rgb(26,37,64),rgb(15,23,42));border:1px solid rgb(30,41,59)"><div data-user-initials style="width:34px;height:34px;border-radius:9px;flex-shrink:0;background:linear-gradient(135deg,rgb(99,102,241),rgb(139,92,246));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:0.75rem">AS</div><div style="flex:1 1 0%;min-width:0px"><div data-user-name style="color:rgb(226,232,240);font-size:0.75rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Pengguna</div><div data-user-role style="color:rgb(51,65,85);font-size:0.6rem;text-transform:uppercase;letter-spacing:1px">user</div></div><button data-action="logout" style="background:transparent;border:1px solid rgb(30,41,59);color:rgb(71,85,105);cursor:pointer;font-size:0.7rem;padding:0.25rem 0.5rem;border-radius:6px;flex-shrink:0">Keluar</button></div>' }));
+    }
+    var top = $('[data-topbar]');
+    if (top && !top.children.length) {
+      top.appendChild(el('div', { class: 'sesd-topbar-crumb', style: 'display:flex;align-items:center;gap:8px', html: '<span class="ic" style="color:var(--text-muted);display:inline-flex">' + pageIcon(page()) + '</span><span style="color:var(--text);font-weight:600;font-size:0.9rem;white-space:nowrap">' + (PAGE_TITLES[page()] || '') + '</span>' }));
+      top.appendChild(el('div', { style: 'display:flex;align-items:center;gap:6px', html: '<div style="width:7px;height:7px;border-radius:50%;background:rgb(16,185,129);box-shadow:rgba(16,185,129,0.2) 0px 0px 0px 3px"></div><span style="font-size:0.75rem;color:rgb(100,116,139);font-weight:500">Online</span>' }));
+    }
+  }
+
+  /* ---------------- chrome normalizer (REDESIGN-GUIDE #1/#2/#3/#5) ----------------
+     One source of truth that runs on every authed page — static-shell or
+     dynamic-shell alike — so the brand logo, sidebar icons and topbar breadcrumb
+     are identical everywhere instead of being hand-maintained across 7 HTML files. */
+  function installBrandLogo() {
+    var aside = $('aside'); if (!aside) return;
+    var head = aside.firstElementChild; if (!head || head.querySelector('.sesd-brand-logo')) return;
+    var img = el('img', { class: 'sesd-brand-logo', src: 'logosesdian.png', alt: 'SESDIAN' });
+    head.insertBefore(img, head.firstChild);
+    // Hide the now-redundant text wordmark (the logo already reads "SESDiAN").
+    var wm = head.querySelector('div'); if (wm) wm.classList.add('sesd-brand-wordmark');
+  }
+  function normalizeSidebarIcons() {
+    $$('aside a[href]').forEach(function (a) {
+      var href = (a.getAttribute('href') || '').split('/').pop();
+      var name = NAV_ICONS[href]; if (!name) return;
+      var icon = (window.SESDIAN_ICONS && window.SESDIAN_ICONS[name]) || '';
+      var slot = a.querySelector('.ic'); if (slot && icon) slot.innerHTML = icon;
+    });
+  }
+  function normalizeTopbar() {
+    var header = $('[data-topbar]') || ($('main') && $('main').firstElementChild);
+    if (!header) return;
+    header.classList.add('sesd-topbar');
+    var left = header.firstElementChild; if (!left) return;
+    left.className = 'sesd-topbar-crumb';
+    left.setAttribute('style', 'display:flex;align-items:center;gap:8px;min-width:0');
+    left.innerHTML = '<span class="ic" style="color:var(--text-muted);display:inline-flex;flex-shrink:0">' + pageIcon(page()) +
+      '</span><span style="color:var(--text);font-weight:600;font-size:0.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' +
+      (PAGE_TITLES[page()] || '') + '</span>';
+    // #3 — header stays pinned and casts a subtle shadow once the page scrolls.
+    if (!header._sesdScroll) {
+      header._sesdScroll = true;
+      var mainEl = $('main');
+      var onScroll = function () {
+        var y = Math.max(window.pageYOffset || 0, document.documentElement.scrollTop || 0, mainEl ? mainEl.scrollTop : 0);
+        header.classList.toggle('sesd-scrolled', y > 4);
+      };
+      window.addEventListener('scroll', onScroll, { passive: true });
+      if (mainEl) mainEl.addEventListener('scroll', onScroll, { passive: true });
+      onScroll();
+    }
+  }
+  function normalizeChrome() {
+    installBrandLogo();
+    normalizeSidebarIcons();
+    normalizeTopbar();
   }
 
   function injectAdminBars() {
     var p = page();
     var content = $$('main > div').pop(); if (!content) return;
     var inner = content.firstElementChild || content;
-    function bar(label, onClick) { var b = el('button', { class: 'sesd-btn sesd-btn-primary' }, label); b.addEventListener('click', onClick); var wrap = el('div', { class: 'sesd-admin-bar' }); wrap.appendChild(b); inner.insertBefore(wrap, inner.firstChild); }
-    if (p === 'dataaset') bar('Tambah Aset', function () { openAssetForm(null); });
-    else if (p === 'kategoriaset') bar('Tambah Kategori', function () { openCategoryForm(null); });
-    else if (p === 'ruangan') bar('Tambah Ruangan', function () { openRoomForm(null); });
+    function bar(buttons) {
+      var wrap = el('div', { class: 'sesd-admin-bar' });
+      buttons.forEach(function (b) {
+        var btn = el('button', { class: 'sesd-btn sesd-btn-' + (b.variant || 'primary'), html: (b.icon ? ic(b.icon) + ' ' : '') + b.label });
+        btn.addEventListener('click', b.onClick); wrap.appendChild(btn);
+      });
+      // #3 — dock the action buttons to the right of the page title instead of
+      // stacking them above the management area.
+      var h1 = inner.querySelector('h1');
+      if (h1) {
+        var titleBlock = h1.parentElement;                 // wrapper holding the <h1> (+ subtitle)
+        var row = titleBlock && titleBlock.parentElement;  // the row that the title block sits in
+        var rowIsFlexHeader = row && /space-between/.test(row.getAttribute('style') || '');
+        wrap.style.marginBottom = '0';
+        wrap.style.alignSelf = 'center';
+        if (rowIsFlexHeader) {
+          // Existing header is already a flex space-between row → just add the bar on the right.
+          wrap.style.marginLeft = 'auto';
+          row.appendChild(wrap);
+        } else {
+          // Title and subtitle live bare in their wrapper → turn it into a header row.
+          var textBlock = el('div');
+          while (titleBlock.firstChild) textBlock.appendChild(titleBlock.firstChild);
+          titleBlock.style.display = 'flex';
+          titleBlock.style.justifyContent = 'space-between';
+          titleBlock.style.alignItems = 'center';
+          titleBlock.style.flexWrap = 'wrap';
+          titleBlock.style.gap = '12px';
+          titleBlock.appendChild(textBlock);
+          titleBlock.appendChild(wrap);
+        }
+      } else {
+        inner.insertBefore(wrap, inner.firstChild);
+      }
+    }
+    if (p === 'dataaset') bar([
+      { label: 'Tambah Aset', icon: 'package', onClick: function () { openAssetForm(null); } },
+      { label: 'Import Excel', variant: 'success', icon: 'archive', onClick: function () { if (window.SESDIAN_IMPORT) window.SESDIAN_IMPORT.open(); else toast('Modul import belum siap', 'error'); } },
+    ]);
+    else if (p === 'kategoriaset') bar([{ label: 'Tambah Kategori', onClick: function () { openCategoryForm(null); } }]);
+    else if (p === 'ruangan') bar([{ label: 'Tambah Ruangan', onClick: function () { openRoomForm(null); } }]);
+    else if (p === 'users') bar([{ label: 'Tambah User', icon: 'user', onClick: function () { openUserForm(); } }]);
   }
 
   /* ---------------- password toggle ---------------- */
@@ -679,12 +1069,119 @@
       window.open('https://wa.me/' + s.wa_number + '?text=' + encodeURIComponent(msg), '_blank');
     } catch (e) {}
   }
+  /* ajukan pinjam: grouped by item type (like Data Aset), pick a quantity per
+     type. Each unit is still a separate borrowing in the DB. */
+  // Ajukan Pinjam page: grouped cards (like Data Aset). Click a card -> detail
+  // modal where the exact unit(s) to borrow are picked. The old right-side
+  // "Detail Peminjaman" panel is hidden since borrowing now happens in the modal.
+  /* ---- Data Aset grid: built fully in JS so we control empty chips (#6),
+          the X/Y stock format (#7) and a meaningful availability badge (#8).
+          Theme-aware via CSS classes (no hard-coded colours) — see #4. ---- */
+  function assetChip(iconName, text) {
+    if (text == null || String(text).trim() === '') return null;   // #6 — never render an empty chip
+    var chip = el('span', { class: 'sesd-aset-chip' });
+    chip.innerHTML = ic(iconName);
+    chip.appendChild(el('span', {}, String(text)));
+    return chip;
+  }
+  function renderAssetGrid(groups) {
+    var grid = $('[data-list="assets"]'); if (!grid) return;
+    grid.innerHTML = '';                                          // drops the hidden seed template too
+    if (!groups.length) { appendEmpty(grid, 'Belum ada aset.'); return; }
+    groups.forEach(function (g, index) {
+      var avail = g.available || 0, total = g.stock_total || 0, borrowed = g.stock_borrowed || 0;
+      var isNon = (g.type || '').toLowerCase() === 'non-bmn';
+      var card = el('div', {
+        'data-search-item': 'assets',
+        'data-type': isNon ? 'non-bmn' : 'bmn',
+        'data-status': avail > 0 ? 'available' : 'borrowed',
+        class: 'sesd-aset-card' + (index < 16 ? ' animate-fade-up' : ''),
+      });
+      card.addEventListener('click', function (ev) { if (ev.target.closest('.sesd-admin-actions')) return; openGroupDetail(g); });
+      if (g.image) {
+        var band = el('div', { class: 'sesd-aset-img' });
+        band.appendChild(el('img', { src: g.image, alt: '', loading: 'lazy', decoding: 'async' }));
+        card.appendChild(band);
+      }
+      var body = el('div', { class: 'sesd-aset-body' });
+      var top = el('div', { class: 'sesd-aset-top' });
+      top.appendChild(el('span', { class: 'sesd-aset-type ' + (isNon ? 'is-non' : 'is-bmn') }, isNon ? 'Non-BMN' : 'BMN'));
+      var availBadge = el('span', { class: 'sesd-aset-avail ' + (avail > 0 ? 'is-ok' : 'is-out') });
+      availBadge.innerHTML = ic(avail > 0 ? 'check_circle' : 'x');   // #8 — clear status, no stray "-"
+      availBadge.appendChild(el('span', {}, avail > 0 ? ('Tersedia ' + avail) : 'Habis'));
+      top.appendChild(availBadge);
+      body.appendChild(top);
+      if (g.code) body.appendChild(el('div', { class: 'sesd-aset-code' }, g.code));
+      body.appendChild(el('div', { class: 'sesd-aset-name' }, g.name || '-'));
+      var chips = el('div', { class: 'sesd-aset-chips' });
+      [['tag', g.category], ['factory', g.brand], ['pin', g.room]].forEach(function (c) {
+        var ch = assetChip(c[0], c[1]); if (ch) chips.appendChild(ch);
+      });
+      if (chips.children.length) body.appendChild(chips);
+      var stock = el('div', { class: 'sesd-aset-stock' });
+      var sr = el('div', { class: 'sesd-aset-stock-row' });
+      sr.appendChild(el('span', { class: 'sesd-aset-stock-label' }, 'STOK'));
+      var num = el('span', { class: 'sesd-aset-stock-num' });       // #7 — "16/16" with a slash
+      num.appendChild(el('span', { class: 'is-avail' }, String(avail)));
+      num.appendChild(el('span', { class: 'is-sep' }, '/'));
+      num.appendChild(el('span', { class: 'is-total' }, String(total)));
+      sr.appendChild(num); stock.appendChild(sr);
+      var bar = el('div', { class: 'sesd-aset-bar' });
+      bar.appendChild(el('div', { class: 'sesd-aset-bar-fill', style: 'width:' + (total ? Math.round((avail / total) * 100) : 0) + '%' }));
+      stock.appendChild(bar);
+      if (borrowed > 0) {
+        var bnote = el('div', { class: 'sesd-aset-borrowed' });
+        bnote.innerHTML = ic('refresh');
+        bnote.appendChild(el('span', {}, borrowed + ' dipinjam'));
+        stock.appendChild(bnote);
+      }
+      body.appendChild(stock);
+      if (g.condition) body.appendChild(el('span', { class: 'sesd-aset-cond' }, g.condition));
+      card.appendChild(body);
+      grid.appendChild(card);
+    });
+  }
+
+  function buildAjukanList(groups) {
+    var container = $('[data-list="assets"]'); if (!container) return;
+    var leftCol = container.parentNode, grid = leftCol && leftCol.parentNode;
+    if (grid) { grid.style.gridTemplateColumns = '1fr'; var sb = grid.children[1]; if (sb && sb !== leftCol) sb.style.display = 'none'; }
+    container.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:1rem';
+    container.innerHTML = '';
+    var availTotal = 0;
+    if (!groups.length) { appendEmpty(container, 'Belum ada aset.'); return; }
+    groups.forEach(function (g) {
+      var avail = g.units.filter(function (u) { return (u.stock_available || 0) > 0; }).length;
+      availTotal += avail;
+      var card = el('div', { 'data-search-item': 'assets', 'data-status': avail > 0 ? 'available' : 'unavailable', style: 'background:#fff;border-radius:16px;border:1px solid var(--border);box-shadow:var(--shadow);padding:1rem;cursor:pointer;transition:transform .15s' });
+      card.addEventListener('mouseenter', function () { card.style.transform = 'translateY(-3px)'; });
+      card.addEventListener('mouseleave', function () { card.style.transform = 'none'; });
+      card.addEventListener('click', function () { openGroupDetail(g); });
+      var top = el('div', { style: 'display:flex;justify-content:space-between;align-items:center;gap:6px;margin-bottom:8px' });
+      top.appendChild(el('span', { style: 'font-size:0.65rem;font-weight:800;padding:0.15rem 0.5rem;border-radius:20px;background:rgb(219,234,254);color:rgb(30,64,175)' }, g.type || 'BMN'));
+      top.appendChild(el('span', { style: 'font-size:0.68rem;font-weight:800;padding:0.15rem 0.55rem;border-radius:20px;' + (avail > 0 ? 'background:rgb(220,252,231);color:rgb(22,101,52)' : 'background:rgb(254,226,226);color:rgb(153,27,27)') }, avail > 0 ? ('Tersedia ' + avail) : 'Habis'));
+      card.appendChild(top);
+      card.appendChild(el('div', { style: 'font-weight:700;font-size:0.95rem;margin-bottom:6px' }, g.name || ''));
+      card.appendChild(el('div', { style: 'font-size:0.75rem;color:var(--text-muted)' }, (g.category || '-') + ' · ' + g.units.length + ' unit'));
+      container.appendChild(card);
+    });
+    var sub = $('[data-ajukan-avail]'); if (sub) sub.textContent = availTotal + ' unit tersedia';
+  }
   async function submitPinjam() {
     var picked = [];
-    $$('input[type="checkbox"]').forEach(function (c) { if (c.checked) { var v = parseInt(c.value, 10); if (v) picked.push({ id: v, name: nameOf(c.closest('label') || c.parentNode) || ('Aset #' + v) }); } });
-    $$('[data-asset-select].sesd-selected').forEach(function (e) { var v = parseInt(e.getAttribute('data-asset-id'), 10); if (v) picked.push({ id: v, name: nameOf(e) || ('Aset #' + v) }); });
-    var hasUI = $$('input[type="checkbox"]').length > 0 || $$('[data-asset-select]').length > 0;
-    if (hasUI && !picked.length) { toast('Pilih minimal satu aset', 'error'); return; }
+    var qtyInputs = $$('[data-ajukan-qty]');
+    if (qtyInputs.length) {
+      qtyInputs.forEach(function (inp) {
+        var qty = parseInt(inp.value, 10) || 0, units = inp._units || [];
+        for (var i = 0; i < qty && i < units.length; i++) picked.push({ id: units[i].id, name: inp._name || '' });
+      });
+      if (!picked.length) { toast('Pilih minimal 1 unit', 'error'); return; }
+    } else {
+      $$('input[type="checkbox"]').forEach(function (c) { if (c.checked) { var v = parseInt(c.value, 10); if (v) picked.push({ id: v, name: nameOf(c.closest('label') || c.parentNode) || ('Aset #' + v) }); } });
+      $$('[data-asset-select].sesd-selected').forEach(function (e) { var v = parseInt(e.getAttribute('data-asset-id'), 10); if (v) picked.push({ id: v, name: nameOf(e) || ('Aset #' + v) }); });
+      var hasUI = $$('input[type="checkbox"]').length > 0 || $$('[data-asset-select]').length > 0;
+      if (hasUI && !picked.length) { toast('Pilih minimal satu aset', 'error'); return; }
+    }
     var date = val('date') || ($('input[type="date"]') || {}).value || '';
     if ($('input[type="date"]') && !date) { toast('Pilih tanggal kembali', 'error'); return; }
     var notes = val('notes');
@@ -770,19 +1267,27 @@
   }
 
   /* ---------------- boot ---------------- */
+  // expose the single page loader so page-specific scripts (reports.js) can use it
+  window.SESDIAN_LOADER = { show: showPageLoader, hide: hidePageLoader };
   async function boot() {
-    // If cached, immediately mark as ready to prevent top progress bar flash
-    if (window.SESDIAN_CACHE && window.SESDIAN_CACHE.loaded) {
-      document.body.classList.add('sesd-ready');
-    }
-    setTimeout(function () { document.body.classList.add('sesd-ready'); }, 4000); // safety: never get stuck on the loader
-    // No prepLoading() - preloader.js handles all loading states
+    setTimeout(function () { document.body.classList.add('sesd-ready'); }, 6000); // safety: never get stuck on the loader
     var g = guard();
     if (g.redirect) return;
-    USER = g.user; IS_ADMIN = !!(USER && USER.role === 'admin');
+    USER = g.user;
+    IS_ADMIN = !!(USER && USER.role === 'admin');
+    IS_VERIFIKATOR = !!(USER && USER.role === 'verifikator');
+    IS_STAFF = IS_ADMIN || IS_VERIFIKATOR;
+    // No data caching: every page fetches fresh from the DB, so always show the
+    // loader while the data loads (the laporan page hands the loader to reports.js).
+    showPageLoader();
+    buildShell();                 // fill dynamic sidebar/topbar on pages that opt in
     fillIdentity(USER);
-    if (IS_ADMIN) { injectAdminNav(); injectAdminBars(); }
+    injectBorrowedNav();          // "Sedang Dipinjam" link for all authed users
+    if (IS_STAFF) injectRoleNav();
+    normalizeChrome();            // brand logo + per-page sidebar/topbar icons (#1/#2/#5)
+    if (IS_ADMIN) injectAdminBars();
     await loadAndRender(page());
+    if (page() !== 'laporan') hidePageLoader();
     setupMobileLayout();
     setupDates();
     translateBreadcrumbs();

@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="id">
   <head>
     <meta charset="UTF-8" />
@@ -8,11 +8,12 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="assets/app.css" />
-    <link rel="stylesheet" href="assets/preloader.css" />
+    <script>(function(){try{if(localStorage.getItem('sesdian_theme')==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(e){}})();</script>
+    <link rel="stylesheet" href="assets/app.css?v=14" />
+    <link rel="stylesheet" href="assets/preloader.css?v=14" />
   </head>
   <body data-page="daftarpinjam" data-auth="required">
     <div id="root">
@@ -104,7 +105,7 @@
                 "
               >
                 <div
-                  style="flex: 1 1 0%; height: 1px; background: rgb(26, 37, 64)"
+                  style="flex: 1 1 0%; height: 2px; background: rgb(71, 85, 105); border-radius: 2px"
                 ></div>
                 <span
                   style="
@@ -117,7 +118,7 @@
                   >UTAMA</span
                 >
                 <div
-                  style="flex: 1 1 0%; height: 1px; background: rgb(26, 37, 64)"
+                  style="flex: 1 1 0%; height: 2px; background: rgb(71, 85, 105); border-radius: 2px"
                 ></div>
               </div>
               <a
@@ -188,7 +189,7 @@
                 "
               >
                 <div
-                  style="flex: 1 1 0%; height: 1px; background: rgb(26, 37, 64)"
+                  style="flex: 1 1 0%; height: 2px; background: rgb(71, 85, 105); border-radius: 2px"
                 ></div>
                 <span
                   style="
@@ -201,7 +202,7 @@
                   >ASET</span
                 >
                 <div
-                  style="flex: 1 1 0%; height: 1px; background: rgb(26, 37, 64)"
+                  style="flex: 1 1 0%; height: 2px; background: rgb(71, 85, 105); border-radius: 2px"
                 ></div>
               </div>
               <a
@@ -387,7 +388,7 @@
                 "
               >
                 <div
-                  style="flex: 1 1 0%; height: 1px; background: rgb(26, 37, 64)"
+                  style="flex: 1 1 0%; height: 2px; background: rgb(71, 85, 105); border-radius: 2px"
                 ></div>
                 <span
                   style="
@@ -400,7 +401,7 @@
                   >PEMINJAMAN</span
                 >
                 <div
-                  style="flex: 1 1 0%; height: 1px; background: rgb(26, 37, 64)"
+                  style="flex: 1 1 0%; height: 2px; background: rgb(71, 85, 105); border-radius: 2px"
                 ></div>
               </div>
               <a
@@ -751,29 +752,7 @@
                     1 total transaksi
                   </p>
                 </div>
-                <button
-                  data-modal-open="ajukan"
-                  style="
-                    padding: 0.65rem 1.25rem;
-                    background: linear-gradient(
-                      135deg,
-                      rgb(16, 185, 129),
-                      rgb(5, 150, 105)
-                    );
-                    color: rgb(255, 255, 255);
-                    border-width: medium;
-                    border-style: none;
-                    border-color: currentcolor;
-                    border-image: initial;
-                    border-radius: 10px;
-                    cursor: pointer;
-                    font-weight: 700;
-                    font-size: 0.875rem;
-                    box-shadow: rgba(16, 185, 129, 0.3) 0px 4px 12px;
-                    transition: transform 0.2s;
-                    transform: translateY(0px);
-                  "
-                >
+                <button data-modal-open="ajukan" class="sesd-btn sesd-btn-success">
                   Ajukan Pinjam
                 </button>
               </div>
@@ -873,7 +852,7 @@
                 </div>
                 <div
                   data-filter="status"
-                  data-filter-val="borrowed"
+                  data-filter-val="rejected"
                   style="
                     background: rgb(255, 255, 255);
                     border-radius: 12px;
@@ -889,16 +868,16 @@
                       width: 8px;
                       height: 8px;
                       border-radius: 50%;
-                      background: rgb(139, 92, 246);
+                      background: rgb(239, 68, 68);
                       margin: 0px auto 8px;
                     "
                   ></div>
                   <div
-                    data-count="borrowed"
+                    data-count="rejected"
                     style="
                       font-size: 1.5rem;
                       font-weight: 800;
-                      color: rgb(91, 33, 182);
+                      color: rgb(185, 28, 28);
                     "
                   >
                     0
@@ -910,7 +889,7 @@
                       font-weight: 600;
                     "
                   >
-                    Dipinjam
+                    Ditolak
                   </div>
                 </div>
                 <div
@@ -1412,49 +1391,24 @@
         <div style="display: flex; gap: 10px">
           <button
             data-action="submit-pinjam"
-            style="
-              flex: 1 1 0%;
-              padding: 0.75rem;
-              background: linear-gradient(
-                135deg,
-                rgb(16, 185, 129),
-                rgb(5, 150, 105)
-              );
-              color: rgb(255, 255, 255);
-              border-width: medium;
-              border-style: none;
-              border-color: currentcolor;
-              border-image: initial;
-              border-radius: 10px;
-              cursor: pointer;
-              font-weight: 700;
-            "
+            class="sesd-btn sesd-btn-success"
+            style="flex: 1 1 0%"
           >
             Ajukan</button
           ><button
             data-modal-close="ajukan"
-            style="
-              padding: 0.75rem 1.25rem;
-              background: rgb(241, 245, 249);
-              color: var(--text-muted);
-              border-width: medium;
-              border-style: none;
-              border-color: currentcolor;
-              border-image: initial;
-              border-radius: 10px;
-              cursor: pointer;
-              font-weight: 600;
-            "
+            class="sesd-btn sesd-btn-ghost"
           >
             Batal
           </button>
         </div>
       </div>
     </div>
-    <script defer src="assets/config.js"></script>
-    <script defer src="assets/db.js"></script>
-    <script defer src="assets/icons.js"></script>
-    <script defer src="assets/preloader.js"></script>
-    <script defer src="assets/app.js"></script>
+    <script defer src="assets/config.js?v=14"></script>
+    <script defer src="assets/db.js?v=14"></script>
+    <script defer src="assets/icons.js?v=14"></script>
+    <script defer src="assets/preloader.js?v=14"></script>
+    <script defer src="assets/app.js?v=14"></script>
+      <script defer src="assets/theme.js?v=14"></script>
   </body>
 </html>

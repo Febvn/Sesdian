@@ -1,29 +1,33 @@
 import { getSql } from './_db.js';
 import { requireAuth, requireAdmin, send, readJson } from './_auth.js';
+import { ensureSchema } from './_schema.js';
 
 export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return send(res, 204, {});
   const sql = getSql();
+  await ensureSchema(sql);
 
   if (req.method === 'GET') {
     if (!requireAuth(req, res)) return;
     try {
       const page = parseInt(req.query?.page || 1, 10);
-      const limit = Math.min(parseInt(req.query?.limit || 1000, 10), 1000); // Default to 1000 to avoid breaking current UI
+      const limit = Math.min(parseInt(req.query?.limit || 5000, 10), 10000); // load all assets by default
       const offset = (page - 1) * limit;
+      // single round-trip: total via window count instead of a second COUNT query
       const rows = await sql`
         select a.id, a.code, a.name, coalesce(a.brand,'') as brand, a.year,
                coalesce(a.condition,'Baik') as condition, coalesce(a.type,'BMN') as type,
                coalesce(a.asset_type,'') as asset_type,
                a.stock_total, a.stock_available, a.stock_borrowed,
-               a.category_id, a.room_id, a.image,
-               coalesce(c.name,'') as category, coalesce(r.name,'') as room
+               a.category_id, a.room_id, a.image, a.qr_code,
+               coalesce(c.name,'') as category, coalesce(r.name,'') as room,
+               count(*) over() as total_count
         from assets a
         left join categories c on c.id = a.category_id
         left join rooms r on r.id = a.room_id
         order by a.id limit ${limit} offset ${offset}`;
-      const [{ count }] = await sql`select count(*) from assets`;
-      return send(res, 200, { assets: rows, total: parseInt(count, 10), page, limit });
+      const total = rows.length ? parseInt(rows[0].total_count, 10) : 0;
+      return send(res, 200, { assets: rows, total, page, limit });
     }
     catch (e) { return send(res, 500, { error: e.message }); }
   }
@@ -33,6 +37,8 @@ export default async function handler(req, res) {
     if (!requireAdmin(req, res)) return;
     try {
       const b = await readJson(req);
+      // bulk import from Excel (parsed client-side): body.rows present -> import path
+      if (Array.isArray(b.rows)) return importAssets(sql, b.rows, res);
       if (!b.code || !b.name) return send(res, 400, { error: 'Kode dan nama aset wajib diisi' });
       const total = Math.max(0, parseInt(b.stock_total || 1, 10));
       const rows = await sql`
@@ -41,7 +47,11 @@ export default async function handler(req, res) {
                 ${b.year ? parseInt(b.year, 10) : null}, ${b.condition || 'Baik'}, ${b.type || 'BMN'},
                 ${b.asset_type || 'Fixed Asset'}, ${total}, ${total}, 0, ${b.image || null})
         returning id`;
-      return send(res, 200, { id: rows[0].id });
+      const newId = rows[0].id;
+      // auto-assign a unique QR code so every asset has a scannable detail page
+      await sql`update assets set qr_code = ${'QR' + String(newId).padStart(6, '0')}, qr_generated_at = now()
+                where id = ${newId} and qr_code is null`;
+      return send(res, 200, { id: newId });
     } catch (e) { return send(res, 500, { error: e.message }); }
   }
 
@@ -87,4 +97,64 @@ export default async function handler(req, res) {
   }
 
   return send(res, 405, { error: 'Method not allowed' });
+}
+
+// Bulk import (called from POST when body.rows is present). Category/room are
+// matched by name (created on the fly if missing); rows with an existing code
+// are skipped. Returns a per-row summary.
+async function importAssets(sql, rows, res) {
+  try {
+    if (!rows.length) return send(res, 400, { error: 'Tidak ada baris untuk diimpor' });
+    if (rows.length > 2000) return send(res, 400, { error: 'Maksimal 2000 baris per impor' });
+
+    const cats = await sql`select id, name from categories`;
+    const rms = await sql`select id, name from rooms`;
+    const catMap = new Map(cats.map((c) => [String(c.name).trim().toLowerCase(), c.id]));
+    const roomMap = new Map(rms.map((r) => [String(r.name).trim().toLowerCase(), r.id]));
+    const existing = await sql`select code from assets`;
+    const codes = new Set(existing.map((a) => String(a.code).trim().toLowerCase()));
+
+    async function resolveCat(name) {
+      const k = String(name || '').trim().toLowerCase();
+      if (!k) return null;
+      if (catMap.has(k)) return catMap.get(k);
+      const ins = await sql`insert into categories (name, icon) values (${String(name).trim()}, 'package') returning id`;
+      catMap.set(k, ins[0].id); return ins[0].id;
+    }
+    async function resolveRoom(name) {
+      const k = String(name || '').trim().toLowerCase();
+      if (!k) return null;
+      if (roomMap.has(k)) return roomMap.get(k);
+      const ins = await sql`insert into rooms (name) values (${String(name).trim()}) returning id`;
+      roomMap.set(k, ins[0].id); return ins[0].id;
+    }
+
+    let success = 0, skipped = 0;
+    const errors = [];
+    for (let i = 0; i < rows.length; i++) {
+      const r = rows[i] || {};
+      const code = String(r.code || '').trim();
+      const name = String(r.name || '').trim();
+      const ln = i + 2;
+      try {
+        if (!code || !name) { errors.push({ row: ln, error: 'Kode/Nama kosong' }); continue; }
+        if (codes.has(code.toLowerCase())) { skipped++; continue; }
+        const total = Math.max(0, parseInt(r.stock_total, 10) || 1);
+        const catId = await resolveCat(r.category);
+        const roomId = await resolveRoom(r.room);
+        const type = String(r.type || '').toLowerCase().includes('non') ? 'Non-BMN' : 'BMN';
+        await sql`
+          insert into assets (code, name, category_id, brand, room_id, year, condition, type, asset_type,
+                              stock_total, stock_available, stock_borrowed)
+          values (${code}, ${name}, ${catId}, ${r.brand || null}, ${roomId},
+                  ${r.year ? parseInt(r.year, 10) : null}, ${r.condition || 'Baik'}, ${type},
+                  ${r.asset_type || 'Fixed Asset'}, ${total}, ${total}, 0)`;
+        codes.add(code.toLowerCase());
+        success++;
+      } catch (e) { errors.push({ row: ln, error: e.message }); }
+    }
+
+    if (success) await sql`update assets set qr_code = 'QR' || lpad(id::text, 6, '0'), qr_generated_at = now() where qr_code is null`;
+    return send(res, 200, { success, skipped, failed: errors.length, errors });
+  } catch (e) { return send(res, 500, { error: e.message }); }
 }

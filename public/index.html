@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="id">
   <head>
     <meta charset="UTF-8" />
@@ -11,7 +11,7 @@
         height: 100%;
         margin: 0;
         background: #0f172a;
-        font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+        font-family: "Inter", system-ui, sans-serif;
       }
       .boot {
         height: 100%;
@@ -22,19 +22,21 @@
       }
     </style>
     <script>
-      // Root bootstrap: send authenticated users to the dashboard, others to login.
+      // Root bootstrap: signed-in users go to the dashboard; guests get the
+      // public catalog (browse without login; borrowing still requires login).
       try {
         // 'sesdian_token' = real (Neon) session; 'sesdian_user' = demo session
         var signedIn =
           localStorage.getItem("sesdian_token") ||
           localStorage.getItem("sesdian_user");
-        location.replace(signedIn ? "dashboard.html" : "login.html");
+        location.replace(signedIn ? "dashboard.html" : "katalog.html");
       } catch (e) {
-        location.replace("login.html");
+        location.replace("katalog.html");
       }
     </script>
   </head>
   <body>
     <div class="boot">Memuat SESDIAN…</div>
+      <script defer src="assets/theme.js?v=14"></script>
   </body>
 </html>

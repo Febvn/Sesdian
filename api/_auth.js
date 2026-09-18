@@ -72,6 +72,13 @@ export function requireAdmin(req, res) {
   if (u.role !== 'admin') { send(res, 403, { error: 'Akses admin diperlukan' }); return null; }
   return u;
 }
+// allow any of the given roles (e.g. ['admin','verifikator'])
+export function requireRoles(req, res, roles) {
+  const u = getAuth(req);
+  if (!u) { send(res, 401, { error: 'Unauthorized' }); return null; }
+  if (roles.indexOf(u.role) === -1) { send(res, 403, { error: 'Akses tidak diizinkan' }); return null; }
+  return u;
+}
 export async function readJson(req) {
   const MAX_BODY = 5 * 1024 * 1024; // 5MB
   if (req.headers['content-length'] && parseInt(req.headers['content-length'], 10) > MAX_BODY) {
