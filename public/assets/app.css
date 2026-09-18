@@ -740,11 +740,13 @@ body[data-page="register"] input:focus {
 }
 .sesd-login__logo {
   width: 100%;
-  max-width: 320px;
+  max-width: 300px;
   height: auto;
-  aspect-ratio: 24 / 7;
-  object-fit: cover;
-  border-radius: 14px;
+  aspect-ratio: 22 / 9;
+  object-fit: contain;
+  background: #0b1120;
+  border-radius: 16px;
+  padding: 18px 24px;
   box-shadow: var(--card-shadow);
   margin-bottom: 2rem;
 }
@@ -1122,14 +1124,17 @@ body[data-page="register"] input:focus {
    ══════════════════════════════════════════════════════════ */
 
 /* ── #1 — Brand logo in the sidebar header (replaces the text wordmark) ── */
+/* #6 — transparent glow logo presented on a dark plaque (reads cleanly in BOTH
+   light and dark mode; the glow render is designed for a dark backdrop). */
 .sesd-brand-logo {
   display: block;
   width: 100%;
-  max-width: 168px;
-  height: 40px;
-  object-fit: cover;          /* crop into the SESDiAN text strip, trims the grey margins */
+  max-width: 160px;
+  height: 44px;
+  object-fit: cover;
   object-position: center;
-  border-radius: 8px;
+  background: #0b1120;
+  border-radius: 9px;
   flex-shrink: 1;
 }
 .sesd-brand-wordmark { display: none !important; }
@@ -1251,7 +1256,7 @@ main[style*="overflow: auto"] {
 }
 .sesd-aset-img { height: 128px; overflow: hidden; background: var(--bg-mid); }
 .sesd-aset-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.sesd-aset-body { padding: 0.85rem 1rem 1rem; display: flex; flex-direction: column; gap: 6px; }
+.sesd-aset-body { padding: 0.85rem 1rem 1rem; display: flex; flex-direction: column; gap: 6px; flex: 1 1 auto; }
 .sesd-aset-top { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
 .sesd-aset-type {
   font-size: 0.62rem; font-weight: 800; letter-spacing: 0.3px;
@@ -1280,7 +1285,7 @@ main[style*="overflow: auto"] {
 }
 .sesd-aset-chip > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sesd-aset-chip .ic svg { width: 0.78rem; height: 0.78rem; flex-shrink: 0; }
-.sesd-aset-stock { margin-top: 2px; }
+.sesd-aset-stock { margin-top: auto; padding-top: 8px; }   /* #1 — pin stock to the card's bottom edge, level across all cards */
 .sesd-aset-stock-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
 .sesd-aset-stock-label { font-size: 0.65rem; font-weight: 800; letter-spacing: 0.6px; color: var(--text-muted); }
 .sesd-aset-stock-num { font-size: 0.82rem; font-weight: 800; font-feature-settings: "tnum" 1; }
@@ -1299,24 +1304,39 @@ main[style*="overflow: auto"] {
 }
 [data-theme="dark"] .sesd-aset-cond { background: rgba(26,174,57,0.2); color: #6ee7a0; }
 
-/* ── #9 — Kelola User role <select>: rounded + height-matched to the action button ── */
-.sesd-role-select {
-  appearance: none; -webkit-appearance: none; -moz-appearance: none;
-  padding: 0.34rem 1.7rem 0.34rem 0.75rem !important;
-  border: 1px solid var(--border) !important;
-  border-radius: var(--radius-pill) !important;
-  background: var(--bg-card)
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23615d59' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")
-    no-repeat right 0.6rem center / 11px !important;
-  font-size: 0.78rem; font-weight: 600; font-family: inherit;
-  color: var(--text) !important; cursor: pointer; line-height: 1.45;
+/* ── #2 — Kelola User "Aksi" column: select + delete button form ONE cohesive
+   group with identical rounded corners and matched height. High-specificity +
+   !important so nothing in the global select/button rules can flatten them. ── */
+.sesd-role-actions { display: inline-flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.sesd-role-actions .sesd-role-select {
+  appearance: none !important; -webkit-appearance: none !important; -moz-appearance: none !important;
+  height: 34px;
+  margin: 0 !important;
+  padding: 0 1.9rem 0 0.8rem !important;
+  border: 1.5px solid var(--border) !important;
+  border-radius: 9px !important;
+  background-color: var(--bg-card) !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%230075de' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 0.62rem center !important;
+  background-size: 12px !important;
+  font-size: 0.8rem; font-weight: 700; font-family: inherit;
+  color: var(--text) !important; cursor: pointer; line-height: 34px;
+  transition: border-color var(--dur-fast) var(--ease-smooth), box-shadow var(--dur-fast) var(--ease-smooth);
 }
-.sesd-role-select:hover { border-color: var(--primary) !important; }
-.sesd-role-select:focus {
-  border-color: rgba(0,117,222,0.55) !important;
+.sesd-role-actions .sesd-role-select:hover { border-color: var(--primary) !important; }
+.sesd-role-actions .sesd-role-select:focus {
+  border-color: rgba(0,117,222,0.6) !important;
   box-shadow: 0 0 0 3px var(--primary-glow) !important;
   outline: none !important;
 }
+/* delete button: same 34px box + same 9px rounding as the select (matched set) */
+.sesd-role-actions .sesd-role-del {
+  height: 34px; width: 34px; padding: 0 !important;
+  border-radius: 9px !important;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.sesd-role-actions .sesd-role-del .ic svg { width: 1rem; height: 1rem; }
 
 /* ── #11 — Mobile hardening: never let cards/buttons spill past the viewport.
    overflow-x is scoped to phones (and to main/#root, NOT html/body) so it never
@@ -1552,4 +1572,121 @@ aside a:focus-visible { outline-offset: -2px !important; border-radius: var(--ra
   .dashboard-stat-card, .dashboard-list-item { opacity: 1 !important; transform: none !important; }
   aside a[style]:hover, .stat-card:hover, .sesd-stat-card:hover,
   .dashboard-stat-card:hover { transform: none !important; }
+}
+
+/* ══════════════════════════════════════════════════════════
+   REDESIGN PASS (v16) — see docs/REDESIGN-GUIDE.md
+   ══════════════════════════════════════════════════════════ */
+
+/* ── #5 — larger, more noticeable primary action buttons ── */
+.sesd-btn-lg {
+  padding: 0.72rem 1.45rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  border-radius: var(--radius-pill);
+  gap: 8px;
+}
+.sesd-btn-lg .ic svg { width: 1.1rem; height: 1.1rem; }
+@media (max-width: 768px) {
+  .sesd-btn-lg { padding: 0.62rem 1.1rem; font-size: 0.88rem; }
+}
+
+/* ── #3 — collapsible sidebar (desktop "rail" mode) + nicer toggle button ── */
+.sesd-collapse-btn {
+  background: var(--bg-mid) !important;
+  border: 1px solid var(--border) !important;
+  color: var(--text-muted) !important;
+  width: 30px !important; height: 30px !important;
+  min-width: 30px;
+  border-radius: 8px !important;
+  display: flex !important; align-items: center; justify-content: center;
+  cursor: pointer; flex-shrink: 0; padding: 0 !important;
+  transition: background var(--dur-fast) var(--ease-smooth),
+              color var(--dur-fast) var(--ease-smooth),
+              border-color var(--dur-fast) var(--ease-smooth);
+}
+.sesd-collapse-btn:hover { background: var(--primary) !important; color: #fff !important; border-color: var(--primary) !important; }
+.sesd-collapse-btn svg { width: 18px; height: 18px; transition: transform var(--dur-normal) var(--ease-spring); }
+aside.sesd-rail .sesd-collapse-btn svg { transform: rotate(180deg); }
+
+@media (min-width: 769px) {
+  aside.sesd-rail { width: 78px !important; }
+  /* header: stack logo over the expand button, centered */
+  aside.sesd-rail > div:first-child {
+    flex-direction: column !important; gap: 8px !important;
+    padding: 0.7rem 0 !important; justify-content: center !important;
+  }
+  aside.sesd-rail .sesd-brand-logo { max-width: 54px; height: 34px; padding: 3px 6px; }
+  /* nav rows: icon only, centered */
+  aside.sesd-rail a[style] { justify-content: center !important; padding-left: 0 !important; padding-right: 0 !important; margin-left: 6px !important; margin-right: 6px !important; }
+  aside.sesd-rail a[style] > div { display: none !important; }            /* title + subtitle block */
+  aside.sesd-rail a[style] > span:first-child { margin: 0 !important; }
+  /* section divider labels hide; keep things tidy */
+  aside.sesd-rail [style*="letter-spacing: 1.5px"],
+  aside.sesd-rail [style*="letter-spacing:1.5px"] { display: none !important; }
+  aside.sesd-rail [data-role-nav] { margin-top: 4px; }
+  /* account card → avatar only */
+  aside.sesd-rail > div:last-child > div { justify-content: center !important; padding: 0.5rem !important; }
+  aside.sesd-rail > div:last-child [data-user-name],
+  aside.sesd-rail > div:last-child [data-user-role],
+  aside.sesd-rail > div:last-child button { display: none !important; }
+}
+
+/* ── #4 — profile menu (per-user) + avatar in header & sidebar ── */
+.sesd-head-profile { overflow: hidden; padding: 0; }
+.sesd-head-profile img { width: 100%; height: 100%; object-fit: cover; display: block; }
+aside [data-user-initials] img { width: 100%; height: 100%; object-fit: cover; border-radius: inherit; display: block; }
+
+.sesd-profile-menu {
+  position: fixed;
+  width: 264px; max-width: calc(100vw - 24px);
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--card-hover-shadow);
+  padding: 1rem; z-index: 9000;
+  animation: 0.18s var(--ease-smooth) both fadeUp;
+}
+.sesd-profile-head { display: flex; align-items: center; gap: 12px; margin-bottom: 0.9rem; }
+.sesd-profile-av {
+  width: 56px; height: 56px; border-radius: 14px; flex-shrink: 0; overflow: hidden;
+  background: var(--primary); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 1.1rem; position: relative;
+}
+.sesd-profile-av img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.sesd-profile-name { font-weight: 800; font-size: 0.95rem; color: var(--text); line-height: 1.2; }
+.sesd-profile-nip { font-size: 0.72rem; color: var(--text-muted); font-family: "JetBrains Mono", monospace; margin-top: 2px; }
+.sesd-profile-role {
+  display: inline-block; margin-top: 5px;
+  font-size: 0.62rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em;
+  padding: 0.12rem 0.5rem; border-radius: var(--radius-pill);
+  background: var(--primary-light); color: var(--primary);
+}
+.sesd-profile-menu .sesd-btn { width: 100%; justify-content: center; }
+.sesd-profile-divider { height: 1px; background: var(--border); margin: 0.75rem 0; }
+
+/* ── #7 — text-size segmented toggle (A small / medium / large) ── */
+.sesd-textsize {
+  display: inline-flex; align-items: center; gap: 2px;
+  background: var(--bg-mid); border: 1px solid var(--border);
+  border-radius: var(--radius-pill); padding: 3px; flex-shrink: 0;
+}
+.sesd-textsize button {
+  border: none; background: transparent; color: var(--text-muted);
+  cursor: pointer; width: 30px; height: 30px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; line-height: 1;
+  font-weight: 800; font-family: inherit; padding: 0;
+  transition: background var(--dur-fast) var(--ease-smooth), color var(--dur-fast) var(--ease-smooth);
+}
+.sesd-textsize button:hover { color: var(--text); }
+.sesd-textsize button.is-active { background: var(--primary); color: #fff; }
+
+/* user-selected base text scale (rem-based type across the app responds) */
+html[data-textsize="small"] { font-size: 15px; }
+html[data-textsize="large"] { font-size: 18px; }
+
+@media (max-width: 768px) {
+  .sesd-head-iconbtn { display: none; }     /* drop the placeholder bell on phones to make room */
+  .sesd-textsize button { width: 27px; height: 27px; }
 }

@@ -142,8 +142,11 @@
       e.textContent = user.name;
       setTimeout(function() { e.style.opacity = '1'; }, 100);
     });
+    var avatar = '';
+    try { avatar = localStorage.getItem('sesdian_avatar_' + (user.nip || user.name)) || ''; } catch (e) {}
     $$('[data-user-initials]').forEach(function (e) {
-      e.textContent = user.initials || initials(user.name);
+      if (avatar) e.innerHTML = '<img alt="" src="' + avatar + '" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;display:block">';
+      else e.textContent = user.initials || initials(user.name);
       setTimeout(function() { e.style.opacity = '1'; }, 150);
     });
     $$('[data-user-firstname]').forEach(function (e) {
@@ -766,11 +769,11 @@
       roleTd.appendChild(roleBadge(u.role));
       tr.appendChild(roleTd);
       var actTd = el('td', { style: td });
-      var wrap = el('div', { style: 'display:flex;gap:6px;align-items:center;flex-wrap:wrap' });
-      var sel = el('select', { class: 'sesd-role-select' });   // #9 — rounded, height-matched to the action button
+      var wrap = el('div', { class: 'sesd-role-actions' });   // #2 — one cohesive, equally-rounded control group
+      var sel = el('select', { class: 'sesd-role-select', 'aria-label': 'Ubah peran ' + u.name });
       ['user', 'verifikator', 'admin'].forEach(function (r) { var o = el('option', { value: r }, ROLE_META[r][0]); if (u.role === r) o.selected = true; sel.appendChild(o); });
       sel.addEventListener('change', async function () { try { await DB.setUserRole(u.id, sel.value); toast('Role diperbarui', 'success'); renderUsers(); } catch (e) { toast((e && e.message) || 'Gagal', 'error'); renderUsers(); } });
-      var del = el('button', { class: 'sesd-btn sesd-btn-sm sesd-btn-danger', html: ic('trash') });
+      var del = el('button', { class: 'sesd-btn sesd-btn-sm sesd-btn-danger sesd-role-del', html: ic('trash') });
       del.addEventListener('click', function () { confirmDelete('user "' + u.name + '"', async function () { await DB.deleteUser(u.id); toast('User dihapus', 'success'); renderUsers(); }); });
       wrap.appendChild(sel); wrap.appendChild(del);
       actTd.appendChild(wrap); tr.appendChild(actTd);
@@ -929,7 +932,7 @@
     function bar(buttons) {
       var wrap = el('div', { class: 'sesd-admin-bar' });
       buttons.forEach(function (b) {
-        var btn = el('button', { class: 'sesd-btn sesd-btn-' + (b.variant || 'primary'), html: (b.icon ? ic(b.icon) + ' ' : '') + b.label });
+        var btn = el('button', { class: 'sesd-btn sesd-btn-lg sesd-btn-' + (b.variant || 'primary'), html: (b.icon ? ic(b.icon) + ' ' : '') + b.label });
         btn.addEventListener('click', b.onClick); wrap.appendChild(btn);
       });
       // #3 — dock the action buttons to the right of the page title instead of
@@ -1118,6 +1121,7 @@
         var ch = assetChip(c[0], c[1]); if (ch) chips.appendChild(ch);
       });
       if (chips.children.length) body.appendChild(chips);
+      if (g.condition) body.appendChild(el('span', { class: 'sesd-aset-cond' }, g.condition));  // #1 — keep STOK as the last (bottom-pinned) element
       var stock = el('div', { class: 'sesd-aset-stock' });
       var sr = el('div', { class: 'sesd-aset-stock-row' });
       sr.appendChild(el('span', { class: 'sesd-aset-stock-label' }, 'STOK'));
@@ -1136,7 +1140,6 @@
         stock.appendChild(bnote);
       }
       body.appendChild(stock);
-      if (g.condition) body.appendChild(el('span', { class: 'sesd-aset-cond' }, g.condition));
       card.appendChild(body);
       grid.appendChild(card);
     });
@@ -1242,8 +1245,45 @@
     var toggle = function(e) { if (e) e.preventDefault(); aside.classList.toggle('sesd-open'); backdrop.classList.toggle('sesd-open'); };
     hamburger.addEventListener('click', toggle);
     backdrop.addEventListener('click', toggle);
-    var closeBtn = byText(/^‹$/, 'aside button')[0];
-    if (closeBtn) closeBtn.addEventListener('click', function(e) { e.preventDefault(); toggle(); });
+  }
+
+  /* #3 — collapsible sidebar. The header toggle rails the sidebar to an icon-only
+     strip on desktop (persisted), and closes the drawer on mobile. Works on both
+     static-shell pages (which ship a "‹" button) and dynamic-shell pages (where we
+     create the button). */
+  var SIDEBAR_CHEVRON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>';
+  function setupSidebarCollapse() {
+    var aside = $('aside'); if (!aside) return;
+    var head = aside.firstElementChild;
+    var btn = byText(/^‹$/, 'aside button')[0];
+    if (!btn) {
+      if (!head) return;
+      btn = el('button', { type: 'button', style: 'margin-left:auto' });
+      head.appendChild(btn);
+    }
+    btn.classList.add('sesd-collapse-btn');
+    btn.innerHTML = SIDEBAR_CHEVRON;
+    btn.setAttribute('aria-label', 'Tutup atau buka sidebar');
+    btn.title = 'Tutup / buka sidebar';
+    // tooltips so railed icons stay identifiable
+    $$('aside a[href]').forEach(function (a) {
+      if (a.title) return;
+      var t = a.querySelector('div');
+      var label = t ? ((t.firstElementChild ? t.firstElementChild.textContent : t.textContent) || '').trim() : '';
+      if (label) a.title = label;
+    });
+    var isMobile = function () { return window.matchMedia('(max-width: 768px)').matches; };
+    try { if (localStorage.getItem('sesdian_rail') === '1' && !isMobile()) aside.classList.add('sesd-rail'); } catch (e) {}
+    btn.addEventListener('click', function (e) {
+      e.preventDefault();
+      if (isMobile()) {
+        aside.classList.remove('sesd-open');
+        var bd = $('.sesd-mobile-backdrop'); if (bd) bd.classList.remove('sesd-open');
+      } else {
+        var railed = aside.classList.toggle('sesd-rail');
+        try { localStorage.setItem('sesdian_rail', railed ? '1' : '0'); } catch (e2) {}
+      }
+    });
   }
 
   function setupDates() {
@@ -1289,6 +1329,7 @@
     await loadAndRender(page());
     if (page() !== 'laporan') hidePageLoader();
     setupMobileLayout();
+    setupSidebarCollapse();
     setupDates();
     translateBreadcrumbs();
     document.body.classList.add('sesd-ready');   // reveal once DB data is rendered (no hardcoded flash)
