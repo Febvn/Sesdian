@@ -1514,7 +1514,7 @@ main[style*="overflow: auto"] {
   /* TABLE — fit to screen, no horizontal scroll */
   table {
     min-width: unset !important;
-    font-size: 0.65rem !important;
+    font-size: 0.6rem !important;
     table-layout: fixed;
   }
 
@@ -1528,8 +1528,8 @@ main[style*="overflow: auto"] {
   }
 
   th, td {
-    padding: 0.3rem 0.2rem !important;
-    font-size: 0.6rem !important;
+    padding: 0.25rem 0.15rem !important;
+    font-size: 0.55rem !important;
     line-height: 1.2;
   }
 
@@ -1543,8 +1543,8 @@ main[style*="overflow: auto"] {
   /* Header row compact */
   [data-recent-list] th,
   [data-list="borrowings"] th {
-    font-size: 0.55rem !important;
-    padding: 0.3rem 0.15rem !important;
+    font-size: 0.5rem !important;
+    padding: 0.25rem 0.1rem !important;
     letter-spacing: 0.1px;
   }
 
@@ -1555,19 +1555,19 @@ main[style*="overflow: auto"] {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    padding: 0.35rem 0.15rem !important;
-    font-size: 0.62rem !important;
+    padding: 0.3rem 0.1rem !important;
+    font-size: 0.55rem !important;
   }
 
   /* Asset name column */
   [data-recent-list] td:first-child,
   [data-list="borrowings"] td:first-child {
-    max-width: 60px;
+    max-width: 50px;
   }
 
   /* Borrower name - truncate to very short */
   [data-bind="borrower"] {
-    max-width: 50px;
+    max-width: 40px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -1577,23 +1577,23 @@ main[style*="overflow: auto"] {
   /* Status badge compact */
   [data-recent-list] span[data-bind="status_badge"],
   [data-list="borrowings"] span[data-bind="status_badge"] {
-    font-size: 0.5rem !important;
-    padding: 0.1rem 0.25rem !important;
+    font-size: 0.45rem !important;
+    padding: 0.08rem 0.2rem !important;
     white-space: nowrap;
   }
 
   /* Due date compact */
   [data-bind="due_date"] {
-    font-size: 0.55rem !important;
+    font-size: 0.5rem !important;
     font-family: "JetBrains Mono", monospace;
   }
 
   /* Qty column - fixed narrow */
   [data-bind="qty"] {
-    width: 25px;
-    max-width: 25px;
+    width: 20px;
+    max-width: 20px;
     text-align: center;
-    font-size: 0.6rem !important;
+    font-size: 0.55rem !important;
   }
 }
 
