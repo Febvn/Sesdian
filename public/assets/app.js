@@ -333,6 +333,7 @@
         var qc = $('[data-count="approved"]'); if (qc) qc.textContent = queue.length;
         var done = allb.filter(function (b) { return b.status === 'verified' || b.status === 'borrowed' || b.status === 'returned'; }).length;
         var dc = $('[data-count="verified"]'); if (dc) dc.textContent = done;
+        buildVerifChart(queue.length, done);            // #12 — % chart beside the (now smaller) table
       } else if (p === 'dipinjam') {
         var alld = await DB.borrowings();
         var out = alld.filter(function (b) { return b.status === 'borrowed' || b.status === 'verified' || b.status === 'return_pending'; });
@@ -354,7 +355,7 @@
   }
 
   function reapplyFilters() { var it = $('[data-search-item]'); if (it) applyFilters(it.getAttribute('data-search-item')); }
-  async function reloadData() { await loadAndRender(page()); reapplyFilters(); }
+  async function reloadData() { await loadAndRender(page()); reapplyFilters(); labelizeTables(); }
 
   /* ====================== ADMIN UI ====================== */
   function overlay() { return el('div', { class: 'sesd-overlay' }); }
@@ -1514,6 +1515,57 @@
   /* ---------------- boot ---------------- */
   // expose the single page loader so page-specific scripts (reports.js) can use it
   window.SESDIAN_LOADER = { show: showPageLoader, hide: hidePageLoader };
+  /* ====================== #11 — mobile card tables ======================
+     On phones every table row becomes a self-contained card whose cells carry
+     their column name (from the matching <th>) as a data-label. Generic: works
+     for every table, template-rendered or JS-rendered. Re-run after each render. */
+  function labelizeTables() {
+    $$('main table').forEach(function (t) {
+      var heads = $$('thead th', t).map(function (th) { return (th.textContent || '').replace(/\s+/g, ' ').trim(); });
+      if (!heads.length) return;
+      t.classList.add('sesd-cardtable');
+      $$('tbody tr', t).forEach(function (tr) {
+        $$('td', tr).forEach(function (td, i) {
+          if (heads[i] && !td.hasAttribute('data-label')) td.setAttribute('data-label', heads[i]);
+        });
+      });
+    });
+  }
+
+  /* ====================== #12 — verifikasi % chart ======================
+     Wrap the queue table beside a donut showing how much of the queue is done. */
+  function buildVerifChart(pending, done) {
+    var tbody = $('[data-list="verif"]'); if (!tbody) return;
+    var card = tbody.closest('div');                    // the table's wrapper card
+    if (card && card.parentNode && !$('.sesd-verif-grid')) {
+      var grid = el('div', { class: 'sesd-verif-grid', style: 'display:grid;grid-template-columns:1fr 300px;gap:1rem;align-items:start' });
+      card.parentNode.insertBefore(grid, card);
+      grid.appendChild(card);
+      var chartCard = el('div', { class: 'animate-fade-up', style: 'background:var(--bg-card);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow);padding:1.25rem' });
+      chartCard.appendChild(el('div', { style: 'font-size:0.95rem;font-weight:800' }, 'Persentase Verifikasi'));
+      chartCard.appendChild(el('div', { style: 'font-size:0.72rem;color:var(--text-muted);margin-bottom:1.1rem' }, 'Status antrean verifikasi'));
+      chartCard.appendChild(el('div', { 'data-verif-chart': '' }));
+      grid.appendChild(chartCard);
+    }
+    var host = $('[data-verif-chart]'); if (!host) return;
+    var total = pending + done, pct = total ? Math.round((done / total) * 100) : 0;
+    host.innerHTML = '';
+    var donut = el('div', { style: 'width:160px;height:160px;border-radius:50%;margin:0 auto;background:conic-gradient(var(--success) 0 ' + pct + '%, rgb(245,158,11) ' + pct + '% 100%);display:flex;align-items:center;justify-content:center' });
+    var hole = el('div', { style: 'width:108px;height:108px;border-radius:50%;background:var(--bg-card);display:flex;flex-direction:column;align-items:center;justify-content:center' });
+    hole.appendChild(el('div', { style: 'font-size:1.7rem;font-weight:800;line-height:1' }, pct + '%'));
+    hole.appendChild(el('div', { style: 'font-size:0.62rem;color:var(--text-muted);margin-top:2px' }, 'terverifikasi'));
+    donut.appendChild(hole); host.appendChild(donut);
+    var legend = el('div', { style: 'margin-top:1.25rem;display:flex;flex-direction:column;gap:10px' });
+    [['Menunggu verifikasi', pending, 'rgb(245,158,11)'], ['Sudah diverifikasi', done, 'var(--success)']].forEach(function (r) {
+      var row = el('div', { style: 'display:flex;align-items:center;gap:8px;font-size:0.8rem' });
+      row.appendChild(el('span', { style: 'width:10px;height:10px;border-radius:3px;flex-shrink:0;background:' + r[2] }));
+      row.appendChild(el('span', { style: 'flex:1;color:var(--text-muted)' }, r[0]));
+      row.appendChild(el('span', { style: 'font-weight:800' }, String(r[1])));
+      legend.appendChild(row);
+    });
+    host.appendChild(legend);
+  }
+
   /* ====================== #3 — notifications (bell) ====================== */
   function timeAgo(ts) {
     var s = Math.floor((Date.now() - ts) / 1000);
@@ -1619,6 +1671,7 @@
     wireActions(); wireNav(); wireModal(); wireSearch(); wireFilters(); fallbacks(); setupNotice();
     reapplyFilters();
     wireNotifBell();              // #3 — functional notification bell (badge + dropdown)
+    labelizeTables();             // #11 — mobile card-table labels
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);

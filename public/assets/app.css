@@ -1508,6 +1508,41 @@ main[style*="overflow: auto"] {
 }
 
 /* ══════════════════════════════════════════════════════════
+   #11 — MOBILE CARD TABLES (each row → a labelled card)
+   ══════════════════════════════════════════════════════════ */
+@media (max-width: 640px) {
+  main table.sesd-cardtable { min-width: 0 !important; width: 100% !important; table-layout: auto !important; font-size: 0.85rem !important; border-collapse: collapse; }
+  main table.sesd-cardtable thead { display: none !important; }
+  main table.sesd-cardtable tbody { display: block; }
+  main table.sesd-cardtable tbody tr {
+    display: block; background: var(--bg-card); border: 1px solid var(--border) !important;
+    border-radius: var(--radius); margin-bottom: 10px; padding: 2px 12px; box-shadow: var(--card-shadow);
+  }
+  main table.sesd-cardtable tbody td {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 9px 0 !important; border: 0 !important; border-top: 1px solid var(--border) !important;
+    font-size: 0.85rem !important; text-align: right; line-height: 1.35 !important;
+    white-space: normal !important; max-width: none !important; width: auto !important; overflow: visible !important; text-overflow: clip !important;
+  }
+  main table.sesd-cardtable tbody tr td:first-child { border-top: 0 !important; }
+  main table.sesd-cardtable tbody td::before {
+    content: attr(data-label); font-weight: 700; font-size: 0.68rem; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: 0.4px; text-align: left; white-space: nowrap; flex-shrink: 0;
+  }
+  main table.sesd-cardtable tbody td:empty { display: none; }
+  /* let truncated/sub content breathe inside cards */
+  main table.sesd-cardtable td [data-bind="asset_code"],
+  main table.sesd-cardtable td .sesd-truncate,
+  main table.sesd-cardtable td [data-bind="borrower"] { max-width: none !important; white-space: normal !important; display: inline-block; }
+  /* action cell: label left, buttons wrap on the right */
+  main table.sesd-cardtable tbody td:last-child { flex-wrap: wrap; }
+  main table.sesd-cardtable td .sesd-admin-actions { justify-content: flex-end; margin-top: 0; }
+}
+
+/* #12 — verifikasi: table beside % chart, stacked on narrow screens */
+@media (max-width: 900px) { .sesd-verif-grid { grid-template-columns: 1fr !important; } }
+
+/* ══════════════════════════════════════════════════════════
    MOBILE RESPONSIVENESS - Enhanced table handling
    ══════════════════════════════════════════════════════════ */
 @media (max-width: 768px) {
