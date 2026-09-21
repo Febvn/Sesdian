@@ -422,6 +422,24 @@
     yes.addEventListener('click', async function () { yes.disabled = true; try { await onYes(); close(); } catch (e) { toast((e && e.message) || 'Gagal', 'error'); yes.disabled = false; } });
   }
 
+  // #8 — generic second-confirmation dialog ("apakah anda yakin? ya/tidak") used
+  // for every verification action (approve, verify, return, reject, ...).
+  function confirmAction(opts, onYes) {
+    if (modalOpen()) return;
+    opts = opts || {};
+    var ov = overlay(), m = el('div', { class: 'sesd-modal', style: 'width:390px' });
+    m.appendChild(el('h3', {}, opts.title || 'Konfirmasi'));
+    m.appendChild(el('p', { style: 'color:var(--text-muted);font-size:.9rem;line-height:1.5;margin-bottom:1.15rem' }, opts.message || 'Apakah Anda yakin ingin melanjutkan?'));
+    var foot = el('div', { style: 'display:flex;gap:8px' });
+    var yes = el('button', { class: 'sesd-btn sesd-btn-' + (opts.variant || 'primary'), style: 'flex:1' }, opts.confirmLabel || 'Ya');
+    var no = el('button', { class: 'sesd-btn sesd-btn-ghost', style: 'flex:1' }, opts.cancelLabel || 'Tidak');
+    foot.appendChild(yes); foot.appendChild(no); m.appendChild(foot); ov.appendChild(m); document.body.appendChild(ov);
+    function close() { ov.remove(); }
+    no.addEventListener('click', close);
+    ov.addEventListener('click', function (e) { if (e.target === ov) close(); });
+    yes.addEventListener('click', async function () { yes.disabled = true; try { await onYes(); close(); } catch (e) { toast((e && e.message) || 'Gagal', 'error'); yes.disabled = false; } });
+  }
+
   async function openAssetForm(rec) {
     var cats = [], rms = [];
     try { cats = await DB.categories(); rms = await DB.rooms(); } catch (e) {}
@@ -603,10 +621,10 @@
     row.appendChild(info);
     if (staff) {
       var verify = el('button', { class: 'sesd-btn sesd-btn-sm sesd-btn-success' }, b.status === 'return_pending' ? 'Verifikasi Dikembalikan' : 'Tandai Dikembalikan');
-      verify.addEventListener('click', async function () {
-        verify.disabled = true;
-        try { await DB.updateBorrowingStatus(b.id, 'returned'); toast('Diverifikasi dikembalikan', 'success'); if (onChange) onChange(b); }
-        catch (e) { toast((e && e.message) || 'Gagal', 'error'); verify.disabled = false; }
+      verify.addEventListener('click', function () {
+        confirmAction({ title: 'Verifikasi Pengembalian', message: 'Konfirmasi bahwa barang "' + (b.asset_name || 'ini') + '" sudah benar-benar dikembalikan?', variant: 'success', confirmLabel: 'Ya, sudah kembali' }, async function () {
+          await DB.updateBorrowingStatus(b.id, 'returned'); toast('Diverifikasi dikembalikan', 'success'); if (onChange) onChange(b);
+        });
       });
       row.appendChild(verify);
     } else if (b.status === 'borrowed' || b.status === 'verified') {
@@ -720,13 +738,21 @@
       toast(okMsg, 'success');
     } catch (e) { toast((e && e.message) || 'Gagal mengirim notifikasi', 'error'); }
   }
-  async function changeStatus(rec, status) {
-    try {
+  var STATUS_CONFIRM = {
+    approved:       { title: 'Setujui Peminjaman',      message: 'Apakah Anda yakin menyetujui peminjaman ini? (Verifikasi 1)', variant: 'success', confirmLabel: 'Ya, setujui' },
+    borrowed:       { title: 'Verifikasi & Serah Terima', message: 'Verifikasi kedua dan serahkan barang ke peminjam?',            variant: 'success', confirmLabel: 'Ya, verifikasi' },
+    returned:       { title: 'Verifikasi Pengembalian',  message: 'Konfirmasi bahwa barang sudah benar-benar dikembalikan?',       variant: 'success', confirmLabel: 'Ya, sudah kembali' },
+    return_pending: { title: 'Konfirmasi Pengembalian',  message: 'Ajukan pengembalian barang ini ke admin?',                     variant: 'primary', confirmLabel: 'Ya, kembalikan' },
+    rejected:       { title: 'Tolak Permintaan',         message: 'Apakah Anda yakin menolak permintaan ini?',                    variant: 'danger',  confirmLabel: 'Ya, tolak' },
+  };
+  // #8 — every status change asks for a second confirmation before it runs.
+  function changeStatus(rec, status) {
+    var c = STATUS_CONFIRM[status] || { title: 'Konfirmasi', message: 'Apakah Anda yakin ingin melanjutkan?' };
+    confirmAction(c, async function () {
       await DB.updateBorrowingStatus(rec.id, status); toast('Status diperbarui', 'success');
       if (status === 'returned') { DB.notify(rec.id, 'returned').then(function (r) { if (r && !r.auto && r.wa) openWaLink(r.wa, r.text); }).catch(function () {}); } // best-effort, silent
       reloadData();
-    }
-    catch (e) { toast((e && e.message) || 'Gagal', 'error'); }
+    });
   }
   function enhanceBorrowingRow(row, rec) {
     // Prevent duplicate buttons
