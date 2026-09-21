@@ -7,6 +7,7 @@ export async function ensureSchema(sql) {
   if (_ensured) return;
   try {
     await sql`alter table users add column if not exists phone text`;
+    await sql`alter table users add column if not exists avatar text`;   // data-URL profile photo (syncs across devices)
     await sql`alter table assets add column if not exists qr_code text`;
     await sql`alter table assets add column if not exists qr_generated_at timestamptz`;
     await sql`alter table borrowings add column if not exists approved_by  bigint`;

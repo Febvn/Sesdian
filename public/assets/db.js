@@ -190,7 +190,7 @@
   }
   async function updateProfile(d) {
     if (demo) return P(Object.assign({}, currentUserRaw(), d));
-    return (await req('profile', { method: 'PATCH', body: { name: d.name, phone: d.phone } })).user;
+    return (await req('profile', { method: 'PATCH', body: { name: d.name, phone: d.phone, avatar: d.avatar } })).user;
   }
   async function changePassword(currentPassword, newPassword) {
     if (demo) { if (!newPassword || newPassword.length < 8) return Promise.reject(new Error('Password baru minimal 8 karakter')); return P({ ok: true }); }

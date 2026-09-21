@@ -16,7 +16,7 @@ export default async function handler(req, res) {
 
   if (req.method === 'GET') {
     try {
-      const rows = await sql`select id, nip, name, coalesce(phone,'') as phone, role, created_at from users where id = ${uid}`;
+      const rows = await sql`select id, nip, name, coalesce(phone,'') as phone, coalesce(avatar,'') as avatar, role, created_at from users where id = ${uid}`;
       if (!rows.length) return send(res, 404, { error: 'User tidak ditemukan' });
       return send(res, 200, { user: rows[0] });
     } catch (e) { return send(res, 500, { error: e.message }); }
@@ -38,12 +38,17 @@ export default async function handler(req, res) {
         return send(res, 200, { ok: true });
       }
 
-      // ── update identity (name / phone) ──
+      // ── update identity (name / phone / avatar) ──
       const name = b.name != null ? String(b.name).trim() : null;
       const phone = b.phone != null ? String(b.phone).replace(/\D/g, '').replace(/^0/, '62') : null;
       if (name) await sql`update users set name = ${name} where id = ${uid}`;
       if (phone != null) await sql`update users set phone = ${phone || null} where id = ${uid}`;
-      const rows = await sql`select id, nip, name, coalesce(phone,'') as phone, role from users where id = ${uid}`;
+      if (b.avatar !== undefined) {
+        const av = b.avatar ? String(b.avatar) : null;
+        if (av && av.length > 400000) return send(res, 400, { error: 'Foto terlalu besar' });
+        await sql`update users set avatar = ${av} where id = ${uid}`;
+      }
+      const rows = await sql`select id, nip, name, coalesce(phone,'') as phone, coalesce(avatar,'') as avatar, role from users where id = ${uid}`;
       return send(res, 200, { user: rows[0] });
     } catch (e) { return send(res, 500, { error: e.message }); }
   }

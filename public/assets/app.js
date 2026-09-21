@@ -290,6 +290,7 @@
           }
         });
         renderList('[data-recent-template]', d.recent);
+        wireRecentToolbar();          // #11 — replace "Lihat Semua" with search + filter
       } else if (p === 'dataaset') {
         var assets = await DB.assets();
         var groups = groupAssets(assets);                        // collapse identical items into tidy cards
@@ -878,7 +879,8 @@
     /* hero header */
     var hero = el('div', { class: 'sesd-prof-hero' });
     var avWrap = el('div', { class: 'sesd-prof-av' });
-    var av = getAvatarLS(u);
+    var av = u.avatar || getAvatarLS(u);       // prefer the server copy so it shows on any device
+    if (u.avatar) setAvatarLS(u, u.avatar);    // cache it locally for the rest of the shell
     if (av) avWrap.appendChild(el('img', { src: av, alt: 'Foto profil' }));
     else avWrap.appendChild(el('span', {}, initials(u.name)));
     var camBtn = el('button', { class: 'sesd-prof-av-edit', type: 'button', title: 'Ubah foto profil', html: ic('pencil') });
@@ -904,6 +906,7 @@
       avWrap.appendChild(camBtn); avWrap.appendChild(fileInput);
       $$('[data-user-initials]').forEach(function (e) { e.innerHTML = '<img alt="" src="' + dataurl + '" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;display:block">'; });
       if (window.SESDIAN_APPLY_AVATAR) window.SESDIAN_APPLY_AVATAR();
+      DB.updateProfile({ avatar: dataurl }).catch(function () {});   // persist server-side so it syncs across devices
       toast('Foto profil diperbarui', 'success');
     }
     camBtn.addEventListener('click', function () { fileInput.click(); });
@@ -1532,6 +1535,48 @@
     });
   }
 
+  /* ====================== #11 — table toolbar (search + filter) ======================
+     Replaces the "Lihat Semua" button above the dashboard recent table with a live
+     search box and a filter-icon dropdown (status). */
+  function wireRecentToolbar() {
+    var host = $('[data-recent-list]'); if (!host) return;
+    var btn = document.querySelector('[data-nav="daftarpinjam.html"]');
+    var bar = btn ? btn.parentNode : null; if (!bar || bar._sesdToolbar) return; bar._sesdToolbar = true;
+    var tools = el('div', { class: 'sesd-table-tools' });
+    var search = el('input', { type: 'search', placeholder: 'Cari peminjaman…', class: 'sesd-table-search' });
+    var filterBtn = el('button', { type: 'button', class: 'sesd-table-filter', title: 'Filter status', html: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5h18M6 12h12M10 19h4"/></svg>' });
+    tools.appendChild(search); tools.appendChild(filterBtn);
+    if (btn) btn.replaceWith(tools); else bar.appendChild(tools);
+    var STAT = ['Semua', 'Pending', 'Disetujui', 'Dipinjam', 'Kembali', 'Ditolak'];
+    var curStat = 'Semua', menu = null;
+    function apply() {
+      var q = (search.value || '').toLowerCase();
+      $$('tr', host).forEach(function (tr) {
+        if (tr.hasAttribute('data-recent-template')) return;
+        var txt = (tr.textContent || '').toLowerCase();
+        var ok = (!q || txt.indexOf(q) !== -1) && (curStat === 'Semua' || txt.indexOf(curStat.toLowerCase()) !== -1);
+        tr.style.display = ok ? '' : 'none';
+      });
+    }
+    search.addEventListener('input', apply);
+    function closeMenu() { if (menu) { menu.remove(); menu = null; } document.removeEventListener('click', onDoc, true); }
+    function onDoc(e) { if (menu && !menu.contains(e.target) && e.target !== filterBtn && !filterBtn.contains(e.target)) closeMenu(); }
+    filterBtn.addEventListener('click', function (e) {
+      e.preventDefault(); e.stopPropagation();
+      if (menu) { closeMenu(); return; }
+      menu = el('div', { class: 'sesd-table-filter-menu' });
+      STAT.forEach(function (s) {
+        var it = el('button', { type: 'button', class: 'sesd-table-filter-opt' + (s === curStat ? ' is-active' : '') }, s);
+        it.addEventListener('click', function () { curStat = s; apply(); closeMenu(); });
+        menu.appendChild(it);
+      });
+      document.body.appendChild(menu);
+      var r = filterBtn.getBoundingClientRect();
+      menu.style.top = (r.bottom + 6) + 'px'; menu.style.right = Math.max(12, window.innerWidth - r.right) + 'px';
+      setTimeout(function () { document.addEventListener('click', onDoc, true); }, 0);
+    });
+  }
+
   /* ====================== #12 — verifikasi % chart ======================
      Wrap the queue table beside a donut showing how much of the queue is done. */
   function buildVerifChart(pending, done) {
@@ -1656,6 +1701,14 @@
     showPageLoader();
     buildShell();                 // fill dynamic sidebar/topbar on pages that opt in
     fillIdentity(USER);
+    // #1 — pull fresh identity (name + photo) from the server so profile edits made
+    // on one device show everywhere; non-blocking, best-effort.
+    if (USER && DB.profile) DB.profile().then(function (p) {
+      if (!p) return;
+      if (p.name) { USER.name = p.name; }
+      if (p.name || p.nip) fillIdentity(USER);
+      if (p.avatar) { try { localStorage.setItem(avatarKeyFor(USER), p.avatar); } catch (e) {} if (window.SESDIAN_APPLY_AVATAR) window.SESDIAN_APPLY_AVATAR(); }
+    }).catch(function () {});
     injectBorrowedNav();          // "Sedang Dipinjam" link for all authed users
     if (IS_STAFF) injectRoleNav();
     setupGreeting();              // dashboard greeting (role-aware)
