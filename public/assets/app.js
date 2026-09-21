@@ -303,13 +303,24 @@
       } else if (p === 'ruangan') {
         renderList('[data-template]', await DB.rooms(), function (n, r) { n.setAttribute('data-id', r.id); if (IS_ADMIN) enhanceSimpleCard(n, r, 'room'); });
       } else if (p === 'daftarpinjam') {
-        // requests still in the approval/verification pipeline (not yet out, not returned)
+        // #9 — full borrowing history (Riwayat). The API scopes rows per role:
+        // a user sees only their own loans (so the page finally works for users);
+        // admin/verifikator see everyone's and can search by borrower name.
         var allbs = await DB.borrowings();
-        var bs = allbs.filter(function (b) { return b.status === 'pending' || b.status === 'approved' || b.status === 'rejected'; });
+        var bs = allbs;
         ensureAksiHeader();
         renderList('[data-template]', bs, function (n, r) { n.setAttribute('data-status', r.status); enhanceBorrowingRow(n, r); });
-        var counts = { pending: 0, approved: 0, rejected: 0, returned: 0 };
+        var counts = { all: allbs.length, pending: 0, approved: 0, rejected: 0, returned: 0 };
         allbs.forEach(function (b) { if (counts[b.status] != null) counts[b.status]++; });
+        // #9 — prepend a "Semua" filter card (default active) so the FULL history
+        // shows by default instead of only 'pending' (which hid users' history).
+        var pf = $('[data-filter="status"][data-filter-val="pending"]');
+        if (pf && !$('[data-filter="status"][data-filter-val="all"]')) {
+          pf.removeAttribute('data-filter-active');
+          var allCard = el('div', { 'data-filter': 'status', 'data-filter-val': 'all', 'data-filter-active': '', style: pf.getAttribute('style') || '' });
+          allCard.innerHTML = '<div style="width:8px;height:8px;border-radius:50%;background:var(--primary);margin:0 auto 8px"></div><div data-count="all" style="font-size:1.5rem;font-weight:800;color:var(--primary)">0</div><div style="font-size:0.75rem;color:var(--text-muted);font-weight:600">Semua</div>';
+          pf.parentNode.insertBefore(allCard, pf);
+        }
         Object.keys(counts).forEach(function (k) { var e = $('[data-count="' + k + '"]'); if (e) e.textContent = counts[k]; });
         if ($('[data-asset-template]')) {
           renderList('[data-asset-template]', await DB.assets(), function (n, r) { var cb = $('[data-asset-checkbox]', n) || $('input[type="checkbox"]', n); if (cb) cb.value = String(r.id); });
