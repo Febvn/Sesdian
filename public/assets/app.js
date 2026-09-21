@@ -1503,6 +1503,83 @@
   /* ---------------- boot ---------------- */
   // expose the single page loader so page-specific scripts (reports.js) can use it
   window.SESDIAN_LOADER = { show: showPageLoader, hide: hidePageLoader };
+  /* ====================== #3 — notifications (bell) ====================== */
+  function timeAgo(ts) {
+    var s = Math.floor((Date.now() - ts) / 1000);
+    if (s < 60) return 'baru saja';
+    var m = Math.floor(s / 60); if (m < 60) return m + ' menit lalu';
+    var h = Math.floor(m / 60); if (h < 24) return h + ' jam lalu';
+    var d = Math.floor(h / 24); if (d < 30) return d + ' hari lalu';
+    return new Date(ts).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
+  }
+  function notifSeenKey() { return 'sesdian_notif_seen_' + ((USER && USER.nip) || 'anon'); }
+  function getNotifSeen() { try { return parseInt(localStorage.getItem(notifSeenKey()) || '0', 10) || 0; } catch (e) { return 0; } }
+  function setNotifSeen(ts) { try { localStorage.setItem(notifSeenKey(), String(ts)); } catch (e) {} }
+  function notifItem(dateStr, icon, text, href) { var ts = dateStr ? new Date(dateStr).getTime() : Date.now(); if (isNaN(ts)) ts = Date.now(); return { ts: ts, icon: icon, text: text, href: href }; }
+  // Derived from the borrowings feed (no extra table): staff see incoming requests
+  // and return requests; a user sees updates on their own borrowings.
+  async function buildNotifList() {
+    var list = [];
+    try {
+      var rows = (await DB.borrowings()).borrowings || [];
+      rows.forEach(function (b) {
+        if (IS_STAFF) {
+          if (b.status === 'pending') list.push(notifItem(b.created_at, 'clipboard', (b.borrower_name || 'Seseorang') + ' mengajukan peminjaman ' + (b.asset_name || ''), 'verifikasi.html'));
+          else if (b.status === 'return_pending') list.push(notifItem(b.created_at, 'refresh', (b.borrower_name || 'Seseorang') + ' mengajukan pengembalian ' + (b.asset_name || ''), 'verifikasi.html'));
+        } else {
+          if (b.status === 'approved') list.push(notifItem(b.approved_at || b.created_at, 'check_circle', 'Peminjaman ' + (b.asset_name || '') + ' disetujui admin', 'daftarpinjam.html'));
+          else if (b.status === 'borrowed') list.push(notifItem(b.verified_at || b.created_at, 'check_circle', (b.asset_name || 'Barang') + ' siap diserahterimakan', 'daftarpinjam.html'));
+          else if (b.status === 'rejected') list.push(notifItem(b.approved_at || b.created_at, 'x', 'Peminjaman ' + (b.asset_name || '') + ' ditolak', 'daftarpinjam.html'));
+          else if (b.status === 'returned') list.push(notifItem(b.returned_at || b.created_at, 'check', 'Pengembalian ' + (b.asset_name || '') + ' selesai', 'daftarpinjam.html'));
+        }
+      });
+    } catch (e) {}
+    list.sort(function (a, b) { return b.ts - a.ts; });
+    return list.slice(0, 30);
+  }
+  function wireNotifBell(tries) {
+    tries = tries || 0;
+    var bell = document.querySelector('.sesd-head-iconbtn[aria-label="Notifikasi"]');
+    if (!bell) { if (tries < 30) setTimeout(function () { wireNotifBell(tries + 1); }, 80); return; }
+    if (bell._sesdNotif) return; bell._sesdNotif = true;
+    bell.style.position = 'relative';
+    var badge = el('span', { class: 'sesd-notif-badge' }); badge.style.display = 'none'; bell.appendChild(badge);
+    var menu = null, items = [];
+    function paintBadge() {
+      var seen = getNotifSeen();
+      var unread = items.filter(function (i) { return i.ts > seen; }).length;
+      badge.textContent = unread > 9 ? '9+' : String(unread);
+      badge.style.display = unread ? 'flex' : 'none';
+    }
+    function closeMenu() { if (menu) { menu.remove(); menu = null; } document.removeEventListener('click', onDoc, true); }
+    function onDoc(e) { if (menu && !menu.contains(e.target) && !bell.contains(e.target)) closeMenu(); }
+    bell.addEventListener('click', function (e) {
+      e.preventDefault(); e.stopPropagation();
+      if (menu) { closeMenu(); return; }
+      var seen = getNotifSeen();
+      menu = el('div', { class: 'sesd-notif-menu' });
+      menu.appendChild(el('div', { class: 'sesd-notif-head' }, 'Notifikasi'));
+      if (!items.length) menu.appendChild(el('div', { class: 'sesd-notif-empty' }, 'Belum ada notifikasi.'));
+      else items.forEach(function (i) {
+        var row = el('a', { class: 'sesd-notif-row' + (i.ts > seen ? ' is-unread' : ''), href: i.href || '#' });
+        row.appendChild(el('span', { class: 'sesd-notif-ic', html: ic(i.icon) }));
+        var body = el('div', { style: 'min-width:0' });
+        body.appendChild(el('div', { class: 'sesd-notif-text' }, i.text));
+        body.appendChild(el('div', { class: 'sesd-notif-time' }, timeAgo(i.ts)));
+        row.appendChild(body);
+        menu.appendChild(row);
+      });
+      document.body.appendChild(menu);
+      var r = bell.getBoundingClientRect();
+      menu.style.top = (r.bottom + 8) + 'px';
+      menu.style.right = Math.max(12, window.innerWidth - r.right) + 'px';
+      if (items.length) setNotifSeen(items[0].ts);   // opening the panel marks all read
+      badge.style.display = 'none';
+      setTimeout(function () { document.addEventListener('click', onDoc, true); }, 0);
+    });
+    buildNotifList().then(function (l) { items = l; paintBadge(); });
+  }
+
   async function boot() {
     setTimeout(function () { document.body.classList.add('sesd-ready'); }, 6000); // safety: never get stuck on the loader
     var g = guard();
@@ -1530,6 +1607,7 @@
     document.body.classList.add('sesd-ready');   // reveal once DB data is rendered (no hardcoded flash)
     wireActions(); wireNav(); wireModal(); wireSearch(); wireFilters(); fallbacks(); setupNotice();
     reapplyFilters();
+    wireNotifBell();              // #3 — functional notification bell (badge + dropdown)
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);

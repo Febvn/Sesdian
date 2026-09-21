@@ -54,7 +54,12 @@
   applyTextSize(getTextSize());   // apply as early as possible
 
   /* ── #4 — current user + per-user avatar (stored client-side) ── */
-  function currentUserLS() { try { return JSON.parse(localStorage.getItem('sesdian_user') || 'null'); } catch (e) { return null; } }
+  function currentUserLS() {
+    // API mode stores a JWT (with nip/name/role), not a 'sesdian_user' object —
+    // read identity from the token first so the header profile shows the NIP (#7).
+    try { var db = window.SESDIAN_DB; if (db && db.auth && db.auth.currentUser) { var u = db.auth.currentUser(); if (u && (u.nip || u.name)) return u; } } catch (e) {}
+    try { return JSON.parse(localStorage.getItem('sesdian_user') || 'null'); } catch (e) { return null; }
+  }
   function avatarKey(u) { return 'sesdian_avatar_' + ((u && (u.nip || u.name)) || 'anon'); }
   function getAvatar(u) { try { return localStorage.getItem(avatarKey(u)) || ''; } catch (e) { return ''; } }
   function setAvatar(u, d) { try { localStorage.setItem(avatarKey(u), d); } catch (e) {} }
