@@ -157,6 +157,19 @@
       e.textContent = user.role || 'user';
       setTimeout(function() { e.style.opacity = '1'; }, 250);
     });
+    // #7 — show the NIP consistently. Any opt-in [data-user-nip] element gets it,
+    // and the sidebar account card's sub-line surfaces the NIP so the left-sidebar
+    // identity matches the top-right header (both carry the NIP).
+    var nipText = user.nip ? ('NIP ' + user.nip) : '';
+    $$('[data-user-nip]').forEach(function (e) {
+      e.textContent = nipText;
+      setTimeout(function() { e.style.opacity = '1'; }, 250);
+    });
+    if (user.nip) $$('aside > div:last-child [data-user-role]').forEach(function (e) {
+      e.textContent = nipText;
+      e.style.textTransform = 'none';
+      e.style.letterSpacing = '0.2px';
+    });
   }
 
   /* ---------------- rendering ---------------- */
@@ -1284,7 +1297,7 @@
     var availTotal = 0;
     if (!groups.length) { appendEmpty(container, 'Belum ada aset.'); return; }
     groups.forEach(function (g) {
-      var avail = g.units.filter(function (u) { return (u.stock_available || 0) > 0; }).length;
+      var avail = (g.available != null) ? g.available : g.units.reduce(function (n, u) { return n + (u.stock_available || 0); }, 0);
       availTotal += avail;
       var card = el('div', { 'data-search-item': 'assets', 'data-status': avail > 0 ? 'available' : 'unavailable', style: 'background:#fff;border-radius:16px;border:1px solid var(--border);box-shadow:var(--shadow);padding:1rem;cursor:pointer;transition:transform .15s' });
       card.addEventListener('mouseenter', function () { card.style.transform = 'translateY(-3px)'; });

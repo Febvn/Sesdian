@@ -1794,8 +1794,11 @@ aside a:focus-visible { outline-offset: -2px !important; border-radius: var(--ra
     box-shadow: 0 6px 18px var(--primary-glow) !important;
   }
   :is(aside.sesd-rail, html.sesd-rail-pref aside[style]) .sesd-collapse-btn svg { width: 23px; height: 23px; transform: rotate(180deg); }
-  /* #1 — no separators in rail: drop whole section headers, even out every row */
-  :is(aside.sesd-rail, html.sesd-rail-pref aside[style]) .sesd-navsec { display: none !important; }
+  /* #1 — no separators in rail: drop whole section headers, even out every row.
+     Match BOTH the JS-added .sesd-navsec class AND the raw static markup by its
+     inline padding, so the labels never flash before app.js runs on navigation. */
+  :is(aside.sesd-rail, html.sesd-rail-pref aside[style]) .sesd-navsec,
+  :is(aside.sesd-rail, html.sesd-rail-pref aside[style]) [style*="padding: 0.6rem 0.5rem 0.25rem"] { display: none !important; }
   :is(aside.sesd-rail, html.sesd-rail-pref aside[style]) [data-role-nav] { margin-top: 0 !important; }
   /* nav rows: uniform, centered, with BIGGER icons (fixed px, independent of text size) */
   :is(aside.sesd-rail, html.sesd-rail-pref aside[style]) a[style] {
@@ -1811,6 +1814,12 @@ aside a:focus-visible { outline-offset: -2px !important; border-radius: var(--ra
   :is(aside.sesd-rail, html.sesd-rail-pref aside[style]) > div:last-child [data-user-role],
   :is(aside.sesd-rail, html.sesd-rail-pref aside[style]) > div:last-child button { display: none !important; }
 }
+
+/* Ajukan page: the old right-hand "Detail Peminjaman" panel is legacy (borrowing
+   now happens in the unit-pick modal). Collapse the two-column grid to one and
+   hide the panel from first paint so it never flashes on load. */
+body[data-page="ajukanpinjam"] [style*="grid-template-columns: 1fr 340px"] { grid-template-columns: 1fr !important; }
+body[data-page="ajukanpinjam"] [style*="grid-template-columns: 1fr 340px"] > div:nth-child(2) { display: none !important; }
 
 /* ── #4 — profile menu (per-user) + avatar in header & sidebar ── */
 .sesd-head-profile { overflow: hidden; padding: 0; }
