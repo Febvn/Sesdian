@@ -345,7 +345,8 @@
         buildAjukanList(groupAssets(await DB.assets()));
       } else if (p === 'users') {
         await renderUsers();
-        await wireWaSettings();
+        // WhatsApp notif setting moved to Detail Profil — drop its card here if present.
+        var waEl = $('[data-wa-input]'); if (waEl) { var waCard = waEl.closest('.animate-fade-up') || (waEl.parentNode && waEl.parentNode.parentNode); if (waCard && waCard.remove) waCard.remove(); }
       } else if (p === 'profil') {
         await renderProfile();
       }
@@ -764,6 +765,7 @@
     confirmAction(c, async function () {
       await DB.updateBorrowingStatus(rec.id, status); toast('Status diperbarui', 'success');
       if (status === 'returned') { DB.notify(rec.id, 'returned').then(function (r) { if (r && !r.auto && r.wa) openWaLink(r.wa, r.text); }).catch(function () {}); } // best-effort, silent
+      else if (status === 'return_pending') { DB.notify(rec.id, 'return-request').catch(function () {}); }                                                                  // notify admin (auto-send if gateway set)
       reloadData();
     });
   }
@@ -960,6 +962,25 @@
     });
     sec.appendChild(savePw);
     grid.appendChild(sec);
+
+    /* WhatsApp notification number (admin only) — moved here from Kelola User */
+    if (IS_ADMIN) {
+      var wa = pfCard('Notifikasi WhatsApp', 'Nomor admin yang menerima pemberitahuan saat ada pengajuan peminjaman.');
+      var waInput = el('input', { type: 'tel', placeholder: '08xxxxxxxxxx' });
+      wa.appendChild(pfField('Nomor WhatsApp Admin', waInput));
+      var waStatus = el('div', { style: 'font-size:0.72rem;color:var(--text-muted);margin-top:2px' });
+      function waNote(s) { waStatus.textContent = s.wa_auto ? 'Auto-kirim via gateway aktif.' : (s.wa_number ? 'Notifikasi dikirim lewat tautan WhatsApp saat user mengajukan.' : 'Belum ada nomor admin.'); }
+      DB.getSettings().then(function (s) { waInput.value = s.wa_number || ''; waNote(s); }).catch(function () {});
+      var waSave = el('button', { class: 'sesd-btn sesd-btn-primary', style: 'margin-top:6px', html: ic('check') + ' Simpan Nomor' });
+      waSave.addEventListener('click', function () {
+        withLoading(waSave, async function () {
+          try { var r = await DB.setWaNumber(waInput.value); waInput.value = r.wa_number || ''; waNote(r); toast('Nomor WhatsApp disimpan', 'success'); }
+          catch (e) { toast((e && e.message) || 'Gagal menyimpan', 'error'); }
+        });
+      });
+      wa.appendChild(waSave); wa.appendChild(waStatus);
+      grid.appendChild(wa);
+    }
 
     root.appendChild(grid);
   }

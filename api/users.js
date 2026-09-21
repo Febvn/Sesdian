@@ -50,7 +50,7 @@ export default async function handler(req, res) {
       const { id, role } = await readJson(req);
       const uid = parseInt(id, 10);
       if (!uid || ROLES.indexOf(role) === -1) return send(res, 400, { error: 'Data tidak valid' });
-      if (uid === admin.sub && role !== 'admin') return send(res, 400, { error: 'Tidak dapat menurunkan akun sendiri' });
+      if (String(uid) === String(admin.sub) && role !== 'admin') return send(res, 400, { error: 'Tidak dapat menurunkan akun sendiri' });
       const rows = await sql`update users set role = ${role} where id = ${uid} returning id, nip, name, role`;
       if (!rows.length) return send(res, 404, { error: 'User tidak ditemukan' });
       return send(res, 200, { user: rows[0] });
@@ -62,7 +62,7 @@ export default async function handler(req, res) {
       const b = await readJson(req);
       const uid = parseInt(b.id || (req.query && req.query.id), 10);
       if (!uid) return send(res, 400, { error: 'ID tidak valid' });
-      if (uid === admin.sub) return send(res, 400, { error: 'Tidak dapat menghapus akun sendiri' });
+      if (String(uid) === String(admin.sub)) return send(res, 400, { error: 'Tidak dapat menghapus akun sendiri' });
       await sql`delete from users where id = ${uid}`;
       return send(res, 200, { ok: true });
     } catch (e) { return send(res, 500, { error: e.message }); }

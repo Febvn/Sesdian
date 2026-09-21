@@ -1824,6 +1824,26 @@ aside a:focus-visible { outline-offset: -2px !important; border-radius: var(--ra
 .sesd-collapse-btn:hover { background: var(--primary) !important; color: #fff !important; border-color: var(--primary) !important; }
 .sesd-collapse-btn svg { width: 18px; height: 18px; transition: transform var(--dur-normal) var(--ease-spring); }
 
+/* #4 — pre-paint the raw sidebar header button to the SAME look app.js gives it,
+   so the collapse control never flashes a navy square on load — consistent in both
+   the expanded and rail (small) states. The '‹' glyph is hidden until the SVG lands. */
+aside > div:first-child > button {
+  background: var(--bg-mid) !important;
+  border: 1px solid var(--border) !important;
+  color: var(--text-muted) !important;
+  width: 30px !important; height: 30px !important; min-width: 30px;
+  border-radius: 9px !important; padding: 0 !important;
+  display: flex !important; align-items: center; justify-content: center;
+  flex-shrink: 0; font-size: 0 !important; line-height: 0;
+}
+@media (min-width: 769px) {
+  :is(aside.sesd-rail, html.sesd-rail-pref aside[style]) > div:first-child > button {
+    width: 44px !important; height: 44px !important; margin: 0 auto !important;
+    background: var(--primary) !important; color: #fff !important; border-color: var(--primary) !important;
+    box-shadow: 0 6px 18px var(--primary-glow) !important;
+  }
+}
+
 @media (min-width: 769px) {
   :is(aside.sesd-rail, html.sesd-rail-pref aside[style]) { width: 78px !important; }
   /* header: only the prominent, centered expand button shows */
