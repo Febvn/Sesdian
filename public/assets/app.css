@@ -1255,6 +1255,10 @@ main[style*="overflow: auto"] {
 .sesd-aset-img { height: 128px; overflow: hidden; background: var(--bg-mid); }
 .sesd-aset-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .sesd-aset-body { padding: 0.85rem 1rem 1rem; display: flex; flex-direction: column; gap: 6px; flex: 1 1 auto; }
+/* Image sits at the top; on cards WITHOUT an image the whole text block sinks to
+   the bottom so the top stays reserved (consistent image-top / text-bottom look). */
+.sesd-aset-card:not(:has(.sesd-aset-img)) .sesd-aset-top { margin-top: auto; }
+.sesd-aset-card:not(:has(.sesd-aset-img)) .sesd-aset-stock { margin-top: 8px; }
 .sesd-aset-top { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
 .sesd-aset-type {
   font-size: 0.62rem; font-weight: 800; letter-spacing: 0.3px;
@@ -1976,6 +1980,56 @@ aside [data-user-initials] img { width: 100%; height: 100%; object-fit: cover; b
 }
 .sesd-table-filter-opt:hover { background: var(--bg-mid); }
 .sesd-table-filter-opt.is-active { background: var(--primary-light); color: var(--primary); font-weight: 700; }
+
+/* ── custom dropdown (asset form: category/room/jenis/kondisi) ── */
+.sesd-dd { position: relative; }
+.sesd-dd-btn {
+  width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding: 0.7rem 0.85rem; border: 1px solid var(--border); border-radius: var(--radius-input);
+  background: var(--bg-card); color: var(--text); font-family: inherit; font-size: 0.9rem; font-weight: 500;
+  cursor: pointer; text-align: left;
+}
+.sesd-dd-btn:hover { border-color: rgba(0,117,222,0.4); }
+.sesd-dd.is-open .sesd-dd-btn { border-color: rgba(0,117,222,0.55); box-shadow: 0 0 0 3px var(--primary-glow); }
+.sesd-dd-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sesd-dd-label.is-ph { color: var(--text-muted); }
+.sesd-dd-caret { display: inline-flex; color: var(--text-muted); flex-shrink: 0; transition: transform var(--dur-fast) var(--ease-smooth); }
+.sesd-dd.is-open .sesd-dd-caret { transform: rotate(180deg); }
+.sesd-dd-menu {
+  display: none; position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 60;
+  background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius);
+  box-shadow: var(--card-hover-shadow); padding: 5px; max-height: 240px; overflow: auto;
+}
+.sesd-dd.is-open .sesd-dd-menu { display: block; }
+.sesd-dd-opt { display: flex; align-items: center; gap: 6px; padding: 0.5rem 0.6rem; border-radius: 8px; cursor: pointer; font-size: 0.86rem; }
+.sesd-dd-opt:hover { background: var(--bg-mid); }
+.sesd-dd-opt.is-active { background: var(--primary-light); color: var(--primary); font-weight: 700; }
+.sesd-dd-del { flex-shrink: 0; width: 26px; height: 26px; display: inline-flex; align-items: center; justify-content: center; border: none; background: transparent; color: var(--text-muted); border-radius: 6px; cursor: pointer; }
+.sesd-dd-del:hover { background: rgba(224,62,62,0.12); color: var(--danger); }
+.sesd-dd-del .ic svg { width: 15px; height: 15px; }
+.sesd-dd-empty { padding: 0.6rem; color: var(--text-muted); font-size: 0.82rem; text-align: center; }
+.sesd-dd-add { display: flex; gap: 6px; padding: 6px 4px 2px; border-top: 1px solid var(--border); margin-top: 4px; }
+.sesd-dd-add input { flex: 1; min-width: 0; padding: 0.45rem 0.6rem; border: 1px solid var(--border); border-radius: 8px; font-family: inherit; font-size: 0.82rem; background: var(--bg-card); color: var(--text); }
+
+/* ── name autocomplete (asset form) ── */
+.sesd-ac { position: relative; }
+.sesd-ac-input { width: 100%; padding-right: 6.75rem !important; }
+.sesd-ac-status {
+  position: absolute; top: 50%; right: 0.55rem; transform: translateY(-50%);
+  display: none; align-items: center; gap: 4px; pointer-events: none;
+  font-size: 0.66rem; font-weight: 800; padding: 0.2rem 0.5rem; border-radius: var(--radius-pill);
+}
+.sesd-ac-status .ic svg { width: 0.85rem; height: 0.85rem; }
+.sesd-ac-status.is-exist { background: var(--primary-light); color: var(--primary); }
+.sesd-ac-status.is-new { background: rgba(26,174,57,0.14); color: var(--success); }
+.sesd-ac-menu {
+  display: none; position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 60;
+  background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius);
+  box-shadow: var(--card-hover-shadow); padding: 5px; max-height: 220px; overflow: auto;
+}
+.sesd-ac.is-open .sesd-ac-menu { display: block; }
+.sesd-ac-opt { padding: 0.5rem 0.6rem; border-radius: 8px; cursor: pointer; font-size: 0.86rem; }
+.sesd-ac-opt:hover { background: var(--bg-mid); }
 
 /* ── #7 — text-size segmented toggle (A small / medium / large) ── */
 .sesd-textsize {

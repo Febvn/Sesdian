@@ -79,7 +79,7 @@
       chips.appendChild(chip);
     });
     if (chips.children.length) body.appendChild(chips);
-    var more = el('div', { class: 'sesd-cat-more', html: 'Lihat detail <span aria-hidden="true">&rarr;</span>' });
+    var more = el('div', { class: 'sesd-cat-more' }, 'Lihat detail');
     body.appendChild(more);
     card.appendChild(body);
     return card;

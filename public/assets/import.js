@@ -65,7 +65,7 @@
     m.appendChild(el('h3', {}, 'Import Aset dari Excel'));
     m.appendChild(el('p', { style: 'color:var(--text-muted);font-size:0.82rem;margin-bottom:0.75rem' }, 'Wajib memakai template ini. Kolom: Kode, Nama, Kategori, Brand, Ruangan (opsional), Kondisi, Tipe (BMN/Non-BMN). Setiap baris = satu barang dengan kode unik. Baris dengan kode yang sudah ada otomatis dilewati.'));
 
-    var tmpl = el('a', { href: '#', style: 'font-size:0.8rem;font-weight:700;display:inline-block;margin-bottom:0.75rem' }, '⬇ Unduh template CSV (contoh)');
+    var tmpl = el('a', { href: '#', style: 'font-size:0.8rem;font-weight:700;display:inline-block;margin-bottom:0.75rem' }, 'Unduh template CSV (contoh)');
     tmpl.addEventListener('click', function (e) { e.preventDefault(); downloadTemplate(); });
     m.appendChild(tmpl);
 
@@ -141,11 +141,13 @@
   }
 
   function downloadTemplate() {
+    // mirrors the daftar aset 2025 format (real kode/kategori) plus a Ruangan column
     var head = 'Kode,Nama,Kategori,Brand,Ruangan,Kondisi,Tipe';
     var samples = [
-      'A001,Monitor LG 24 inch,Elektronik,LG,Ruang Tata Usaha,Baik,BMN',
-      'A002,AC Split,Elektronik,Daikin,Ruang Rapat,Baik,BMN',
-      'A003,Kursi Kerja,Furnitur,Chitose,,Baik,Non-BMN',
+      '30801170162,Lemari Asam,MESIN PERALATAN NON TIK,ESCO,Laboratorium,Baik,BMN',
+      '30801170163,LCD Projector/Infocus,MESIN PERALATAN NON TIK,EPSON,Ruang Rapat,Baik,BMN',
+      '30801170164,Lemari Besi/Metal,MESIN PERALATAN NON TIK,Brother,Ruang Tata Usaha,Baik,BMN',
+      '325872859,Laptop,Elektronik,Acer,Ruang Kepala,Baik,BMN',
     ];
     var blob = new Blob(['﻿' + head + '\r\n' + samples.join('\r\n') + '\r\n'], { type: 'text/csv;charset=utf-8;' });
     var a = el('a', { href: URL.createObjectURL(blob), download: 'template-import-aset.csv' });
