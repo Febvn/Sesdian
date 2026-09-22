@@ -1853,6 +1853,9 @@ aside > div:first-child > button {
   }
   :is(aside.sesd-rail, html.sesd-rail-pref aside[style]) .sesd-brand-logo,
   :is(aside.sesd-rail, html.sesd-rail-pref aside[style]) .sesd-brand-wordmark { display: none !important; }
+  /* also match the raw text logo before app.js tags it .sesd-brand-wordmark, so the
+     SESDIAN wordmark never flashes for a frame when the sidebar loads railed. */
+  :is(aside.sesd-rail, html.sesd-rail-pref aside[style]) > div:first-child > div { display: none !important; }
   /* #4 — expand button: centered, larger, primary-filled = clearly noticeable */
   :is(aside.sesd-rail, html.sesd-rail-pref aside[style]) .sesd-collapse-btn {
     width: 44px !important; height: 44px !important; margin: 0 auto !important;
