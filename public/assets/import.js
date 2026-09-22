@@ -63,9 +63,9 @@
     var ov = el('div', { class: 'sesd-overlay' });
     var m = el('div', { class: 'sesd-modal', style: 'width:680px' });
     m.appendChild(el('h3', {}, 'Import Aset dari Excel'));
-    m.appendChild(el('p', { style: 'color:var(--text-muted);font-size:0.82rem;margin-bottom:0.75rem' }, 'Kolom yang dikenali: Kode, Nama, Kategori, Brand, Ruangan, Tahun, Kondisi, Tipe (BMN/Non-BMN), Jenis Aset, Stok Total. Baris dengan kode yang sudah ada akan dilewati.'));
+    m.appendChild(el('p', { style: 'color:var(--text-muted);font-size:0.82rem;margin-bottom:0.75rem' }, 'Wajib memakai template ini. Kolom: Kode, Nama, Kategori, Brand, Ruangan (opsional), Kondisi, Tipe (BMN/Non-BMN). Setiap baris = satu barang dengan kode unik. Baris dengan kode yang sudah ada otomatis dilewati.'));
 
-    var tmpl = el('a', { href: '#', style: 'font-size:0.8rem;font-weight:700;display:inline-block;margin-bottom:0.75rem' }, '⬇ Unduh template CSV');
+    var tmpl = el('a', { href: '#', style: 'font-size:0.8rem;font-weight:700;display:inline-block;margin-bottom:0.75rem' }, '⬇ Unduh template CSV (contoh)');
     tmpl.addEventListener('click', function (e) { e.preventDefault(); downloadTemplate(); });
     m.appendChild(tmpl);
 
@@ -100,6 +100,15 @@
         var wb = XLSX.read(buf, { type: 'array' });
         var sheet = wb.Sheets[wb.SheetNames[0]];
         var raw = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+        // #5 — reject files that don't follow the template (must have Kode + Nama columns)
+        var headers = raw.length ? Object.keys(raw[0]).map(function (h) { return String(h).trim().toLowerCase(); }) : [];
+        var hasCode = headers.some(function (h) { return FIELDS.code.indexOf(h) !== -1; });
+        var hasName = headers.some(function (h) { return FIELDS.name.indexOf(h) !== -1; });
+        if (!hasCode || !hasName) {
+          info.innerHTML = '<span style="color:var(--danger);font-weight:700">File tidak sesuai template.</span> Wajib ada kolom <b>Kode</b> dan <b>Nama</b>. Unduh template lalu gunakan kolom yang sama.';
+          previewWrap.style.display = 'none'; importBtn.disabled = true; importBtn.style.opacity = '0.6'; rows = [];
+          return;
+        }
         rows = raw.map(normalizeRow).filter(function (r) { return r.code || r.name; });
         if (!rows.length) { info.textContent = 'Tidak ada baris valid ditemukan.'; previewWrap.style.display = 'none'; importBtn.disabled = true; importBtn.style.opacity = '0.6'; return; }
         info.textContent = rows.length + ' baris siap diimpor (menampilkan 10 pertama):';
@@ -132,9 +141,13 @@
   }
 
   function downloadTemplate() {
-    var head = 'Kode,Nama,Kategori,Brand,Ruangan,Tahun,Kondisi,Tipe,Jenis Aset,Stok Total';
-    var sample = 'A001,Monitor LG 24",Elektronik,LG,Ruang Tata Usaha,2024,Baik,BMN,Fixed Asset,10';
-    var blob = new Blob(['﻿' + head + '\r\n' + sample + '\r\n'], { type: 'text/csv;charset=utf-8;' });
+    var head = 'Kode,Nama,Kategori,Brand,Ruangan,Kondisi,Tipe';
+    var samples = [
+      'A001,Monitor LG 24 inch,Elektronik,LG,Ruang Tata Usaha,Baik,BMN',
+      'A002,AC Split,Elektronik,Daikin,Ruang Rapat,Baik,BMN',
+      'A003,Kursi Kerja,Furnitur,Chitose,,Baik,Non-BMN',
+    ];
+    var blob = new Blob(['﻿' + head + '\r\n' + samples.join('\r\n') + '\r\n'], { type: 'text/csv;charset=utf-8;' });
     var a = el('a', { href: URL.createObjectURL(blob), download: 'template-import-aset.csv' });
     document.body.appendChild(a); a.click(); a.remove();
   }

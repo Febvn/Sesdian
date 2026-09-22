@@ -302,7 +302,12 @@
       } else if (p === 'kategoriaset') {
         renderList('[data-template]', await DB.categories(), function (n, r) { n.setAttribute('data-id', r.id); if (IS_ADMIN) enhanceSimpleCard(n, r, 'category'); });
       } else if (p === 'ruangan') {
-        renderList('[data-template]', await DB.rooms(), function (n, r) { n.setAttribute('data-id', r.id); if (IS_ADMIN) enhanceSimpleCard(n, r, 'room'); });
+        renderList('[data-template]', await DB.rooms(), function (n, r) {
+          n.setAttribute('data-id', r.id);
+          n.style.cursor = 'pointer';
+          n.addEventListener('click', function (e) { if (e.target.closest('.sesd-admin-actions')) return; openRoomDetail(r); });   // #9 — view/edit room contents
+          if (IS_ADMIN) enhanceSimpleCard(n, r, 'room');
+        });
       } else if (p === 'daftarpinjam') {
         // #9 — full borrowing history (Riwayat). The API scopes rows per role:
         // a user sees only their own loans (so the page finally works for users);
@@ -520,6 +525,50 @@
       },
     });
   }
+  // #8 — manage categories (add / delete) without a dedicated page.
+  async function openCategoryManager() {
+    if (modalOpen()) return;
+    var cats = [];
+    try { cats = await DB.categories(); } catch (e) {}
+    var ov = overlay(), m = el('div', { class: 'sesd-modal', style: 'width:420px' });
+    m.appendChild(el('h3', {}, 'Kelola Kategori'));
+    m.appendChild(el('p', { style: 'color:var(--text-muted);font-size:.85rem;margin:-6px 0 12px' }, 'Tambah kategori baru atau hapus yang tidak dipakai.'));
+    var list = el('div', { style: 'display:flex;flex-direction:column;gap:6px;max-height:300px;overflow:auto;margin-bottom:12px' });
+    function row(c) {
+      var r = el('div', { style: 'display:flex;align-items:center;gap:8px;padding:.5rem .7rem;border:1px solid var(--border);border-radius:10px' });
+      r.appendChild(el('span', { style: 'flex:1;font-weight:600;font-size:.85rem' }, c.name));
+      var del = el('button', { class: 'sesd-btn sesd-btn-sm sesd-btn-danger', html: ic('trash') });
+      del.addEventListener('click', function () {
+        confirmAction({ title: 'Hapus Kategori', message: 'Hapus kategori "' + c.name + '"? Aset yang memakainya akan menjadi tanpa kategori.', variant: 'danger', confirmLabel: 'Ya, hapus' }, async function () {
+          await DB.deleteCategory(c.id); cats = cats.filter(function (x) { return x.id !== c.id; }); draw(); toast('Kategori dihapus', 'success'); reloadData();
+        });
+      });
+      r.appendChild(del); return r;
+    }
+    function draw() { list.innerHTML = ''; if (!cats.length) list.appendChild(el('div', { style: 'color:var(--text-muted);font-size:.85rem;padding:.5rem' }, 'Belum ada kategori.')); else cats.forEach(function (c) { list.appendChild(row(c)); }); }
+    draw(); m.appendChild(list);
+    var addWrap = el('div', { style: 'display:flex;gap:8px' });
+    var addInput = el('input', { type: 'text', placeholder: 'Nama kategori baru', style: 'flex:1' });
+    var addBtn = el('button', { class: 'sesd-btn sesd-btn-primary', html: ic('check') + ' Tambah' });
+    function doAdd() {
+      var name = addInput.value.trim(); if (!name) return;
+      if (cats.some(function (c) { return (c.name || '').trim().toLowerCase() === name.toLowerCase(); })) { toast('Kategori sudah ada', 'error'); return; }
+      withLoading(addBtn, async function () {
+        var res = await DB.createCategory({ name: name });
+        cats.push({ id: res && (res.id != null ? res.id : (res.category && res.category.id)), name: name });
+        addInput.value = ''; draw(); toast('Kategori ditambahkan', 'success'); reloadData();
+      });
+    }
+    addBtn.addEventListener('click', doAdd);
+    addInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); doAdd(); } });
+    addWrap.appendChild(addInput); addWrap.appendChild(addBtn); m.appendChild(addWrap);
+    var closeBtn = el('button', { class: 'sesd-btn sesd-btn-ghost', style: 'width:100%;margin-top:12px' }, 'Tutup');
+    closeBtn.addEventListener('click', function () { ov.remove(); });
+    m.appendChild(closeBtn);
+    ov.appendChild(m); document.body.appendChild(ov);
+    ov.addEventListener('click', function (e) { if (e.target === ov) ov.remove(); });
+  }
+
   function openAssetDetail(r) {
     if (modalOpen()) return;
     var ov = overlay(), m = el('div', { class: 'sesd-modal', style: 'width:520px' });
@@ -764,6 +813,114 @@
       onSave: async function (v) { if (!v.name) throw new Error('Nama wajib diisi'); if (rec) await DB.updateRoom(rec.id, v); else await DB.createRoom(v); toast('Tersimpan', 'success'); reloadData(); },
     });
   }
+  // Merge an asset's current fields with a change set. The assets PATCH overwrites
+  // category_id/brand/room_id/year when they're absent, so a partial update must
+  // resend everything it wants to keep.
+  function assetPatch(a, changes) {
+    return Object.assign({
+      code: a.code, name: a.name, category_id: a.category_id, brand: a.brand,
+      room_id: a.room_id, year: a.year, condition: a.condition, type: a.type,
+      asset_type: a.asset_type, stock_total: a.stock_total,
+    }, changes || {});
+  }
+  function roomCatalogUrl(room) {
+    var origin = location.origin + location.pathname.replace(/[^/]*$/, '');
+    return origin + 'katalog.html?room=' + encodeURIComponent(room.name || '');
+  }
+  // #10 — QR that opens the room's public catalog (what's inside the room).
+  async function showRoomQR(room) {
+    if (!window.SESDIAN_QR) { toast('Modul QR belum siap', 'error'); return; }
+    var url = roomCatalogUrl(room);
+    var ov = overlay(), m = el('div', { class: 'sesd-modal', style: 'width:340px;text-align:center' });
+    m.appendChild(el('h3', {}, 'QR Ruangan'));
+    var holder = el('div', { style: 'display:flex;align-items:center;justify-content:center;min-height:160px' });
+    holder.innerHTML = '<div class="sesd-page-loader" style="min-height:0"><span></span><span></span><span></span></div>';
+    m.appendChild(holder);
+    m.appendChild(el('div', { style: 'font-weight:700;margin-top:8px' }, room.name || ''));
+    m.appendChild(el('div', { style: 'font-size:.72rem;color:var(--text-muted);margin-top:2px' }, 'Scan untuk melihat isi ruangan'));
+    var foot = el('div', { style: 'display:flex;gap:8px;margin-top:1rem' });
+    var printBtn = el('button', { class: 'sesd-btn sesd-btn-primary', style: 'flex:1' }, 'Cetak QR');
+    var closeBtn = el('button', { class: 'sesd-btn sesd-btn-ghost' }, 'Tutup');
+    foot.appendChild(printBtn); foot.appendChild(closeBtn); m.appendChild(foot);
+    ov.appendChild(m); document.body.appendChild(ov);
+    closeBtn.addEventListener('click', function () { ov.remove(); });
+    ov.addEventListener('click', function (e) { if (e.target === ov) ov.remove(); });
+    var dataUrl = '';
+    try { await window.SESDIAN_QR.ensure(); dataUrl = window.SESDIAN_QR.dataUrl(url); holder.innerHTML = '<img src="' + dataUrl + '" style="width:200px;height:200px;image-rendering:pixelated">'; }
+    catch (e) { holder.textContent = 'Gagal memuat QR (perlu internet).'; }
+    printBtn.addEventListener('click', function () {
+      if (!dataUrl) return;
+      var w = window.open('', '_blank', 'width=420,height=560'); if (!w) return;
+      w.document.write('<html><head><title>QR ' + (room.name || 'Ruangan') + '</title></head><body style="font-family:sans-serif;text-align:center;padding:24px" onload="window.print()"><img src="' + dataUrl + '" style="width:240px;height:240px;image-rendering:pixelated"><div style="font-weight:700;margin-top:10px;font-size:15px">' + (room.name || '') + '</div><div style="font-size:12px;color:#555;margin-top:2px">Isi ruangan</div></body></html>');
+      w.document.close();
+    });
+  }
+  // #9 — room detail: everyone sees what's in the room; admin adds/removes items.
+  async function openRoomDetail(room) {
+    if (modalOpen()) return;
+    var assets = [];
+    try { assets = await DB.assets(); } catch (e) {}
+    var inRoom = assets.filter(function (a) { return String(a.room_id) === String(room.id); });
+    var outside = assets.filter(function (a) { return String(a.room_id) !== String(room.id); });
+    var ov = overlay(), m = el('div', { class: 'sesd-modal', style: 'width:560px' });
+    m.appendChild(el('h3', {}, room.name || 'Ruangan'));
+    var sub = el('div', { style: 'color:var(--text-muted);font-size:.82rem;margin:-6px 0 12px' });
+    function setSub() { sub.textContent = (room.code ? room.code + ' · ' : '') + inRoom.length + ' barang' + (room.pic ? (' · PJ: ' + room.pic) : ''); }
+    setSub(); m.appendChild(sub);
+    var actions = el('div', { style: 'display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap' });
+    actions.appendChild(el('a', { href: roomCatalogUrl(room), class: 'sesd-btn sesd-btn-sm sesd-btn-ghost', html: ic('search') + ' Katalog Ruangan' }));
+    var qrBtn = el('button', { class: 'sesd-btn sesd-btn-sm sesd-btn-ghost', html: ic('tag') + ' QR Ruangan' });
+    qrBtn.addEventListener('click', function () { showRoomQR(room); });
+    actions.appendChild(qrBtn); m.appendChild(actions);
+    var listWrap = el('div', { style: 'max-height:280px;overflow:auto;border:1px solid var(--border);border-radius:12px;margin-bottom:12px' });
+    function itemRow(a) {
+      var row = el('div', { style: 'display:flex;align-items:center;gap:8px;padding:.55rem .75rem;border-top:1px solid var(--border)' });
+      var info = el('div', { style: 'flex:1;min-width:0' });
+      info.appendChild(el('div', { style: 'font-weight:600;font-size:.85rem' }, a.name || '-'));
+      info.appendChild(el('div', { style: 'font-size:.72rem;color:var(--text-muted);font-family:"JetBrains Mono",monospace' }, (a.code || '') + (a.brand ? (' · ' + a.brand) : '')));
+      row.appendChild(info);
+      if (IS_ADMIN) {
+        var rm = el('button', { class: 'sesd-btn sesd-btn-sm sesd-btn-danger', html: ic('x') + ' Keluarkan' });
+        rm.addEventListener('click', function () {
+          confirmAction({ title: 'Keluarkan Barang', message: 'Keluarkan "' + a.name + '" dari ' + (room.name || 'ruangan ini') + '?', variant: 'danger', confirmLabel: 'Ya, keluarkan' }, async function () {
+            await DB.updateAsset(a.id, assetPatch(a, { room_id: null }));
+            inRoom = inRoom.filter(function (x) { return x.id !== a.id; }); a.room_id = null; outside.push(a);
+            setSub(); drawList(); addOption(a); toast('Barang dikeluarkan', 'success'); reloadData();
+          });
+        });
+        row.appendChild(rm);
+      }
+      return row;
+    }
+    function drawList() { listWrap.innerHTML = ''; if (!inRoom.length) listWrap.appendChild(el('div', { style: 'padding:1rem;text-align:center;color:var(--text-muted);font-size:.85rem' }, 'Belum ada barang di ruangan ini.')); else inRoom.forEach(function (a) { listWrap.appendChild(itemRow(a)); }); }
+    drawList(); m.appendChild(listWrap);
+    var sel;
+    function addOption(a) { if (sel) { var o = el('option', { value: a.id }, (a.name || '') + ' (' + (a.code || '') + ')' + (a.room ? '' : ' — tanpa ruangan')); sel.appendChild(o); } }
+    if (IS_ADMIN) {
+      var addWrap = el('div', { style: 'display:flex;gap:8px' });
+      sel = el('select', { style: 'flex:1' });
+      sel.appendChild(el('option', { value: '' }, '— Pilih barang untuk ditambahkan —'));
+      outside.forEach(function (a) { sel.appendChild(el('option', { value: a.id }, (a.name || '') + ' (' + (a.code || '') + ')' + (a.room ? (' — kini di ' + a.room) : ' — tanpa ruangan'))); });
+      var addBtn = el('button', { class: 'sesd-btn sesd-btn-primary', html: ic('check') + ' Tambah' });
+      addBtn.addEventListener('click', function () {
+        var id = sel.value; if (!id) return;
+        var a = outside.filter(function (x) { return String(x.id) === String(id); })[0]; if (!a) return;
+        withLoading(addBtn, async function () {
+          await DB.updateAsset(a.id, assetPatch(a, { room_id: room.id }));
+          a.room_id = room.id; a.room = room.name; inRoom.push(a); outside = outside.filter(function (x) { return x.id !== a.id; });
+          var opt = sel.querySelector('option[value="' + id + '"]'); if (opt) sel.removeChild(opt); sel.value = '';
+          setSub(); drawList(); toast('Barang ditambahkan ke ruangan', 'success'); reloadData();
+        });
+      });
+      addWrap.appendChild(sel); addWrap.appendChild(addBtn); m.appendChild(addWrap);
+    }
+    var closeBtn = el('button', { class: 'sesd-btn sesd-btn-ghost', style: 'width:100%;margin-top:10px' }, 'Tutup');
+    closeBtn.addEventListener('click', function () { ov.remove(); });
+    m.appendChild(closeBtn);
+    ov.appendChild(m); document.body.appendChild(ov);
+    ov.addEventListener('click', function (e) { if (e.target === ov) ov.remove(); });
+  }
+
   function enhanceSimpleCard(card, rec, kind) {
     // Prevent duplicate buttons
     if (card.querySelector('.sesd-admin-actions')) return;
@@ -1114,7 +1271,7 @@
       aside.appendChild(el('div', { style: 'padding:1rem;border-bottom:1px solid rgb(26,37,64);display:flex;align-items:center;gap:8px;min-height:60px', html: '<div><div style="font-size:1.15rem;font-weight:900;color:var(--text);letter-spacing:-0.5px;line-height:1">SES<span style="color:rgb(99,102,241)">DIAN</span></div><div style="font-size:0.55rem;color:var(--text-muted);margin-top:3px;font-family:\'JetBrains Mono\';letter-spacing:2px">ASSET MANAGEMENT</div></div>' }));
       var nav = el('div', { style: 'flex:1 1 0%;overflow:hidden auto;padding:0.5rem' });
       nav.appendChild(navSection('UTAMA', [makeNavLink('dashboard.html', 'zap', 'Dashboard', 'Ringkasan & statistik')]));
-      nav.appendChild(navSection('ASET', [makeNavLink('dataaset.html', 'package', 'Data Aset', 'Lihat semua aset'), makeNavLink('kategoriaset.html', 'tag', 'Kategori Aset', 'Jenis-jenis aset'), makeNavLink('ruangan.html', 'home', 'Ruangan', 'Daftar ruangan')]));
+      nav.appendChild(navSection('ASET', [makeNavLink('dataaset.html', 'package', 'Data Aset', 'Lihat semua aset'), makeNavLink('ruangan.html', 'home', 'Ruangan', 'Daftar ruangan')]));
       nav.appendChild(navSection('PEMINJAMAN', [makeNavLink('daftarpinjam.html', 'refresh', 'Daftar Pinjam', 'Riwayat peminjaman'), makeNavLink('ajukanpinjam.html', 'clipboard', 'Ajukan Pinjam', 'Request baru')]));
       aside.appendChild(nav);
       aside.appendChild(el('div', { style: 'padding:0.75rem;border-top:1px solid rgb(26,37,64)', html: '<div style="display:flex;align-items:center;gap:8px;padding:0.6rem;border-radius:10px;background:linear-gradient(135deg,rgb(26,37,64),rgb(15,23,42));border:1px solid rgb(30,41,59)"><div data-user-initials style="width:34px;height:34px;border-radius:9px;flex-shrink:0;background:linear-gradient(135deg,rgb(99,102,241),rgb(139,92,246));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:0.75rem">AS</div><div style="flex:1 1 0%;min-width:0px"><div data-user-name style="color:rgb(226,232,240);font-size:0.75rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Pengguna</div><div data-user-role style="color:rgb(51,65,85);font-size:0.6rem;text-transform:uppercase;letter-spacing:1px">user</div></div><button data-action="logout" style="background:transparent;border:1px solid rgb(30,41,59);color:rgb(71,85,105);cursor:pointer;font-size:0.7rem;padding:0.25rem 0.5rem;border-radius:6px;flex-shrink:0">Keluar</button></div>' }));
@@ -1173,6 +1330,9 @@
     installBrandLogo();
     normalizeSidebarIcons();
     normalizeTopbar();
+    // #8 — the Kategori Aset page is gone (managed from the Data Aset toolbar);
+    // drop its nav link on the static-shell pages that still hard-code it.
+    $$('aside a[href="kategoriaset.html"]').forEach(function (a) { a.remove(); });
   }
 
   function injectAdminBars() {
@@ -1216,6 +1376,7 @@
     }
     if (p === 'dataaset') bar([
       { label: 'Tambah Aset', icon: 'package', onClick: function () { openAssetForm(null); } },
+      { label: 'Kelola Kategori', variant: 'ghost', icon: 'tag', onClick: function () { openCategoryManager(); } },   // #8 — category CRUD lives here now
       { label: 'Import Excel', variant: 'success', icon: 'archive', onClick: function () { if (window.SESDIAN_IMPORT) window.SESDIAN_IMPORT.open(); else toast('Modul import belum siap', 'error'); } },
     ]);
     else if (p === 'kategoriaset') bar([{ label: 'Tambah Kategori', onClick: function () { openCategoryForm(null); } }]);
