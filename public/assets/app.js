@@ -396,12 +396,29 @@
       if (f.type === 'select') { input = el('select'); (f.options || []).forEach(function (o) { var op = el('option', { value: o.value }, o.label); if (String(f.value) === String(o.value)) op.selected = true; input.appendChild(op); }); }
       else if (f.type === 'textarea') { input = el('textarea'); if (f.value) input.value = f.value; }
       else if (f.type === 'file') { input = el('input', { type: 'file', accept: 'image/*' }); }
+      else if (f.type === 'datalist') {
+        // free-text input with autocomplete suggestions (type existing OR a new value)
+        input = el('input', { type: 'text', autocomplete: 'off' });
+        if (f.value != null) input.value = f.value;
+        if (f.placeholder) input.placeholder = f.placeholder;
+        var listId = 'dl-' + f.name + '-' + Math.random().toString(36).slice(2, 7);
+        input.setAttribute('list', listId);
+        var dl = el('datalist', { id: listId });
+        (f.options || []).forEach(function (o) { dl.appendChild(el('option', { value: (o && o.value != null) ? o.value : o })); });
+        wrap.appendChild(dl);
+      }
       else { input = el('input', { type: f.type || 'text' }); if (f.value != null) input.value = f.value; if (f.placeholder) input.placeholder = f.placeholder; }
       inputs[f.name] = input;
       wrap.appendChild(input);
       if (f.type === 'file') {
         var prev = el('img', { class: 'sesd-imgprev' }); if (f.value) { prev.src = f.value; prev.style.display = 'block'; } wrap.appendChild(prev);
         input.addEventListener('change', async function () { if (input.files && input.files[0]) { try { var u = await fileToDataURL(input.files[0]); input._dataurl = u; prev.src = u; prev.style.display = 'block'; } catch (e) { toast('Gagal membaca gambar', 'error'); } } });
+      }
+      if (f.hint) {
+        var hintEl = el('div', { style: 'font-size:0.72rem;margin-top:5px;color:var(--text-muted)' });
+        var upd = function () { var h = f.hint(input.value); hintEl.textContent = h ? h.text : ''; hintEl.style.color = (h && h.color) || 'var(--text-muted)'; };
+        input.addEventListener('input', upd); upd();
+        wrap.appendChild(hintEl);
       }
       m.appendChild(wrap);
     });
@@ -455,25 +472,50 @@
   }
 
   async function openAssetForm(rec) {
-    var cats = [], rms = [];
-    try { cats = await DB.categories(); rms = await DB.rooms(); } catch (e) {}
+    var cats = [], rms = [], allAssets = [];
+    try { cats = await DB.categories(); rms = await DB.rooms(); allAssets = await DB.assets(); } catch (e) {}
+    // unique existing asset names (for autocomplete + the new/existing check #6)
+    var nameMap = {};
+    allAssets.forEach(function (a) { if (a.name) { var k = a.name.trim().toLowerCase(); if (!nameMap[k]) nameMap[k] = a.name.trim(); } });
+    var nameList = Object.keys(nameMap).map(function (k) { return nameMap[k]; }).sort();
     overlayForm({
       title: rec ? 'Edit Aset' : 'Tambah Aset', submitLabel: rec ? 'Simpan' : 'Tambah',
       fields: [
-        { name: 'name', label: 'Nama Aset', value: rec && rec.name },
-        { name: 'code', label: 'Kode', value: rec && rec.code },
-        { name: 'category_id', label: 'Kategori', type: 'select', value: rec && rec.category_id, options: cats.map(function (c) { return { value: c.id, label: c.name }; }) },
-        { name: 'room_id', label: 'Ruangan', type: 'select', value: rec && rec.room_id, options: rms.map(function (r) { return { value: r.id, label: r.name }; }) },
+        // #6 — pick an existing name (suggestion) or type a new one; live new/existing check
+        { name: 'name', label: 'Nama Aset', type: 'datalist', value: rec && rec.name, options: nameList, placeholder: 'Ketik atau pilih nama barang',
+          hint: function (val) { var k = (val || '').trim().toLowerCase(); if (!k) return null;
+            return nameMap[k] ? { text: 'Barang sudah ada — akan masuk ke jenis "' + nameMap[k] + '"', color: 'var(--primary)' }
+                              : { text: 'Barang baru (jenis belum ada)', color: 'var(--success)' }; } },
+        { name: 'code', label: 'Kode', value: rec && rec.code, placeholder: 'Kode unik untuk barang ini' },
+        // #8 — category as free text: pick an existing one or type a new name (created on save)
+        { name: 'category', label: 'Kategori', type: 'datalist', value: rec && rec.category, options: cats.map(function (c) { return c.name; }), placeholder: 'Ketik untuk membuat kategori baru' },
         { name: 'brand', label: 'Merek', value: rec && rec.brand },
-        { name: 'year', label: 'Tahun', type: 'number', value: rec && rec.year },
+        // #7 — room optional
+        { name: 'room', label: 'Ruangan (opsional)', type: 'datalist', value: rec && rec.room, options: rms.map(function (r) { return r.name; }), placeholder: 'Kosongkan jika belum ditempatkan' },
         { name: 'type', label: 'Jenis', type: 'select', value: (rec && rec.type) || 'BMN', options: [{ value: 'BMN', label: 'BMN' }, { value: 'Non-BMN', label: 'Non-BMN' }] },
         { name: 'condition', label: 'Kondisi', value: (rec && rec.condition) || 'Baik' },
-        { name: 'stock_total', label: 'Jumlah Stok', type: 'number', value: (rec && rec.stock_total != null) ? rec.stock_total : 1 },
         { name: 'image', label: 'Gambar (opsional)', type: 'file', value: rec && rec.image },
       ],
       onSave: async function (v) {
-        if (!v.name || !v.code) throw new Error('Nama dan kode wajib diisi');
-        if (rec) await DB.updateAsset(rec.id, v); else await DB.createAsset(v);
+        if (!v.name || !v.name.trim() || !v.code || !v.code.trim()) throw new Error('Nama dan kode wajib diisi');
+        // each physical item needs its own unique code (#2)
+        var codeK = v.code.trim().toLowerCase();
+        if (allAssets.some(function (a) { return (!rec || a.id !== rec.id) && (a.code || '').trim().toLowerCase() === codeK; })) throw new Error('Kode "' + v.code.trim() + '" sudah dipakai barang lain');
+        // resolve category name -> id (create the category if it is new) #8
+        var catId = null;
+        var cName = (v.category || '').trim();
+        if (cName) {
+          var cat = cats.filter(function (c) { return (c.name || '').trim().toLowerCase() === cName.toLowerCase(); })[0];
+          if (cat) catId = cat.id;
+          else { var nc = await DB.createCategory({ name: cName }); catId = nc && (nc.id != null ? nc.id : (nc.category && nc.category.id)); }
+        }
+        // resolve room name -> id (optional; only matches an existing room) #7
+        var roomId = null;
+        var rName = (v.room || '').trim();
+        if (rName) { var rm = rms.filter(function (r) { return (r.name || '').trim().toLowerCase() === rName.toLowerCase(); })[0]; if (rm) roomId = rm.id; }
+        // #2 — each asset is one physical item (its own code), so stock is always 1
+        var payload = { name: v.name.trim(), code: v.code.trim(), category_id: catId, room_id: roomId, brand: (v.brand || '').trim() || null, type: v.type, condition: v.condition || 'Baik', image: v.image, stock_total: 1 };
+        if (rec) await DB.updateAsset(rec.id, payload); else await DB.createAsset(payload);
         toast(rec ? 'Aset diperbarui' : 'Aset ditambahkan', 'success'); reloadData();
       },
     });
@@ -527,7 +569,9 @@
   function groupAssets(list) {
     var map = {}, order = [];
     list.forEach(function (a) {
-      var key = (a.name || '').trim().toLowerCase() + '|' + (a.category || '').toLowerCase();
+      // #2 — group purely by name: same name = same "jenis" even if brand/category differ
+      // (e.g. all "AC Split" units land in one group regardless of merek).
+      var key = (a.name || '').trim().toLowerCase();
       var g = map[key];
       if (!g) { g = map[key] = { name: a.name, category: a.category, brand: a.brand, room: a.room, type: a.type, condition: a.condition, image: a.image, units: [], stock_total: 0, stock_available: 0, stock_borrowed: 0 }; order.push(key); }
       g.units.push(a);
@@ -536,6 +580,7 @@
       g.stock_borrowed += (a.stock_borrowed || 0);
       if (!g.image && a.image) g.image = a.image;
       if (g.brand && a.brand && g.brand !== a.brand) g.brand = 'Beragam';
+      if (g.category && a.category && g.category !== a.category) g.category = 'Beragam';
       if (g.room && a.room && g.room !== a.room) g.room = 'Beberapa ruangan';
     });
     return order.map(function (k) {
@@ -1706,7 +1751,12 @@
       badge.style.display = 'none';
       setTimeout(function () { document.addEventListener('click', onDoc, true); }, 0);
     });
-    buildNotifList().then(function (l) { items = l; paintBadge(); });
+    function refresh() { buildNotifList().then(function (l) { items = l; if (!menu) paintBadge(); }); }
+    refresh();
+    // #1 — poll so new borrow requests reach the admin without a manual reload,
+    // and refresh whenever the tab regains focus.
+    setInterval(refresh, 30000);
+    window.addEventListener('focus', refresh);
   }
 
   async function boot() {
