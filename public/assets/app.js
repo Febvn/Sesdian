@@ -1035,12 +1035,12 @@
       addBox.appendChild(el('div', { style: 'font-size:.72rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px' }, 'Tambahkan barang ke ruangan'));
       addSearch = el('input', { type: 'search', placeholder: 'Cari barang (nama atau kode)', style: 'width:100%;margin-bottom:8px' });
       addSearch.addEventListener('input', drawPool);
-      poolWrap = el('div', { style: 'max-height:240px;overflow:auto;display:flex;flex-direction:column;gap:6px' });
+      poolWrap = el('div', { class: 'sesd-scroll', style: 'max-height:240px;overflow:auto;display:flex;flex-direction:column;gap:6px' });
       addBox.appendChild(addSearch); addBox.appendChild(poolWrap);
       m.appendChild(addBox);
     }
 
-    var listWrap = el('div', { style: 'max-height:280px;overflow:auto;border:1px solid var(--border);border-radius:12px;margin-bottom:12px' });
+    var listWrap = el('div', { class: 'sesd-scroll', style: 'max-height:280px;overflow:auto;border:1px solid var(--border);border-radius:12px;margin-bottom:12px' });
     function itemRow(a) {
       var row = el('div', { style: 'display:flex;align-items:center;gap:8px;padding:.55rem .75rem;border-top:1px solid var(--border)' });
       var info = el('div', { style: 'flex:1;min-width:0' });

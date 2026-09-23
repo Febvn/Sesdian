@@ -2031,6 +2031,19 @@ aside [data-user-initials] img { width: 100%; height: 100%; object-fit: cover; b
 .sesd-ac-opt { padding: 0.5rem 0.6rem; border-radius: 8px; cursor: pointer; font-size: 0.86rem; }
 .sesd-ac-opt:hover { background: var(--bg-mid); }
 
+/* refined scrollbar for in-modal lists (room add/contents panels) */
+.sesd-scroll { scrollbar-width: thin; scrollbar-color: var(--border) transparent; scroll-behavior: smooth; }
+.sesd-scroll::-webkit-scrollbar { width: 9px; height: 9px; }
+.sesd-scroll::-webkit-scrollbar-track { background: transparent; margin: 4px 0; }
+.sesd-scroll::-webkit-scrollbar-thumb {
+  background: var(--border); border-radius: 999px;
+  border: 2px solid transparent; background-clip: padding-box;   /* floating, padded pill */
+  transition: background-color var(--dur-fast) var(--ease-smooth);
+}
+.sesd-scroll::-webkit-scrollbar-thumb:hover { background: rgba(0,117,222,0.55); background-clip: padding-box; }
+.sesd-scroll::-webkit-scrollbar-thumb:active { background: var(--primary); background-clip: padding-box; }
+.sesd-scroll::-webkit-scrollbar-corner { background: transparent; }
+
 /* ── #7 — text-size segmented toggle (A small / medium / large) ── */
 .sesd-textsize {
   display: inline-flex; align-items: center; gap: 2px;
