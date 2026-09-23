@@ -38,14 +38,18 @@ export async function sendWa(target, message) {
   const token = process.env.FONNTE_TOKEN;
   const to = normalizeWa(target);
   if (!token || !to) return false;
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 6000);   // never let a hung gateway stall the request
   try {
     await fetch('https://api.fonnte.com/send', {
       method: 'POST',
       headers: { Authorization: token, 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams({ target: to, message: message }).toString(),
+      signal: ctrl.signal,
     });
     return true;
   } catch (e) { return false; }
+  finally { clearTimeout(timer); }
 }
 
 export async function notifyAdminBorrow({ assetName, borrower, qty, due }) {

@@ -964,33 +964,6 @@
     });
   }
   // #9 — room detail: everyone sees what's in the room; admin adds/removes items.
-  // Searchable asset picker for the room "add item" control (replaces the native
-  // <select> that overflowed the modal). getPool() returns current available assets.
-  function buildAssetPicker(getPool, onPick) {
-    var wrap = el('div', { class: 'sesd-ac' });
-    var input = el('input', { type: 'text', class: 'sesd-ac-input', autocomplete: 'off', placeholder: 'Cari barang (nama atau kode)' });
-    var menu = el('div', { class: 'sesd-ac-menu', style: 'max-height:240px' });
-    wrap.appendChild(input); wrap.appendChild(menu);
-    var busy = false;
-    function draw() {
-      var q = (input.value || '').trim().toLowerCase();
-      var matches = getPool().filter(function (a) { var s = ((a.name || '') + ' ' + (a.code || '')).toLowerCase(); return !q || s.indexOf(q) !== -1; }).slice(0, 40);
-      menu.innerHTML = '';
-      if (!matches.length) menu.appendChild(el('div', { class: 'sesd-ac-opt', style: 'color:var(--text-muted);cursor:default' }, q ? 'Tidak ada barang yang cocok' : 'Semua barang sudah di ruangan ini'));
-      else matches.forEach(function (a) {
-        var row = el('div', { class: 'sesd-ac-opt' });
-        row.appendChild(el('div', { style: 'font-weight:600;font-size:.85rem' }, a.name || '-'));
-        row.appendChild(el('div', { style: 'font-size:.72rem;color:var(--text-muted);font-family:"JetBrains Mono",monospace' }, (a.code || '') + (a.room ? (' · kini di ' + a.room) : ' · tanpa ruangan')));
-        row.addEventListener('mousedown', function (e) { e.preventDefault(); if (!busy) onPick(a); });
-        menu.appendChild(row);
-      });
-      wrap.classList.add('is-open');
-    }
-    input.addEventListener('input', draw);
-    input.addEventListener('focus', draw);
-    input.addEventListener('blur', function () { setTimeout(function () { wrap.classList.remove('is-open'); }, 160); });
-    return { wrap: wrap, refresh: draw, clear: function () { input.value = ''; draw(); input.focus(); }, setBusy: function (v) { busy = v; input.disabled = v; } };
-  }
   async function openRoomDetail(room) {
     if (modalOpen()) return;
     // build the modal immediately (with a loader) so rapid clicks can't open
@@ -1018,33 +991,53 @@
     var qrBtn = el('button', { class: 'sesd-btn sesd-btn-sm sesd-btn-ghost', html: ic('tag') + ' QR Ruangan' });
     qrBtn.addEventListener('click', function () { showRoomQR(room); });
     actions.appendChild(qrBtn);
-    var editBtn = null, addBox = null, picker = null;
+    var editBtn = null, addBox = null, addSearch = null, poolWrap = null;
     if (IS_ADMIN) {
       editBtn = el('button', { class: 'sesd-btn sesd-btn-sm sesd-btn-primary', html: ic('pencil') + ' Edit Isi' });
       editBtn.addEventListener('click', function () {
         editing = !editing;
         editBtn.innerHTML = editing ? (ic('check') + ' Selesai') : (ic('pencil') + ' Edit Isi');
         editBtn.className = 'sesd-btn sesd-btn-sm ' + (editing ? 'sesd-btn-success' : 'sesd-btn-primary');
-        if (addBox) { addBox.style.display = editing ? 'block' : 'none'; if (editing && picker) picker.refresh(); }
+        if (addBox) { addBox.style.display = editing ? 'block' : 'none'; if (editing) drawPool(); }
         drawList();
       });
       actions.appendChild(editBtn);
     }
     m.appendChild(actions);
 
-    // #3 — add-item box lives ABOVE the list (only when editing), so its dropdown
-    // has room and never overlaps the Tutup button.
-    if (IS_ADMIN) {
-      addBox = el('div', { style: 'display:none;margin-bottom:12px' });
-      addBox.appendChild(el('div', { style: 'font-size:.7rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px' }, 'Tambahkan barang ke ruangan'));
-      picker = buildAssetPicker(function () { return assets.filter(function (a) { return String(a.room_id) !== String(room.id); }); }, function (a) {
-        picker.setBusy(true);
-        DB.updateAsset(a.id, assetPatch(a, { room_id: room.id })).then(function () {
-          a.room_id = room.id; a.room = room.name; inRoom.push(a);
-          setSub(); drawList(); picker.clear(); picker.setBusy(false); toast('Barang ditambahkan ke ruangan', 'success'); reloadData();
-        }).catch(function (e) { toast((e && e.message) || 'Gagal menambahkan', 'error'); picker.setBusy(false); });
+    // roomier add-item panel: a persistent search + scrollable list of "Tambah" rows
+    // (replaces the cramped dropdown that was hard to read/navigate).
+    function drawPool() {
+      if (!poolWrap) return;
+      var q = (addSearch.value || '').trim().toLowerCase();
+      var pool = assets.filter(function (a) { return String(a.room_id) !== String(room.id); })
+        .filter(function (a) { var s = ((a.name || '') + ' ' + (a.code || '')).toLowerCase(); return !q || s.indexOf(q) !== -1; }).slice(0, 80);
+      poolWrap.innerHTML = '';
+      if (!pool.length) { poolWrap.appendChild(el('div', { style: 'padding:.9rem;text-align:center;color:var(--text-muted);font-size:.82rem' }, q ? 'Tidak ada barang yang cocok' : 'Semua barang sudah ada di ruangan ini')); return; }
+      pool.forEach(function (a) {
+        var row = el('div', { style: 'display:flex;align-items:center;gap:8px;background:var(--bg-card);border:1px solid var(--border);border-radius:9px;padding:.5rem .7rem' });
+        var info = el('div', { style: 'flex:1;min-width:0' });
+        info.appendChild(el('div', { style: 'font-weight:600;font-size:.83rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap' }, a.name || '-'));
+        info.appendChild(el('div', { style: 'font-size:.7rem;color:var(--text-muted);font-family:"JetBrains Mono",monospace' }, (a.code || '') + (a.room ? (' · di ' + a.room) : ' · tanpa ruangan')));
+        row.appendChild(info);
+        var addBtn = el('button', { class: 'sesd-btn sesd-btn-sm sesd-btn-primary' }, 'Tambah');
+        addBtn.addEventListener('click', function () {
+          addBtn.disabled = true;
+          DB.updateAsset(a.id, assetPatch(a, { room_id: room.id })).then(function () {
+            a.room_id = room.id; a.room = room.name; inRoom.push(a); setSub(); drawList(); drawPool(); toast('Barang ditambahkan', 'success'); reloadData();
+          }).catch(function (e) { toast((e && e.message) || 'Gagal menambahkan', 'error'); addBtn.disabled = false; });
+        });
+        row.appendChild(addBtn); poolWrap.appendChild(row);
       });
-      addBox.appendChild(picker.wrap); m.appendChild(addBox);
+    }
+    if (IS_ADMIN) {
+      addBox = el('div', { style: 'display:none;margin-bottom:12px;border:1px solid var(--border);border-radius:12px;padding:10px;background:var(--bg-mid)' });
+      addBox.appendChild(el('div', { style: 'font-size:.72rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px' }, 'Tambahkan barang ke ruangan'));
+      addSearch = el('input', { type: 'search', placeholder: 'Cari barang (nama atau kode)', style: 'width:100%;margin-bottom:8px' });
+      addSearch.addEventListener('input', drawPool);
+      poolWrap = el('div', { style: 'max-height:240px;overflow:auto;display:flex;flex-direction:column;gap:6px' });
+      addBox.appendChild(addSearch); addBox.appendChild(poolWrap);
+      m.appendChild(addBox);
     }
 
     var listWrap = el('div', { style: 'max-height:280px;overflow:auto;border:1px solid var(--border);border-radius:12px;margin-bottom:12px' });
@@ -1060,7 +1053,7 @@
           confirmAction({ title: 'Keluarkan Barang', message: 'Keluarkan "' + a.name + '" dari ' + (room.name || 'ruangan ini') + '?', variant: 'danger', confirmLabel: 'Ya, keluarkan' }, async function () {
             await DB.updateAsset(a.id, assetPatch(a, { room_id: null }));
             inRoom = inRoom.filter(function (x) { return x.id !== a.id; }); a.room_id = null;
-            setSub(); drawList(); if (picker) picker.refresh(); toast('Barang dikeluarkan', 'success'); reloadData();
+            setSub(); drawList(); drawPool(); toast('Barang dikeluarkan', 'success'); reloadData();
           });
         });
         row.appendChild(rm);

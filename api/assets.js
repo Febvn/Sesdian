@@ -61,25 +61,32 @@ export default async function handler(req, res) {
       const b = await readJson(req);
       const id = parseInt(b.id, 10);
       if (!id) return send(res, 400, { error: 'ID tidak valid' });
-      const cur = await sql`select stock_total, stock_borrowed from assets where id = ${id}`;
+      const cur = await sql`select code, name, category_id, brand, room_id, year, condition, type, asset_type, stock_total, stock_borrowed, image from assets where id = ${id}`;
       if (!cur.length) return send(res, 404, { error: 'Aset tidak ditemukan' });
+      const c = cur[0];
+      const has = (k) => Object.prototype.hasOwnProperty.call(b, k);
+      const intOrNull = (v) => (v != null && v !== '' ? parseInt(v, 10) : null);
+      // Only touch a field the request actually included, so a partial PATCH can no
+      // longer silently NULL category_id/brand/room_id/year. Sending an explicit
+      // null/'' for category_id/room_id still clears them.
+      const code       = has('code') && b.code ? String(b.code) : c.code;
+      const name       = has('name') && b.name ? String(b.name) : c.name;
+      const categoryId = has('category_id') ? intOrNull(b.category_id) : c.category_id;
+      const brand      = has('brand') ? (b.brand || null) : c.brand;
+      const roomId     = has('room_id') ? intOrNull(b.room_id) : c.room_id;
+      const year       = has('year') ? (b.year ? parseInt(b.year, 10) : null) : c.year;
+      const condition  = has('condition') && b.condition ? b.condition : c.condition;
+      const type       = has('type') && b.type ? b.type : c.type;
+      const assetType  = has('asset_type') && b.asset_type ? b.asset_type : c.asset_type;
       // keep stock_available consistent when total changes: available = total - borrowed
-      const total = b.stock_total != null ? Math.max(0, parseInt(b.stock_total, 10)) : cur[0].stock_total;
-      const avail = Math.max(0, total - cur[0].stock_borrowed);
+      const total      = has('stock_total') ? Math.max(0, parseInt(b.stock_total, 10) || 0) : c.stock_total;
+      const avail      = Math.max(0, total - c.stock_borrowed);
+      const image      = has('image') && b.image ? String(b.image) : c.image;
       await sql`
         update assets set
-          code = coalesce(${b.code}, code),
-          name = coalesce(${b.name}, name),
-          category_id = ${b.category_id || null},
-          brand = ${b.brand || null},
-          room_id = ${b.room_id || null},
-          year = ${b.year ? parseInt(b.year, 10) : null},
-          condition = coalesce(${b.condition}, condition),
-          type = coalesce(${b.type}, type),
-          asset_type = coalesce(${b.asset_type}, asset_type),
-          stock_total = ${total},
-          stock_available = ${avail},
-          image = coalesce(${b.image}, image)
+          code = ${code}, name = ${name}, category_id = ${categoryId}, brand = ${brand},
+          room_id = ${roomId}, year = ${year}, condition = ${condition}, type = ${type},
+          asset_type = ${assetType}, stock_total = ${total}, stock_available = ${avail}, image = ${image}
         where id = ${id}`;
       return send(res, 200, { ok: true });
     } catch (e) { return send(res, 500, { error: e.message }); }
@@ -91,6 +98,10 @@ export default async function handler(req, res) {
       const b = await readJson(req);
       const id = parseInt(b.id || (req.query && req.query.id), 10);
       if (!id) return send(res, 400, { error: 'ID tidak valid' });
+      // don't drop an asset that's still out / in the pipeline: the FK cascades and
+      // would silently delete live borrowing records (history + stock desync).
+      const active = await sql`select count(*)::int as n from borrowings where asset_id = ${id} and status in ('pending','approved','verified','borrowed','return_pending')`;
+      if (active[0].n > 0) return send(res, 409, { error: 'Aset sedang dipinjam atau dalam proses, tidak dapat dihapus' });
       await sql`delete from assets where id = ${id}`;
       return send(res, 200, { ok: true });
     } catch (e) { return send(res, 500, { error: e.message }); }
