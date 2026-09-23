@@ -76,6 +76,7 @@ export default async function handler(req, res) {
       const dueDate = body.dueDate || null;
       const notes = body.notes || null;
       if (!assetId) return send(res, 400, { error: 'Aset tidak valid' });
+      if (!dueDate) return send(res, 400, { error: 'Tanggal jatuh tempo kembali wajib diisi' });
 
       const urows = await sql`select name from users where id = ${auth.sub}`;
       const borrower = urows.length ? urows[0].name : 'Pengguna';
@@ -136,8 +137,8 @@ export default async function handler(req, res) {
             status = ${status},
             approved_by = case when ${status} = 'approved' then ${auth.sub} else approved_by end,
             approved_at = case when ${status} = 'approved' then now()      else approved_at end,
-            verified_by = case when ${status} = 'verified' then ${auth.sub} else verified_by end,
-            verified_at = case when ${status} = 'verified' then now()      else verified_at end,
+            verified_by = case when (${status} = 'borrowed' and ${prev.status} = 'approved') or ${status} = 'verified' then ${auth.sub} else verified_by end,
+            verified_at = case when (${status} = 'borrowed' and ${prev.status} = 'approved') or ${status} = 'verified' then now() else verified_at end,
             returned_at = case when ${status} = 'returned' then now()      else returned_at end
           where id = ${id} returning asset_id
         )
