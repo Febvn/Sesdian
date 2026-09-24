@@ -30,7 +30,7 @@
   function fmtDate(s) { if (!s) return ''; var d = new Date(s); if (isNaN(d)) return String(s).slice(0, 10); return d.getDate() + '/' + (d.getMonth() + 1) + '/' + d.getFullYear(); }
   function statusLabel(s) { return (STATUS[s] && STATUS[s][0]) || s; }
   var lastData = null;
-  var state = { period: 'monthly', week: 0, start: '', end: '', status: 'all' };
+  var state = { period: 'monthly', week: 0, day: '', month: '', start: '', end: '', status: 'all' };
 
   // Status filter (segmented control) for the detail table.
   var SEG = [
@@ -121,45 +121,56 @@
     var sb = $('[data-status-breakdown]'); if (sb) sb.innerHTML = '';
   }
 
-  // Each preset drives its own auto date window (the API filters strictly by
-  // start/end): Harian = hari ini saja; Mingguan = Senin..Minggu of the chosen week
-  // of this month; Bulanan = tanggal 1 s/d akhir bulan ini. No manual dates.
+  function ensureDates() {
+    if (!state.day) state.day = localIso(new Date());
+    if (!state.month) { var n = new Date(); state.month = n.getFullYear() + '-' + pad2(n.getMonth() + 1); }
+  }
+
+  // Each preset drives its own date window (the API filters strictly by start/end):
+  // Harian = the chosen day; Mingguan = Senin..Minggu of the chosen week of this
+  // month; Bulanan = tanggal 1 s/d akhir of the chosen month.
   function computeRange() {
-    var now = new Date();
-    if (state.period === 'daily') { var t = localIso(now); return { start: t, end: t }; }
+    ensureDates();
+    if (state.period === 'daily') return { start: state.day, end: state.day };
     if (state.period === 'weekly') {
+      var now = new Date();
       var weeks = weeksOfMonth();
       var w = weeks[Math.min(state.week, weeks.length - 1)] || { start: now, end: now };
       return { start: localIso(w.start), end: localIso(w.end) };
     }
-    var first = new Date(now.getFullYear(), now.getMonth(), 1);
-    var last = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-    return { start: localIso(first), end: localIso(last) };
+    var parts = state.month.split('-');
+    var y = parseInt(parts[0], 10), m = (parseInt(parts[1], 10) || 1) - 1;
+    return { start: localIso(new Date(y, m, 1)), end: localIso(new Date(y, m + 1, 0)) };
   }
 
-  // Contextual control that replaces the old Dari/Sampai inputs: a week picker for
-  // Mingguan, a read-only range label for Harian/Bulanan.
+  // Contextual control that replaces the old Dari/Sampai inputs: pick the day
+  // (Harian), the week of this month (Mingguan), or the month (Bulanan).
   function renderPeriodControl() {
     var host = $('[data-period-select]'); if (!host) return;
+    ensureDates();
     host.innerHTML = '';
     var now = new Date();
+    var inpStyle = 'padding:0.6rem 0.7rem;border:1.5px solid var(--border);border-radius:10px;font-size:0.875rem;outline:none;background:#fff;cursor:pointer;min-width:200px';
     var lbl = el('label', { style: 'font-size:0.72rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;display:block;margin-bottom:5px' });
-    if (state.period === 'weekly') {
+    if (state.period === 'daily') {
+      lbl.textContent = 'Tanggal';
+      var di = el('input', { type: 'date', value: state.day, max: localIso(now), style: inpStyle });
+      di.addEventListener('change', function () { if (di.value) { state.day = di.value; load(); } });
+      host.appendChild(lbl); host.appendChild(di);
+    } else if (state.period === 'weekly') {
       lbl.textContent = 'Minggu ke-';
       var weeks = weeksOfMonth();
       if (state.week >= weeks.length) state.week = currentWeekIndex(weeks);
-      var sel = el('select', { style: 'padding:0.6rem 0.7rem;border:1.5px solid var(--border);border-radius:10px;font-size:0.875rem;outline:none;background:#fff;cursor:pointer;min-width:230px' });
+      var sel = el('select', { style: inpStyle + ';min-width:230px' });
       weeks.forEach(function (w, i) { sel.appendChild(el('option', { value: String(i) }, 'Minggu ' + (i + 1) + ' (' + dayMon(w.start) + ' s/d ' + dayMon(w.end) + ')')); });
       sel.value = String(state.week);
       sel.addEventListener('change', function () { state.week = parseInt(sel.value, 10) || 0; load(); });
       host.appendChild(lbl); host.appendChild(sel);
     } else {
-      lbl.textContent = 'Rentang';
-      var text = state.period === 'daily'
-        ? ('Hari ini · ' + dayMon(now) + ' ' + now.getFullYear())
-        : (MONTH_FULL[now.getMonth()] + ' ' + now.getFullYear() + ' · 1 s/d ' + new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate());
-      host.appendChild(lbl);
-      host.appendChild(el('div', { style: 'padding:0.6rem 0.8rem;border:1.5px solid var(--border);border-radius:10px;font-size:0.85rem;font-weight:600;background:var(--bg);min-width:230px' }, text));
+      lbl.textContent = 'Bulan';
+      var mi = el('input', { type: 'month', value: state.month, max: now.getFullYear() + '-' + pad2(now.getMonth() + 1), style: inpStyle });
+      mi.addEventListener('change', function () { if (mi.value) { state.month = mi.value; load(); } });
+      host.appendChild(lbl); host.appendChild(mi);
     }
   }
 
