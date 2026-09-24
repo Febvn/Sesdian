@@ -91,7 +91,7 @@
     var d = b.created_at ? new Date(b.created_at) : null;
     return {
       id: b.id, asset_name: b.asset_name || '-', asset_code: b.asset_code || '',
-      borrower: b.borrower_name || '-', qty: b.qty, status: b.status,
+      borrower: b.borrower_name || '-', borrower_avatar: b.borrower_avatar || '', qty: b.qty, status: b.status,
       due_date: b.due_date ? String(b.due_date).slice(0, 10) : '',
       request_date: d ? (d.getDate() + '/' + (d.getMonth() + 1) + '/' + d.getFullYear()) : '',
     };

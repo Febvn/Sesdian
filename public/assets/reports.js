@@ -30,7 +30,34 @@
   function fmtDate(s) { if (!s) return ''; var d = new Date(s); if (isNaN(d)) return String(s).slice(0, 10); return d.getDate() + '/' + (d.getMonth() + 1) + '/' + d.getFullYear(); }
   function statusLabel(s) { return (STATUS[s] && STATUS[s][0]) || s; }
   var lastData = null;
-  var state = { period: 'monthly' };
+  var state = { period: 'monthly', week: 0, start: '', end: '' };
+
+  var MON = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+  var MONTH_FULL = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+  function pad2(n) { return n < 10 ? '0' + n : '' + n; }
+  function localIso(d) { return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); }
+  function dayMon(d) { return d.getDate() + ' ' + MON[d.getMonth()]; }
+
+  // Weeks (Senin..Minggu) that overlap the current month, in order. The first week
+  // may begin in the previous month and the last may spill into the next; they are
+  // full Mon..Sun weeks, each labelled with its date range (as requested).
+  function weeksOfMonth() {
+    var now = new Date();
+    var last = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    var mon = new Date(now.getFullYear(), now.getMonth(), 1);
+    mon.setDate(mon.getDate() - ((mon.getDay() + 6) % 7));   // back up to the Monday on/before the 1st
+    var weeks = [];
+    for (var cur = new Date(mon); cur <= last; cur.setDate(cur.getDate() + 7)) {
+      var s = new Date(cur), e = new Date(cur); e.setDate(e.getDate() + 6);
+      weeks.push({ start: s, end: e });
+    }
+    return weeks;
+  }
+  function currentWeekIndex(weeks) {
+    var t = localIso(new Date());
+    for (var i = 0; i < weeks.length; i++) { if (localIso(weeks[i].start) <= t && t <= localIso(weeks[i].end)) return i; }
+    return 0;
+  }
 
   function setPeriod(p) {
     state.period = p;
@@ -47,32 +74,63 @@
     var total = $('[data-total]'); if (total) total.textContent = '…';
     var sb = $('[data-status-breakdown]'); if (sb) sb.innerHTML = '';
   }
-  // The API filters strictly by start/end (period is only a label), so each
-  // preset must drive its own date window: daily = today, weekly = last 7 days,
-  // monthly = last 30 days. This is what makes the Harian/Mingguan/Bulanan
-  // buttons actually filter instead of all showing the same rows.
-  function periodRange(p) {
-    var end = new Date();
-    var start = new Date();
-    if (p === 'weekly') start.setDate(start.getDate() - 6);
-    else if (p === 'monthly') start.setDate(start.getDate() - 29);
-    // daily: start stays today
-    return { start: iso(start), end: iso(end) };
+
+  // Each preset drives its own auto date window (the API filters strictly by
+  // start/end): Harian = hari ini saja; Mingguan = Senin..Minggu of the chosen week
+  // of this month; Bulanan = tanggal 1 s/d akhir bulan ini. No manual dates.
+  function computeRange() {
+    var now = new Date();
+    if (state.period === 'daily') { var t = localIso(now); return { start: t, end: t }; }
+    if (state.period === 'weekly') {
+      var weeks = weeksOfMonth();
+      var w = weeks[Math.min(state.week, weeks.length - 1)] || { start: now, end: now };
+      return { start: localIso(w.start), end: localIso(w.end) };
+    }
+    var first = new Date(now.getFullYear(), now.getMonth(), 1);
+    var last = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    return { start: localIso(first), end: localIso(last) };
   }
+
+  // Contextual control that replaces the old Dari/Sampai inputs: a week picker for
+  // Mingguan, a read-only range label for Harian/Bulanan.
+  function renderPeriodControl() {
+    var host = $('[data-period-select]'); if (!host) return;
+    host.innerHTML = '';
+    var now = new Date();
+    var lbl = el('label', { style: 'font-size:0.72rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;display:block;margin-bottom:5px' });
+    if (state.period === 'weekly') {
+      lbl.textContent = 'Minggu ke-';
+      var weeks = weeksOfMonth();
+      if (state.week >= weeks.length) state.week = currentWeekIndex(weeks);
+      var sel = el('select', { style: 'padding:0.6rem 0.7rem;border:1.5px solid var(--border);border-radius:10px;font-size:0.875rem;outline:none;background:#fff;cursor:pointer;min-width:230px' });
+      weeks.forEach(function (w, i) { sel.appendChild(el('option', { value: String(i) }, 'Minggu ' + (i + 1) + ' (' + dayMon(w.start) + ' s/d ' + dayMon(w.end) + ')')); });
+      sel.value = String(state.week);
+      sel.addEventListener('change', function () { state.week = parseInt(sel.value, 10) || 0; load(); });
+      host.appendChild(lbl); host.appendChild(sel);
+    } else {
+      lbl.textContent = 'Rentang';
+      var text = state.period === 'daily'
+        ? ('Hari ini · ' + dayMon(now) + ' ' + now.getFullYear())
+        : (MONTH_FULL[now.getMonth()] + ' ' + now.getFullYear() + ' · 1 s/d ' + new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate());
+      host.appendChild(lbl);
+      host.appendChild(el('div', { style: 'padding:0.6rem 0.8rem;border:1.5px solid var(--border);border-radius:10px;font-size:0.85rem;font-weight:600;background:var(--bg);min-width:230px' }, text));
+    }
+  }
+
   function applyPeriod(p) {
     setPeriod(p);
-    var r = periodRange(p);
-    $('[data-start]').value = r.start;
-    $('[data-end]').value = r.end;
+    if (p === 'weekly') state.week = currentWeekIndex(weeksOfMonth());
+    renderPeriodControl();
     load();
   }
 
   async function load() {
     clearData();                                            // remove old data first
     if (window.SESDIAN_LOADER) window.SESDIAN_LOADER.show(); // dots inside the now-empty report table
-    var start = $('[data-start]').value, end = $('[data-end]').value;
+    var r = computeRange();
+    state.start = r.start; state.end = r.end;
     try {
-      lastData = await DB.reports({ period: state.period, start: start, end: end });
+      lastData = await DB.reports({ period: state.period, start: r.start, end: r.end });
       render(lastData);
     } catch (e) {
       if (window.SESDIAN_LOADER) window.SESDIAN_LOADER.hide();
@@ -161,15 +219,11 @@
   }
 
   function boot() {
-    var init = periodRange(state.period);
-    $('[data-start]').value = init.start; $('[data-end]').value = init.end;
     $$('[data-period]').forEach(function (b) { b.addEventListener('click', function () { applyPeriod(b.getAttribute('data-period')); }); });
-    // No "Terapkan" button — changing either date re-runs the report automatically.
-    $('[data-start]').addEventListener('change', load);
-    $('[data-end]').addEventListener('change', load);
     $('[data-export]').addEventListener('click', exportCsv);
     $('[data-print]').addEventListener('click', printPdf);
     setPeriod(state.period);
+    renderPeriodControl();               // dates are now auto per preset; no manual Dari/Sampai
     // app.js showed the page loader for laporan; hide it once the first report renders
     load().then(function () { if (window.SESDIAN_LOADER) window.SESDIAN_LOADER.hide(); });
   }

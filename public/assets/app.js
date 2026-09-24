@@ -335,11 +335,21 @@
         var allb = await DB.borrowings();
         var queue = allb.filter(function (b) { return b.status === 'approved'; });
         ensureAksiHeader();
-        renderList('[data-template]', queue, function (n, r) { n.setAttribute('data-status', r.status); enhanceBorrowingRow(n, r); });
+        renderList('[data-template]', queue, function (n, r) {
+          n.setAttribute('data-status', r.status); enhanceBorrowingRow(n, r);
+          var bc = $('[data-bind="borrower"]', n);      // peminjam photo beside the name
+          if (bc) {
+            bc.textContent = '';
+            var wrap = el('div', { style: 'display:flex;align-items:center;gap:9px' });
+            wrap.appendChild(borrowerAvatar(r.borrower, r.borrower_avatar, 30));
+            wrap.appendChild(el('span', { style: 'font-weight:600;color:var(--text)' }, r.borrower || '-'));
+            bc.appendChild(wrap);
+          }
+        });
         var qc = $('[data-count="approved"]'); if (qc) qc.textContent = queue.length;
         var done = allb.filter(function (b) { return b.status === 'verified' || b.status === 'borrowed' || b.status === 'returned'; }).length;
         var dc = $('[data-count="verified"]'); if (dc) dc.textContent = done;
-        buildVerifChart(queue.length, done);            // #12 — % chart beside the (now smaller) table
+        buildVerifChart(allb);                          // status distribution donut beside the queue
       } else if (p === 'dipinjam') {
         var alld = await DB.borrowings();
         var out = alld.filter(function (b) { return b.status === 'borrowed' || b.status === 'verified' || b.status === 'return_pending'; });
@@ -1950,9 +1960,22 @@
     });
   }
 
-  /* ====================== #12 — verifikasi % chart ======================
-     Wrap the queue table beside a donut showing how much of the queue is done. */
-  function buildVerifChart(pending, done) {
+  // Small round avatar: the peminjam's photo if we have one, else their initials.
+  function borrowerAvatar(name, photo, size) {
+    size = size || 30;
+    var box = el('span', { style: 'width:' + size + 'px;height:' + size + 'px;border-radius:50%;flex-shrink:0;overflow:hidden;display:inline-flex;align-items:center;justify-content:center;font-size:' + Math.round(size * 0.38) + 'px;font-weight:700;color:#fff;background:var(--primary)' });
+    if (photo) { box.style.background = 'var(--bg-mid)'; box.appendChild(el('img', { src: photo, alt: '', style: 'width:100%;height:100%;object-fit:cover' })); }
+    else {
+      var parts = String(name || '').trim().split(/\s+/).filter(Boolean);
+      box.textContent = parts.length ? ((parts[0][0] || '') + (parts[1] ? parts[1][0] : '')).toUpperCase() : '?';
+    }
+    return box;
+  }
+
+  /* ====================== verifikasi status chart ======================
+     Donut of the overall borrowing-status distribution beside the queue table:
+     Sedang Dipinjam / Telah Dikembalikan / Menunggu Approval / Ditolak. */
+  function buildVerifChart(all) {
     var tbody = $('[data-list="verif"]'); if (!tbody) return;
     var card = tbody.closest('div');                    // the table's wrapper card
     if (card && card.parentNode && !$('.sesd-verif-grid')) {
@@ -1960,21 +1983,31 @@
       card.parentNode.insertBefore(grid, card);
       grid.appendChild(card);
       var chartCard = el('div', { class: 'animate-fade-up', style: 'background:var(--bg-card);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow);padding:1.25rem' });
-      chartCard.appendChild(el('div', { style: 'font-size:0.95rem;font-weight:800' }, 'Persentase Verifikasi'));
-      chartCard.appendChild(el('div', { style: 'font-size:0.72rem;color:var(--text-muted);margin-bottom:1.1rem' }, 'Status antrean verifikasi'));
+      chartCard.appendChild(el('div', { style: 'font-size:0.95rem;font-weight:800' }, 'Ringkasan Peminjaman'));
+      chartCard.appendChild(el('div', { style: 'font-size:0.72rem;color:var(--text-muted);margin-bottom:1.1rem' }, 'Distribusi status seluruh peminjaman'));
       chartCard.appendChild(el('div', { 'data-verif-chart': '' }));
       grid.appendChild(chartCard);
     }
     var host = $('[data-verif-chart]'); if (!host) return;
-    var total = pending + done, pct = total ? Math.round((done / total) * 100) : 0;
+    var count = function (statuses) { return (all || []).filter(function (b) { return statuses.indexOf(b.status) !== -1; }).length; };
+    var segs = [
+      ['Sedang Dipinjam', count(['borrowed', 'verified', 'return_pending']), '#7b54c0'],
+      ['Telah Dikembalikan', count(['returned']), '#1aae39'],
+      ['Menunggu Approval', count(['pending', 'approved']), '#dd5b00'],
+      ['Ditolak', count(['rejected']), '#e03e3e'],
+    ];
+    var total = segs.reduce(function (s, r) { return s + r[1]; }, 0);
     host.innerHTML = '';
-    var donut = el('div', { style: 'width:160px;height:160px;border-radius:50%;margin:0 auto;background:conic-gradient(var(--success) 0 ' + pct + '%, rgb(245,158,11) ' + pct + '% 100%);display:flex;align-items:center;justify-content:center' });
+    var acc = 0, stops = total
+      ? segs.map(function (r) { var a = acc; acc += (r[1] / total) * 100; return r[2] + ' ' + a + '% ' + acc + '%'; })
+      : ['var(--border) 0 100%'];
+    var donut = el('div', { style: 'width:160px;height:160px;border-radius:50%;margin:0 auto;background:conic-gradient(' + stops.join(',') + ');display:flex;align-items:center;justify-content:center' });
     var hole = el('div', { style: 'width:108px;height:108px;border-radius:50%;background:var(--bg-card);display:flex;flex-direction:column;align-items:center;justify-content:center' });
-    hole.appendChild(el('div', { style: 'font-size:1.7rem;font-weight:800;line-height:1' }, pct + '%'));
-    hole.appendChild(el('div', { style: 'font-size:0.62rem;color:var(--text-muted);margin-top:2px' }, 'terverifikasi'));
+    hole.appendChild(el('div', { style: 'font-size:1.7rem;font-weight:800;line-height:1' }, String(total)));
+    hole.appendChild(el('div', { style: 'font-size:0.62rem;color:var(--text-muted);margin-top:2px' }, 'total peminjaman'));
     donut.appendChild(hole); host.appendChild(donut);
     var legend = el('div', { style: 'margin-top:1.25rem;display:flex;flex-direction:column;gap:10px' });
-    [['Menunggu verifikasi', pending, 'rgb(245,158,11)'], ['Sudah diverifikasi', done, 'var(--success)']].forEach(function (r) {
+    segs.forEach(function (r) {
       var row = el('div', { style: 'display:flex;align-items:center;gap:8px;font-size:0.8rem' });
       row.appendChild(el('span', { style: 'width:10px;height:10px;border-radius:3px;flex-shrink:0;background:' + r[2] }));
       row.appendChild(el('span', { style: 'flex:1;color:var(--text-muted)' }, r[0]));
