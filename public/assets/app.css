@@ -2044,6 +2044,29 @@ aside [data-user-initials] img { width: 100%; height: 100%; object-fit: cover; b
 .sesd-scroll::-webkit-scrollbar-thumb:active { background: var(--primary); background-clip: padding-box; }
 .sesd-scroll::-webkit-scrollbar-corner { background: transparent; }
 
+/* segmented status filter (radio-style, single select) for the tables */
+.sesd-segfilter { display: inline-flex; flex-wrap: wrap; gap: 4px; padding: 4px; background: var(--bg); border: 1px solid var(--border); border-radius: 13px; }
+.sesd-segfilter > button {
+  display: inline-flex; align-items: center; gap: 7px; padding: 0.5rem 0.85rem;
+  border: none; border-radius: 9px; cursor: pointer; font-family: inherit;
+  font-size: 0.82rem; font-weight: 600; color: var(--text-muted); background: transparent; white-space: nowrap;
+  transition: background-color var(--dur-fast) var(--ease-smooth), color var(--dur-fast) var(--ease-smooth), box-shadow var(--dur-fast) var(--ease-smooth);
+}
+.sesd-segfilter > button:hover { background: var(--bg-mid); color: var(--text); }
+.sesd-segfilter > button[data-filter-active] { background: var(--primary); color: #fff; box-shadow: 0 1px 4px rgba(0, 117, 222, 0.3); }
+.sesd-segfilter > button[data-filter-active]:hover { background: var(--primary); color: #fff; }
+.sesd-segfilter .seg-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.sesd-segfilter > button[data-filter-active] .seg-dot { box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.6); }
+.sesd-segfilter .seg-count {
+  display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 18px; padding: 0 6px;
+  border-radius: 999px; font-size: 0.68rem; font-weight: 800; background: var(--bg-mid); color: var(--text-muted);
+}
+.sesd-segfilter > button[data-filter-active] .seg-count { background: rgba(255, 255, 255, 0.25); color: #fff; }
+@media (max-width: 640px) {
+  .sesd-segfilter { width: 100%; }
+  .sesd-segfilter > button { flex: 1 1 auto; justify-content: center; }
+}
+
 /* ── #7 — text-size segmented toggle (A small / medium / large) ── */
 .sesd-textsize {
   display: inline-flex; align-items: center; gap: 2px;

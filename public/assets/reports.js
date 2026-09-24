@@ -30,7 +30,53 @@
   function fmtDate(s) { if (!s) return ''; var d = new Date(s); if (isNaN(d)) return String(s).slice(0, 10); return d.getDate() + '/' + (d.getMonth() + 1) + '/' + d.getFullYear(); }
   function statusLabel(s) { return (STATUS[s] && STATUS[s][0]) || s; }
   var lastData = null;
-  var state = { period: 'monthly', week: 0, start: '', end: '' };
+  var state = { period: 'monthly', week: 0, start: '', end: '', status: 'all' };
+
+  // Status filter (segmented control) for the detail table.
+  var SEG = [
+    ['all', 'Semua', ''],
+    ['pending', 'Pending', '#dd5b00'],
+    ['approved', 'Disetujui', '#0075de'],
+    ['rejected', 'Ditolak', '#e03e3e'],
+    ['returned', 'Sudah dikembalikan', '#1aae39'],
+  ];
+  function buildReportFilter() {
+    var host = $('[data-report-filter]'); if (!host) return;
+    host.innerHTML = '';
+    var bar = el('div', { class: 'sesd-segfilter', role: 'tablist', 'aria-label': 'Filter status' });
+    SEG.forEach(function (s) {
+      var btn = el('button', { type: 'button', 'data-report-status': s[0] });
+      if (s[0] === state.status) btn.setAttribute('data-filter-active', '');
+      if (s[2]) btn.appendChild(el('span', { class: 'seg-dot', style: 'background:' + s[2] }));
+      btn.appendChild(el('span', {}, s[1]));
+      btn.appendChild(el('span', { class: 'seg-count', 'data-seg-count': s[0] }, '0'));
+      btn.addEventListener('click', function () {
+        state.status = s[0];
+        $$('[data-report-status]', host).forEach(function (x) { x.removeAttribute('data-filter-active'); });
+        btn.setAttribute('data-filter-active', '');
+        applyReportFilter();
+      });
+      bar.appendChild(btn);
+    });
+    host.appendChild(bar);
+  }
+  function updateFilterCounts(d) {
+    var bs = (d && d.by_status) || {};
+    var counts = { all: (d && d.total) || 0, pending: bs.pending || 0, approved: bs.approved || 0, rejected: bs.rejected || 0, returned: bs.returned || 0 };
+    Object.keys(counts).forEach(function (k) { var e = $('[data-seg-count="' + k + '"]'); if (e) e.textContent = counts[k]; });
+  }
+  function applyReportFilter() {
+    var tbody = $('[data-report-rows]'); if (!tbody) return;
+    var rows = $$('tr[data-status]', tbody);
+    var n = 0;
+    rows.forEach(function (tr) {
+      var ok = state.status === 'all' || tr.getAttribute('data-status') === state.status;
+      tr.style.display = ok ? '' : 'none';
+      if (ok && tr.firstChild) { tr.firstChild.textContent = String(++n); }
+    });
+    var emptyRow = $('[data-report-empty]', tbody); if (emptyRow) emptyRow.remove();
+    if (rows.length && n === 0) tbody.appendChild(el('tr', { 'data-report-empty': '', html: '<td colspan="8" style="text-align:center;padding:2rem;color:var(--text-muted)">Tidak ada peminjaman dengan status ini.</td>' }));
+  }
 
   var MON = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
   var MONTH_FULL = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
@@ -153,10 +199,11 @@
     if (!sb.children.length) sb.appendChild(el('span', { style: 'color:var(--text-muted);font-size:0.85rem' }, 'Tidak ada data.'));
 
     var tbody = $('[data-report-rows]'); tbody.innerHTML = '';
+    updateFilterCounts(d);
     if (!d.rows.length) { tbody.appendChild(el('tr', { html: '<td colspan="8" style="text-align:center;padding:2rem;color:var(--text-muted)">Tidak ada peminjaman pada periode ini.</td>' })); return; }
     var td = 'padding:0.6rem 0.8rem;font-size:0.83rem;border-top:1px solid var(--border)';
     d.rows.forEach(function (r, i) {
-      var tr = el('tr');
+      var tr = el('tr', { 'data-status': r.status || '' });
       tr.appendChild(el('td', { style: td }, String(i + 1)));
       tr.appendChild(el('td', { style: td + ';font-weight:600' }, r.borrower_name || '-'));
       tr.appendChild(el('td', { style: td }, (r.asset_name || '-') + (r.asset_code ? ' (' + r.asset_code + ')' : '')));
@@ -167,6 +214,7 @@
       tr.appendChild(el('td', { style: td }, r.verifikator_name || '-'));
       tbody.appendChild(tr);
     });
+    applyReportFilter();               // honour the active status segment
   }
 
   function exportCsv() {
@@ -224,6 +272,7 @@
     $('[data-print]').addEventListener('click', printPdf);
     setPeriod(state.period);
     renderPeriodControl();               // dates are now auto per preset; no manual Dari/Sampai
+    buildReportFilter();                 // status segmented filter for the table
     // app.js showed the page loader for laporan; hide it once the first report renders
     load().then(function () { if (window.SESDIAN_LOADER) window.SESDIAN_LOADER.hide(); });
   }
