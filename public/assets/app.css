@@ -737,22 +737,25 @@ body[data-page="register"] input:focus {
   justify-content: center;
   padding: 4rem;
   min-width: 0;
+  align-items: flex-start;
+  text-align: left;
 }
 /* #2 — clean transparent wordmark, framed via cover (zooms into the mark; the
    source keeps its transparent padding, file untouched). Bigger on login. */
 .sesd-login__logo {
-  width: 100%;
+  display: block;
+  width: auto;
   max-width: 420px;
-  height: 104px;
+  height: auto;
   object-fit: contain;
-  object-position: center;
+  object-position: left center;
   background: transparent;
   margin-bottom: 1.75rem;
 }
 @media (min-width: 861px) {
   .sesd-login__logo {
-    max-width: 640px;
-    height: 160px;
+    max-width: 680px;
+    margin-left: 0;
   }
 }
 .sesd-login__title {
