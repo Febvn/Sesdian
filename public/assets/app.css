@@ -819,13 +819,52 @@ body[data-page="register"] input:focus {
 }
 .sesd-login__foot { text-align: center; margin-top: 1.25rem; font-size: 0.85rem; color: var(--text-muted); }
 @media (max-width: 860px) {
-  .sesd-login { flex-direction: column; }
-  .sesd-login__brandpane { padding: 2.5rem 1.5rem 0.5rem; flex: 0 0 auto; align-items: flex-start; }
-  .sesd-login__logo { max-width: 220px; margin-bottom: 1.25rem; }
-  .sesd-login__title { font-size: 1.9rem; }
-  .sesd-login__lead { font-size: 0.9rem; }
-  .sesd-login__formpane { width: 100%; padding: 1.5rem; }
-  .sesd-login__card { padding: 1.75rem; }
+  .sesd-login {
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding-bottom: 2rem;
+  }
+  .sesd-login__brandpane {
+    width: 100%;
+    max-width: 420px;
+    padding: 2.5rem 1.5rem 0.75rem;
+    flex: 0 0 auto;
+    align-items: center;
+    text-align: center;
+  }
+  .sesd-login__logo {
+    display: block;
+    width: 100%;
+    max-width: 220px;
+    height: auto;
+    margin: 0 auto 1.25rem;
+  }
+  .sesd-login__title {
+    font-size: 1.9rem;
+    text-align: center;
+  }
+  .sesd-login__lead {
+    font-size: 0.9rem;
+    text-align: center;
+    margin: 0 auto;
+  }
+  .sesd-login__trust {
+    justify-content: center;
+  }
+  .sesd-login__formpane {
+    width: 100%;
+    padding: 0.75rem 1.25rem 1rem;
+    justify-content: center;
+  }
+  .sesd-login__card {
+    max-width: 420px;
+    padding: 1.75rem;
+  }
+  .sesd-login__card h2,
+  .sesd-login__card .sub {
+    text-align: center;
+  }
 }
 
 /* ══════════════════════════════════════════════════════════
