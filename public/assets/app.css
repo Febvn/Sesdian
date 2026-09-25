@@ -749,6 +749,12 @@ body[data-page="register"] input:focus {
   background: transparent;
   margin-bottom: 1.75rem;
 }
+@media (min-width: 861px) {
+  .sesd-login__logo {
+    max-width: 560px;
+    height: 132px;
+  }
+}
 .sesd-login__title {
   color: var(--text);
   font-size: 2.6rem;
@@ -759,15 +765,6 @@ body[data-page="register"] input:focus {
 }
 .sesd-login__title span { color: var(--primary); }
 .sesd-login__lead { color: var(--text-muted); font-size: 1rem; line-height: 1.65; max-width: 460px; }
-.sesd-login__trust { display: flex; gap: 0.6rem; margin-top: 2rem; flex-wrap: wrap; }
-.sesd-login__chip {
-  display: inline-flex; align-items: center; gap: 6px;
-  background: var(--bg-card); border: 1px solid var(--border);
-  color: var(--text-muted); font-size: 0.8rem; font-weight: 600;
-  padding: 0.4rem 0.75rem; border-radius: var(--radius-pill);
-  box-shadow: var(--card-shadow);
-}
-.sesd-login__chip .ic svg { width: 0.95rem; height: 0.95rem; color: var(--primary); }
 .sesd-login__formpane {
   width: 480px; max-width: 100%;
   display: flex; align-items: center; justify-content: center;
@@ -848,9 +845,6 @@ body[data-page="register"] input:focus {
     font-size: 0.9rem;
     text-align: center;
     margin: 0 auto;
-  }
-  .sesd-login__trust {
-    justify-content: center;
   }
   .sesd-login__formpane {
     width: 100%;
