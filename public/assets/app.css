@@ -744,15 +744,15 @@ body[data-page="register"] input:focus {
   width: 100%;
   max-width: 420px;
   height: 104px;
-  object-fit: cover;
+  object-fit: contain;
   object-position: center;
   background: transparent;
   margin-bottom: 1.75rem;
 }
 @media (min-width: 861px) {
   .sesd-login__logo {
-    max-width: 560px;
-    height: 132px;
+    max-width: 640px;
+    height: 160px;
   }
 }
 .sesd-login__title {
