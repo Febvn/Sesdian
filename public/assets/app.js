@@ -326,7 +326,13 @@
         }
       } else if (p === 'verifikasi') {
         var allb = await DB.borrowings();
-        var queue = allb.filter(function (b) { return b.status === 'approved'; });
+        // Role-aware queue: the admin's verification work is verif 1 (pending) and
+        // return verification; the verifikator's is verif 2 (approved) + returns.
+        // Before this, the page only listed 'approved', so admins saw it empty.
+        var queueStatuses = IS_ADMIN ? ['pending', 'return_pending'] : ['approved', 'return_pending'];
+        var queue = allb.filter(function (b) { return queueStatuses.indexOf(b.status) !== -1; });
+        var vSub = $('h1') && $('h1').nextElementSibling;
+        if (vSub && IS_ADMIN) vSub.textContent = 'Verifikasi pertama (persetujuan) dan verifikasi pengembalian oleh admin.';
         ensureAksiHeader();
         renderList('[data-template]', queue, function (n, r) {
           n.setAttribute('data-status', r.status); enhanceBorrowingRow(n, r);
