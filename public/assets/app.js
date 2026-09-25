@@ -564,14 +564,22 @@
 
   async function openAssetForm(rec) {
     if (modalOpen()) return;
+    // build the modal immediately (with a loader) so rapid clicks during a slow
+    // fetch can't stack several form instances (same pattern as openRoomDetail).
+    var ov = overlay(), m = el('div', { class: 'sesd-modal', style: 'width:440px;max-height:90vh;overflow:auto' });
+    m.appendChild(el('h3', {}, rec ? 'Edit Aset' : 'Tambah Aset'));
+    var loader = el('div', { class: 'sesd-page-loader', style: 'min-height:120px', html: '<span></span><span></span><span></span>' });
+    m.appendChild(loader);
+    ov.appendChild(m); document.body.appendChild(ov);
+    function close() { ov.remove(); }
+    ov.addEventListener('click', function (e) { if (e.target === ov) close(); });
+
     var cats = [], rms = [], allAssets = [];
     try { cats = await DB.categories(); rms = await DB.rooms(); allAssets = await DB.assets(); } catch (e) {}
+    loader.remove();
     var nameMap = {};
     allAssets.forEach(function (a) { if (a.name) { var k = a.name.trim().toLowerCase(); if (!nameMap[k]) nameMap[k] = a.name.trim(); } });
     var names = Object.keys(nameMap).map(function (k) { return nameMap[k]; }).sort();
-
-    var ov = overlay(), m = el('div', { class: 'sesd-modal', style: 'width:440px;max-height:90vh;overflow:auto' });
-    m.appendChild(el('h3', {}, rec ? 'Edit Aset' : 'Tambah Aset'));
     function field(labelText, control) { var w = el('div', { class: 'sesd-field' }); w.appendChild(el('label', {}, labelText)); w.appendChild(control); return w; }
 
     var nameW = buildNameField(rec && rec.name, names, nameMap);          // #6 — autocomplete + status icon
@@ -611,10 +619,7 @@
     var save = el('button', { class: 'sesd-btn sesd-btn-primary', style: 'flex:1' }, rec ? 'Simpan' : 'Tambah');
     var cancel = el('button', { class: 'sesd-btn sesd-btn-ghost' }, 'Batal');
     foot.appendChild(save); foot.appendChild(cancel); m.appendChild(foot);
-    ov.appendChild(m); document.body.appendChild(ov);
-    function close() { ov.remove(); }
     cancel.addEventListener('click', close);
-    ov.addEventListener('click', function (e) { if (e.target === ov) close(); });
     save.addEventListener('click', async function () {
       var name = (nameW.get() || '').trim(), code = (codeInput.value || '').trim();
       if (!name || !code) { toast('Nama dan kode wajib diisi', 'error'); return; }
@@ -941,8 +946,11 @@
   // #10 — QR that opens the room's public catalog (what's inside the room).
   async function showRoomQR(room) {
     if (!window.SESDIAN_QR) { toast('Modul QR belum siap', 'error'); return; }
+    // opens ON TOP of the room-detail modal, so only block a duplicate QR dialog
+    if (document.querySelector('.sesd-qr-overlay')) return;
     var url = roomCatalogUrl(room);
-    var ov = overlay(), m = el('div', { class: 'sesd-modal', style: 'width:340px;text-align:center' });
+    var ov = overlay(); ov.classList.add('sesd-qr-overlay'); ov.style.zIndex = '10001';
+    var m = el('div', { class: 'sesd-modal', style: 'width:340px;text-align:center' });
     m.appendChild(el('h3', {}, 'QR Ruangan'));
     var holder = el('div', { style: 'display:flex;align-items:center;justify-content:center;min-height:160px' });
     holder.innerHTML = '<div class="sesd-page-loader" style="min-height:0"><span></span><span></span><span></span></div>';
@@ -1136,7 +1144,7 @@
       else if (rec.status === 'borrowed' || rec.status === 'verified') { btns.push(['Kembalikan', 'success', function () { changeStatus(rec, 'returned'); }]); }
       else if (rec.status === 'return_pending') { btns.push(['Verifikasi Pengembalian', 'success', function () { changeStatus(rec, 'returned'); }], ['Tolak', 'danger', function () { changeStatus(rec, 'borrowed'); }]); }
       else if (IS_ADMIN && rec.status === 'approved') { cell._note = 'Menunggu verifikator'; }
-      if (isOverdue(rec) && (rec.status === 'borrowed' || rec.status === 'verified')) btns.unshift(['Ingatkan WA', 'warning', function () { doNotify(rec, 'remind', 'Pengingat dikirim ke peminjam'); }]);
+      if (isOverdue(rec) && (rec.status === 'borrowed' || rec.status === 'verified')) btns.unshift(['Ingatkan WA', 'warning', function () { return doNotify(rec, 'remind', 'Pengingat dikirim ke peminjam'); }]);
     } else if (rec.status === 'borrowed' || rec.status === 'verified') {
       btns.push(['Konfirmasi Pengembalian', 'primary', function () { changeStatus(rec, 'return_pending'); }]);
     } else if (rec.status === 'return_pending') {
@@ -1145,7 +1153,13 @@
     if (!btns.length) cell.appendChild(el('span', { style: 'color:var(--text-muted);font-size:.78rem' }, cell._note || '-'));
     btns.forEach(function (a) {
       var b = el('button', { class: 'sesd-btn sesd-btn-sm sesd-btn-' + a[1] }, a[0]);
-      b.addEventListener('click', function (e) { e.stopPropagation(); a[2](); });
+      b.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var r = a[2]();
+        // async actions without a confirm dialog (e.g. Ingatkan WA) lock their
+        // button until they settle, so a slow network can't queue duplicate sends
+        if (r && typeof r.then === 'function') { b.disabled = true; r.then(function () { b.disabled = false; }, function () { b.disabled = false; }); }
+      });
       bar.appendChild(b);
     });
     if (btns.length) cell.appendChild(bar);
@@ -1180,7 +1194,7 @@
       var wrap = el('div', { class: 'sesd-role-actions' });   // #2 — one cohesive, equally-rounded control group
       var sel = el('select', { class: 'sesd-role-select', 'aria-label': 'Ubah peran ' + u.name, style: 'border-radius:12px!important;-webkit-appearance:none!important;appearance:none!important' });
       ['user', 'verifikator', 'admin'].forEach(function (r) { var o = el('option', { value: r }, ROLE_META[r][0]); if (u.role === r) o.selected = true; sel.appendChild(o); });
-      sel.addEventListener('change', async function () { try { await DB.setUserRole(u.id, sel.value); toast('Role diperbarui', 'success'); renderUsers(); } catch (e) { toast((e && e.message) || 'Gagal', 'error'); renderUsers(); } });
+      sel.addEventListener('change', async function () { sel.disabled = true; try { await DB.setUserRole(u.id, sel.value); toast('Role diperbarui', 'success'); renderUsers(); } catch (e) { toast((e && e.message) || 'Gagal', 'error'); renderUsers(); } });
       var del = el('button', { class: 'sesd-btn sesd-btn-sm sesd-btn-danger sesd-role-del', html: ic('trash') });
       del.addEventListener('click', function () { confirmDelete('user "' + u.name + '"', async function () { await DB.deleteUser(u.id); toast('User dihapus', 'success'); renderUsers(); }); });
       wrap.appendChild(sel); wrap.appendChild(del);
