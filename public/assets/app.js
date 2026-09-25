@@ -415,7 +415,7 @@
         (f.options || []).forEach(function (o) { dl.appendChild(el('option', { value: (o && o.value != null) ? o.value : o })); });
         wrap.appendChild(dl);
       }
-      else { input = el('input', { type: f.type || 'text' }); if (f.value != null) input.value = f.value; if (f.placeholder) input.placeholder = f.placeholder; }
+      else { input = el('input', { type: f.type || 'text' }); if (f.value != null) input.value = f.value; if (f.placeholder) input.placeholder = f.placeholder; if (f.maxlength) input.setAttribute('maxlength', f.maxlength); if (f.inputmode) input.setAttribute('inputmode', f.inputmode); }
       inputs[f.name] = input;
       wrap.appendChild(input);
       if (f.type === 'file') {
@@ -1342,13 +1342,23 @@
       title: 'Tambah User', submitLabel: 'Tambah',
       fields: [
         { name: 'name', label: 'Nama Lengkap' },
-        { name: 'nip', label: 'NIP' },
+        {
+          name: 'nip', label: 'NIP (18 digit)', placeholder: '18 digit angka', maxlength: 18, inputmode: 'numeric',
+          hint: function (v) {
+            var d = (v || '').replace(/\D/g, '');
+            if (!v) return { text: 'Wajib 18 digit angka.', color: 'var(--text-muted)' };
+            if (!/^\d+$/.test(v)) return { text: 'NIP hanya boleh berisi angka.', color: '#e03e3e' };
+            if (d.length !== 18) return { text: d.length + ' dari 18 digit', color: '#e03e3e' };
+            return { text: 'NIP valid (18 digit).', color: '#1aae39' };
+          },
+        },
         { name: 'password', label: 'Password (min. 8 karakter)', type: 'password' },
         { name: 'role', label: 'Role', type: 'select', value: 'user', options: [{ value: 'user', label: 'User' }, { value: 'verifikator', label: 'Verifikator' }, { value: 'admin', label: 'Admin' }] },
         { name: 'phone', label: 'No. HP / WhatsApp (opsional)' },
       ],
       onSave: async function (v) {
         if (!v.name || !v.nip) throw new Error('Nama dan NIP wajib diisi');
+        if (!/^\d{18}$/.test(String(v.nip).trim())) throw new Error('NIP harus 18 digit angka, tidak boleh lebih atau kurang');
         if (!v.password || v.password.length < 8) throw new Error('Password minimal 8 karakter');
         await DB.createUser({ nip: v.nip, name: v.name, password: v.password, role: v.role, phone: v.phone });
         toast('User ditambahkan', 'success'); reloadData();

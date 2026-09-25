@@ -32,6 +32,7 @@ export default async function handler(req, res) {
       const role = ROLES.indexOf(b.role) !== -1 ? b.role : 'user';
       const phone = String(b.phone || '').replace(/\D/g, '').replace(/^0/, '62');
       if (!nip || !name || !password) return send(res, 400, { error: 'Lengkapi nama, NIP, dan password' });
+      if (!/^\d{18}$/.test(nip)) return send(res, 400, { error: 'NIP harus 18 digit angka, tidak boleh lebih atau kurang' });
       if (password.length < 8) return send(res, 400, { error: 'Password minimal 8 karakter' });
 
       const exists = await sql`select id from users where nip = ${nip}`;
