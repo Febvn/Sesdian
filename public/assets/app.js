@@ -2053,14 +2053,17 @@
   async function buildNotifList() {
     var list = [];
     try {
-      var rows = (await DB.borrowings()).borrowings || [];
+      var rows = await DB.borrowings();   // returns a plain array (already formatted by db.js)
       rows.forEach(function (b) {
         if (IS_STAFF) {
-          if (b.status === 'pending') list.push(notifItem(b.created_at, 'clipboard', (b.borrower_name || 'Seseorang') + ' mengajukan peminjaman ' + (b.asset_name || ''), 'verifikasi.html'));
-          else if (b.status === 'return_pending') list.push(notifItem(b.created_at, 'refresh', (b.borrower_name || 'Seseorang') + ' mengajukan pengembalian ' + (b.asset_name || ''), 'verifikasi.html'));
+          if (b.status === 'pending') list.push(notifItem(b.created_at, 'clipboard', (b.borrower || 'Seseorang') + ' mengajukan peminjaman ' + (b.asset_name || ''), 'daftarpinjam.html'));
+          else if (b.status === 'approved' && IS_VERIFIKATOR) list.push(notifItem(b.approved_at || b.created_at, 'check_circle', 'Peminjaman ' + (b.asset_name || '') + ' menunggu verifikasi kedua', 'verifikasi.html'));
+          else if (b.status === 'return_pending') list.push(notifItem(b.created_at, 'refresh', (b.borrower || 'Seseorang') + ' mengajukan pengembalian ' + (b.asset_name || ''), 'dipinjam.html'));
         } else {
-          if (b.status === 'approved') list.push(notifItem(b.approved_at || b.created_at, 'check_circle', 'Peminjaman ' + (b.asset_name || '') + ' disetujui admin', 'daftarpinjam.html'));
+          if (b.status === 'pending') list.push(notifItem(b.created_at, 'clock', 'Pengajuan ' + (b.asset_name || '') + ' terkirim, menunggu persetujuan admin', 'daftarpinjam.html'));
+          else if (b.status === 'approved') list.push(notifItem(b.approved_at || b.created_at, 'check_circle', 'Peminjaman ' + (b.asset_name || '') + ' disetujui admin', 'daftarpinjam.html'));
           else if (b.status === 'borrowed') list.push(notifItem(b.verified_at || b.created_at, 'check_circle', (b.asset_name || 'Barang') + ' siap diserahterimakan', 'daftarpinjam.html'));
+          else if (b.status === 'return_pending') list.push(notifItem(b.created_at, 'refresh', 'Pengembalian ' + (b.asset_name || '') + ' menunggu verifikasi admin', 'daftarpinjam.html'));
           else if (b.status === 'rejected') list.push(notifItem(b.approved_at || b.created_at, 'x', 'Peminjaman ' + (b.asset_name || '') + ' ditolak', 'daftarpinjam.html'));
           else if (b.status === 'returned') list.push(notifItem(b.returned_at || b.created_at, 'check', 'Pengembalian ' + (b.asset_name || '') + ' selesai', 'daftarpinjam.html'));
         }

@@ -94,6 +94,9 @@
       borrower: b.borrower_name || '-', borrower_avatar: b.borrower_avatar || '', qty: b.qty, status: b.status,
       due_date: b.due_date ? String(b.due_date).slice(0, 10) : '',
       request_date: d ? (d.getDate() + '/' + (d.getMonth() + 1) + '/' + d.getFullYear()) : '',
+      // raw timestamps for the notification bell (event time per status)
+      created_at: b.created_at || null, approved_at: b.approved_at || null,
+      verified_at: b.verified_at || null, returned_at: b.returned_at || null,
     };
   }
   async function borrowings() {
