@@ -1175,6 +1175,11 @@ body[data-page="register"] input:focus {
 }
 .sesd-brand-wordmark { display: none !important; }
 
+/* sidebar nav labels are bold for every role — overrides the inline
+   font-weight:500 baked into both the static and dynamic shells
+   (the sub-line description below each label stays regular) */
+aside a[href] > div > div:first-child { font-weight: 700 !important; }
+
 /* ── #3 — Make <main> a real scrollport so the sticky topbar actually sticks.
    The app shell already sets `overflow: auto` on <main>, which makes <main> the
    sticky scroll-container — but without a fixed height it never scrolls (the window

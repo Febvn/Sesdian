@@ -1414,7 +1414,7 @@
       : base + 'color:rgb(100,116,139);background:transparent;box-shadow:none;';
     var sub = active ? 'rgba(255,255,255,0.6)' : 'var(--text-muted)';
     var icon = (window.SESDIAN_ICONS && window.SESDIAN_ICONS[iconName]) || '';
-    return el('a', { href: href, style: style, html: '<span class="ic" style="font-size:1rem;flex-shrink:0;line-height:1">' + icon + '</span><div style="overflow:hidden;flex:1 1 0%"><div style="font-size:0.8rem;font-weight:' + (active ? '700' : '500') + ';white-space:nowrap;color:inherit">' + title + '</div><div style="font-size:0.62rem;color:' + sub + ';white-space:nowrap;margin-top:1px">' + subtitle + '</div></div>' });
+    return el('a', { href: href, style: style, html: '<span class="ic" style="font-size:1rem;flex-shrink:0;line-height:1">' + icon + '</span><div style="overflow:hidden;flex:1 1 0%"><div style="font-size:0.8rem;font-weight:700;white-space:nowrap;color:inherit">' + title + '</div><div style="font-size:0.62rem;color:' + sub + ';white-space:nowrap;margin-top:1px">' + subtitle + '</div></div>' });
   }
   function injectRoleNav() {
     if (!IS_STAFF) return;
