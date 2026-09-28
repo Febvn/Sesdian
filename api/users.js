@@ -64,6 +64,10 @@ export default async function handler(req, res) {
       const uid = parseInt(b.id || (req.query && req.query.id), 10);
       if (!uid) return send(res, 400, { error: 'ID tidak valid' });
       if (String(uid) === String(admin.sub)) return send(res, 400, { error: 'Tidak dapat menghapus akun sendiri' });
+      // a deleted user's active loans would be orphaned (user_id set null), so the
+      // borrower could never confirm the return; settle the loans first.
+      const active = await sql`select count(*)::int as n from borrowings where user_id = ${uid} and status in ('pending','approved','verified','borrowed','return_pending')`;
+      if (active[0].n > 0) return send(res, 409, { error: 'User masih memiliki peminjaman aktif, selesaikan dulu sebelum menghapus' });
       await sql`delete from users where id = ${uid}`;
       return send(res, 200, { ok: true });
     } catch (e) { return send(res, 500, { error: e.message }); }

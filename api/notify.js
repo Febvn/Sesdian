@@ -31,7 +31,8 @@ export default async function handler(req, res) {
 
     let target = '', text = '';
     if (kind === 'remind' || kind === 'returned') {
-      if (auth.role !== 'admin') return send(res, 403, { error: 'Akses admin diperlukan' });
+      // both staff roles act on returns/reminders in the UI (admin + verifikator)
+      if (auth.role !== 'admin' && auth.role !== 'verifikator') return send(res, 403, { error: 'Akses staf diperlukan' });
       target = b.borrower_phone || '';
       text = kind === 'remind'
         ? 'Pengingat SESDIAN\nAset "' + b.asset_name + '" jatuh tempo ' + due + '.\nMohon segera dikembalikan.'

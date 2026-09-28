@@ -1,6 +1,7 @@
 # SESDIAN — Backend / API / SQL Audit
 
 _Date: 2026-07-01 · Scope: `api/*`, `db/*`, and the `public/assets/db.js` data layer._
+_Addendum (audit ke-2): 2026-07-02 — see "Second pass" at the bottom._
 
 A pass over every serverless endpoint, the Neon (Postgres) access layer, the auth/JWT
 helpers, the WhatsApp gateway, and the SQL schema/migrations. Below: what was **fixed**
@@ -111,3 +112,59 @@ Now `String()`-normalised, matching the pattern used in `borrowings.js`.
   the caller's own `sub`.
 - **Reconcile ↔ RESERVED parity** — `reconcileStock` uses the same reserved-status set
   as `borrowings.js`, so healed counters match the live borrowing state.
+
+---
+
+## Second pass (2026-07-02): vulnerabilities, bugs, mismatches
+
+### Fixed
+
+1. **`notify.js` rejected verifikator (frontend/backend mismatch) — Medium.**
+   The UI shows "Ingatkan WA" to all staff, and a verifikator verifying a return also
+   fires the `returned` notification — but the API required `role === 'admin'`, so a
+   verifikator always got 403 (reminder button errored; return notification silently
+   dropped). Both staff roles are now accepted for `remind`/`returned`.
+
+2. **Deleting a user with active loans orphaned them — Medium.**
+   `borrowings.user_id` is `on delete set null`; deleting a borrower mid-loan meant
+   the loan could never be confirmed back by its owner. `DELETE /api/users` now
+   returns 409 while the user has any borrowing in a non-final state (mirrors the
+   asset-delete guard).
+
+3. **`dueDate` was unvalidated on borrow POST — Low/Medium.**
+   Any string went straight into a `date` column (garbage produced a raw 500 with a
+   DB error message) and past dates were accepted server-side (the date floor lived
+   only in the frontend). Now: strict `YYYY-MM-DD` shape check plus a
+   not-in-the-past check against UTC today (never blocks WIB/WITA/WIT users early).
+
+4. **XSS hardening in the room-QR print window — Low.**
+   `showRoomQR` interpolated `room.name` unescaped into `document.write` HTML.
+   Only admins define room names, but it is now escaped (same pattern as the
+   laporan print view, which was already escaping correctly).
+
+### Verified OK in this pass
+
+- **Auth**: scrypt + `timingSafeEqual`, HS256 JWT fails closed without `JWT_SECRET`,
+  `exp` enforced; login adds a delay on failure (soft brute-force friction) and
+  leaks nothing about which field was wrong.
+- **Self-registration** stays disabled except the documented zero-users bootstrap.
+- **Ownership checks**: `notify return-request` and the borrow status transitions
+  compare ids as strings (bigint-safe); profile writes are scoped to `auth.sub`.
+- **SQL injection**: every query uses the neon tagged-template parameterization;
+  no string-built SQL anywhere in `api/`.
+- **Guest surface** (`public.js`): catalog/detail expose specs only; stock figures
+  require a valid token; writes all sit behind `requireAdmin`/`requireRoles`.
+- **Stock accounting**: borrow POST reserves stock and inserts in one CTE
+  (oversell-safe under concurrency); PATCH adjusts stock and stamps audit fields in
+  one statement; `reconcileStock` heals drift per cold start.
+- **Client contract** (`db.js` vs API): all method/shape pairs match after the
+  notification-bell fix (array vs `{borrowings}` was the last drift).
+
+### Known trade-offs (unchanged, documented)
+
+- Role changes take effect on next login (JWT carries the role for up to 7 days).
+- No per-IP rate limiting (only the login failure delay); add before public exposure.
+- `Access-Control-Allow-Origin: *` is safe with Bearer tokens (no cookies/CSRF),
+  revisit if cookie auth is ever introduced.
+- An asset's photo cannot be cleared once set (no UI for it; PATCH keeps existing
+  image when the field is present-but-empty by design of the keep-or-set rule).

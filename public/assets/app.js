@@ -975,8 +975,9 @@
     catch (e) { holder.textContent = 'Gagal memuat QR (perlu internet).'; }
     printBtn.addEventListener('click', function () {
       if (!dataUrl) return;
+      var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
       var w = window.open('', '_blank', 'width=420,height=560'); if (!w) return;
-      w.document.write('<html><head><title>QR ' + (room.name || 'Ruangan') + '</title></head><body style="font-family:sans-serif;text-align:center;padding:24px" onload="window.print()"><img src="' + dataUrl + '" style="width:240px;height:240px;image-rendering:pixelated"><div style="font-weight:700;margin-top:10px;font-size:15px">' + (room.name || '') + '</div><div style="font-size:12px;color:#555;margin-top:2px">Isi ruangan</div></body></html>');
+      w.document.write('<html><head><title>QR ' + esc(room.name || 'Ruangan') + '</title></head><body style="font-family:sans-serif;text-align:center;padding:24px" onload="window.print()"><img src="' + dataUrl + '" style="width:240px;height:240px;image-rendering:pixelated"><div style="font-weight:700;margin-top:10px;font-size:15px">' + esc(room.name || '') + '</div><div style="font-size:12px;color:#555;margin-top:2px">Isi ruangan</div></body></html>');
       w.document.close();
     });
   }

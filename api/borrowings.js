@@ -79,6 +79,12 @@ export default async function handler(req, res) {
       const notes = body.notes || null;
       if (!assetId) return send(res, 400, { error: 'Aset tidak valid' });
       if (!dueDate) return send(res, 400, { error: 'Tanggal jatuh tempo kembali wajib diisi' });
+      // clean 400 instead of a raw DB cast error, and no due dates in the past
+      // (compared against UTC "today" so WIB/WITA/WIT users are never blocked early)
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(String(dueDate)) || isNaN(new Date(dueDate + 'T00:00:00Z').getTime()))
+        return send(res, 400, { error: 'Format tanggal jatuh tempo tidak valid' });
+      if (String(dueDate) < new Date().toISOString().slice(0, 10))
+        return send(res, 400, { error: 'Tanggal jatuh tempo tidak boleh di masa lalu' });
 
       const urows = await sql`select name from users where id = ${auth.sub}`;
       const borrower = urows.length ? urows[0].name : 'Pengguna';
