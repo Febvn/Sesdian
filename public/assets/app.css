@@ -1165,11 +1165,11 @@ body[data-page="register"] input:focus {
    light and dark mode; the glow render is designed for a dark backdrop). */
 .sesd-brand-logo {
   display: block;
-  width: 100%;
+  width: auto;
   max-width: 152px;
   height: 32px;
-  object-fit: cover;
-  object-position: center;
+  object-fit: contain;      /* never crop the wordmark (cover clipped the S/N) */
+  object-position: left center;
   background: transparent;
   flex-shrink: 1;
 }
