@@ -2231,3 +2231,53 @@ html[data-textsize="large"] { font-size: 18px; }
 @media (max-width: 600px) {
   [data-guest-controls] .sesd-textsize { display: none; }   /* keep the catalog header compact on phones */
 }
+
+/* ===== MOBILE: Center & Symmetric Layout ===== */
+@media (max-width: 768px) {
+  /* Page title centered */
+  [data-page="laporan"] h1,
+  [data-page="verifikasi"] h1,
+  [data-page="users"] h1,
+  [data-page="dataaset"] h1,
+  [data-page="kategoriaset"] h1,
+  [data-page="ruangan"] h1,
+  [data-page="daftarpinjam"] h1,
+  [data-page="dashboard"] h1 {
+    text-align: center !important;
+  }
+  
+  /* Page title + subtitle wrapper centered */
+  [data-page="laporan"] > div > div > div > div:first-child,
+  [data-page="verifikasi"] > div > div > div > div:first-child,
+  [data-page="users"] > div > div > div > div:first-child {
+    width: 100% !important;
+    text-align: center !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+  }
+  
+  /* Summary grid - stacked and centered */
+  [data-page="laporan"] [style*="grid-template-columns: 220px 1fr"] {
+    grid-template-columns: 1fr !important;
+  }
+  
+  /* Bento cards - symmetric columns */
+  .sesd-report-total,
+  [data-status-breakdown] {
+    width: 100% !important;
+  }
+  
+  /* Export/Print buttons centered */
+  [data-page="laporan"] [style*="justify-content: space-between"] {
+    justify-content: center !important;
+    flex-direction: column !important;
+    align-items: center !important;
+  }
+  
+  /* Buttons row */
+  [data-page="laporan"] [style*="display: flex"][style*="gap: 8px"] {
+    justify-content: center !important;
+    width: 100% !important;
+  }
+}
