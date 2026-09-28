@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SESDIAN - Kelola User</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <script>(function(){try{var d=document.documentElement;if(localStorage.getItem('sesdian_theme')==='dark')d.setAttribute('data-theme','dark');var ts=localStorage.getItem('sesdian_textsize');if(ts==='small'||ts==='large')d.setAttribute('data-textsize',ts);if(localStorage.getItem('sesdian_rail')==='1')d.classList.add('sesd-rail-pref');}catch(e){}})();</script>
+    <link rel="stylesheet" href="assets/app.css?v=20" />
+    <link rel="stylesheet" href="assets/preloader.css?v=17" />
+  </head>
+  <body data-page="users" data-auth="required" data-admin="required">
+    <div id="root">
+      <div style="display: flex; min-height: 100vh; background: rgb(240, 244, 255)">
+        <aside data-shell style="width: 256px; background: rgb(11, 17, 32); display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; overflow: hidden; flex-shrink: 0; box-shadow: rgba(0, 0, 0, 0.25) 4px 0 32px;"></aside>
+        <main style="flex: 1 1 0%; overflow: auto; min-width: 0">
+          <div data-topbar style="background: #fff; border-bottom: 1px solid rgb(226, 232, 240); padding: 0.7rem 1rem; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 10; box-shadow: rgba(0, 0, 0, 0.04) 0 1px 0;"></div>
+          <div style="padding: 1.75rem">
+            <div>
+              <div class="animate-fade-up" style="margin-bottom: 1.5rem">
+                <h1 style="font-size: 1.5rem; font-weight: 800; margin-bottom: 4px">Kelola User</h1>
+                <p style="color: var(--text-muted); font-size: 0.875rem"><span data-users-count>0</span> akun terdaftar</p>
+              </div>
+              <div class="animate-fade-up delay-1" style="background: #fff; border-radius: 16px; box-shadow: var(--shadow); padding: 1.25rem 1.5rem; margin-bottom: 1.25rem">
+                <h2 style="font-size: 1rem; font-weight: 800; margin-bottom: 4px">Notifikasi WhatsApp</h2>
+                <p style="color: var(--text-muted); font-size: 0.8rem; margin-bottom: 0.75rem">Nomor admin yang menerima pemberitahuan ketika ada pengajuan peminjaman.</p>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center">
+                  <input data-wa-input type="tel" placeholder="08xxxxxxxxxx" style="flex: 1; min-width: 200px; padding: 0.6rem 0.8rem; border: 1.5px solid var(--border); border-radius: 10px; font-size: 0.875rem; outline: none" />
+                  <button data-wa-save class="sesd-btn sesd-btn-primary">Simpan Nomor</button>
+                </div>
+                <p data-wa-status style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.6rem"></p>
+              </div>
+              <div class="animate-fade-up delay-2" style="background: #fff; border-radius: 16px; box-shadow: var(--shadow); overflow: auto">
+                <table style="width: 100%; border-collapse: collapse; min-width: 520px">
+                  <thead style="background: rgb(248, 250, 255)">
+                    <tr class="th-desktop">
+                      <th style="padding: 0.875rem 1rem; text-align: left; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px">Nama</th>
+                      <th style="padding: 0.875rem 1rem; text-align: left; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px">NIP</th>
+                      <th style="padding: 0.875rem 1rem; text-align: left; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px">Role</th>
+                      <th style="padding: 0.875rem 1rem; text-align: left; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px">Aksi</th>
+                    </tr>
+                    <tr class="th-mobile">
+                      <th style="padding: 0.5rem 0.4rem; text-align: left; font-size: 0.6rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px">Nama</th>
+                      <th style="padding: 0.5rem 0.4rem; text-align: left; font-size: 0.6rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px">NIP</th>
+                      <th style="padding: 0.5rem 0.4rem; text-align: left; font-size: 0.6rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px">Role</th>
+                      <th style="padding: 0.5rem 0.4rem; text-align: left; font-size: 0.6rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px">Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody data-users-list></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+    <script defer src="assets/config.js?v=17"></script>
+    <script defer src="assets/db.js?v=17"></script>
+    <script defer src="assets/icons.js?v=17"></script>
+    <script defer src="assets/preloader.js?v=17"></script>
+    <script defer src="assets/app.js?v=17"></script>
+    <script defer src="assets/theme.js?v=17"></script>
+  </body>
+</html>
