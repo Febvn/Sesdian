@@ -1,0 +1,517 @@
+{
+  "station-wagon": {
+    "name": "Station Wagon",
+    "article": "Station wagon",
+    "source": "https://en.wikipedia.org/wiki/Station_wagon"
+  },
+  "mini-bus-penumpang-14-orang-kebawah": {
+    "name": "Mini Bus ( Penumpang 14 Orang Kebawah )",
+    "article": "Minibus",
+    "source": "https://en.wikipedia.org/wiki/Minibus"
+  },
+  "sepeda-motor": {
+    "name": "Sepeda Motor",
+    "article": "Motorcycle",
+    "source": "https://en.wikipedia.org/wiki/Motorcycle"
+  },
+  "mixer-perkakas-bengkel-listrik": {
+    "name": "Mixer (Perkakas Bengkel Listrik)",
+    "article": "Concrete mixer",
+    "source": "https://en.wikipedia.org/wiki/Concrete_mixer"
+  },
+  "scafolding-set-tool": {
+    "name": "Scafolding Set & Tool",
+    "article": "Scaffolding",
+    "source": "https://en.wikipedia.org/wiki/Scaffolding"
+  },
+  "ph-meter-alat-ukur-universal": {
+    "name": "PH Meter (Alat Ukur Universal)",
+    "article": "PH meter",
+    "source": "https://en.wikipedia.org/wiki/PH_meter"
+  },
+  "humidity-meter": {
+    "name": "Humidity Meter",
+    "article": "Hygrometer",
+    "source": "https://en.wikipedia.org/wiki/Hygrometer"
+  },
+  "mesin-ketik-elektronik-selektrik": {
+    "name": "Mesin Ketik Elektronik/Selektrik",
+    "article": "IBM Selectric",
+    "source": "https://en.wikipedia.org/wiki/IBM_Selectric"
+  },
+  "mesin-fotocopy-electronic": {
+    "name": "Mesin Fotocopy Electronic",
+    "article": "Photocopier",
+    "source": "https://en.wikipedia.org/wiki/Photocopier"
+  },
+  "lemari-besi-metal": {
+    "name": "Lemari Besi/Metal",
+    "article": "Cabinetry",
+    "source": "https://en.wikipedia.org/wiki/Cabinetry"
+  },
+  "rak-besi": {
+    "name": "Rak Besi",
+    "article": "Shelf (storage)",
+    "source": "https://en.wikipedia.org/wiki/Shelf_(storage)"
+  },
+  "rak-kayu": {
+    "name": "Rak Kayu",
+    "article": "Bookcase",
+    "source": "https://en.wikipedia.org/wiki/Bookcase"
+  },
+  "filing-cabinet-besi": {
+    "name": "Filing Cabinet Besi",
+    "article": "Filing cabinet",
+    "source": "https://en.wikipedia.org/wiki/Filing_cabinet"
+  },
+  "filing-cabinet-kayu": {
+    "name": "Filing Cabinet Kayu",
+    "article": "Filing cabinet",
+    "source": "https://en.wikipedia.org/wiki/Filing_cabinet"
+  },
+  "brandkas": {
+    "name": "Brandkas",
+    "article": "Safe",
+    "source": "https://en.wikipedia.org/wiki/Safe"
+  },
+  "locker": {
+    "name": "Locker",
+    "article": "Locker",
+    "source": "https://en.wikipedia.org/wiki/Locker"
+  },
+  "tabung-pemadam-api": {
+    "name": "Tabung Pemadam Api",
+    "article": "Fire extinguisher",
+    "source": "https://en.wikipedia.org/wiki/Fire_extinguisher"
+  },
+  "cctv-camera-control-television-system": {
+    "name": "CCTV - Camera Control Television System",
+    "article": "Closed-circuit television",
+    "source": "https://en.wikipedia.org/wiki/Closed-circuit_television"
+  },
+  "papan-visual-papan-nama": {
+    "name": "Papan Visual/Papan Nama",
+    "article": "Bulletin board",
+    "source": "https://en.wikipedia.org/wiki/Bulletin_board"
+  },
+  "peta": {
+    "name": "Peta",
+    "article": "World map",
+    "source": "https://en.wikipedia.org/wiki/World_map"
+  },
+  "alat-penghancur-kertas": {
+    "name": "Alat Penghancur Kertas",
+    "article": "Paper shredder",
+    "source": "https://en.wikipedia.org/wiki/Paper_shredder"
+  },
+  "mesin-absensi": {
+    "name": "Mesin Absensi",
+    "article": "Time clock",
+    "source": "https://en.wikipedia.org/wiki/Time_clock"
+  },
+  "lcd-projector-infocus": {
+    "name": "LCD Projector/Infocus",
+    "article": "Video projector",
+    "source": "https://en.wikipedia.org/wiki/Video_projector"
+  },
+  "meja-kerja-besi-metal": {
+    "name": "Meja Kerja Besi/Metal",
+    "article": "Desk",
+    "source": "https://en.wikipedia.org/wiki/Desk"
+  },
+  "meja-kerja-kayu": {
+    "name": "Meja Kerja Kayu",
+    "article": "Desk",
+    "source": "https://en.wikipedia.org/wiki/Desk"
+  },
+  "kursi-besi-metal": {
+    "name": "Kursi Besi/Metal",
+    "article": "Office chair",
+    "source": "https://en.wikipedia.org/wiki/Office_chair"
+  },
+  "sice": {
+    "name": "Sice",
+    "article": "Couch",
+    "source": "https://en.wikipedia.org/wiki/Couch"
+  },
+  "meja-komputer": {
+    "name": "Meja Komputer",
+    "article": "Computer desk",
+    "source": "https://en.wikipedia.org/wiki/Computer_desk"
+  },
+  "kasur-spring-bed": {
+    "name": "Kasur/Spring Bed",
+    "article": "Mattress",
+    "source": "https://en.wikipedia.org/wiki/Mattress"
+  },
+  "sketsel": {
+    "name": "Sketsel",
+    "article": "Folding screen",
+    "source": "https://en.wikipedia.org/wiki/Folding_screen"
+  },
+  "sofa": {
+    "name": "Sofa",
+    "article": "Couch",
+    "source": "https://en.wikipedia.org/wiki/Couch"
+  },
+  "jam-elektronik": {
+    "name": "Jam Elektronik",
+    "article": "Digital clock",
+    "source": "https://en.wikipedia.org/wiki/Digital_clock"
+  },
+  "mesin-pemotong-rumput": {
+    "name": "Mesin Pemotong Rumput",
+    "article": "Lawn mower",
+    "source": "https://en.wikipedia.org/wiki/Lawn_mower"
+  },
+  "lemari-es": {
+    "name": "Lemari Es",
+    "article": "Refrigerator",
+    "source": "https://en.wikipedia.org/wiki/Refrigerator"
+  },
+  "a-c-sentral": {
+    "name": "A.C. Sentral",
+    "article": "Air conditioning",
+    "source": "https://en.wikipedia.org/wiki/Air_conditioning"
+  },
+  "a-c-split": {
+    "name": "A.C. Split",
+    "article": "Air conditioning",
+    "source": "https://en.wikipedia.org/wiki/Air_conditioning"
+  },
+  "kitchen-set": {
+    "name": "Kitchen Set",
+    "article": "Kitchen cabinet",
+    "source": "https://en.wikipedia.org/wiki/Kitchen_cabinet"
+  },
+  "blender": {
+    "name": "Blender",
+    "article": "Blender",
+    "source": "https://en.wikipedia.org/wiki/Blender"
+  },
+  "mixer": {
+    "name": "Mixer",
+    "article": "Mixing console",
+    "source": "https://en.wikipedia.org/wiki/Mixing_console"
+  },
+  "televisi": {
+    "name": "Televisi",
+    "article": "Television set",
+    "source": "https://en.wikipedia.org/wiki/Television_set"
+  },
+  "loudspeaker": {
+    "name": "Loudspeaker",
+    "article": "Loudspeaker",
+    "source": "https://en.wikipedia.org/wiki/Loudspeaker"
+  },
+  "unit-power-supply": {
+    "name": "Unit Power Supply",
+    "article": "Uninterruptible power supply",
+    "source": "https://en.wikipedia.org/wiki/Uninterruptible_power_supply"
+  },
+  "stabilisator": {
+    "name": "Stabilisator",
+    "article": "Voltage regulator",
+    "source": "https://en.wikipedia.org/wiki/Voltage_regulator"
+  },
+  "camera-video": {
+    "name": "Camera Video",
+    "article": "Camcorder",
+    "source": "https://en.wikipedia.org/wiki/Camcorder"
+  },
+  "aquarium-alat-rumah-tangga-lainnya-home-use": {
+    "name": "Aquarium (Alat Rumah Tangga Lainnya ( Home Use ))",
+    "article": "Aquarium",
+    "source": "https://en.wikipedia.org/wiki/Aquarium"
+  },
+  "tangga-aluminium": {
+    "name": "Tangga Aluminium",
+    "article": "Ladder",
+    "source": "https://en.wikipedia.org/wiki/Ladder"
+  },
+  "dispenser": {
+    "name": "Dispenser",
+    "article": "Water dispenser",
+    "source": "https://en.wikipedia.org/wiki/Water_dispenser"
+  },
+  "mimbar-podium": {
+    "name": "Mimbar/Podium",
+    "article": "Lectern",
+    "source": "https://en.wikipedia.org/wiki/Lectern"
+  },
+  "lampu": {
+    "name": "Lampu",
+    "article": "Light fixture",
+    "source": "https://en.wikipedia.org/wiki/Light_fixture"
+  },
+  "microphone-wireless-mic": {
+    "name": "Microphone/Wireless MIC",
+    "article": "Wireless microphone",
+    "source": "https://en.wikipedia.org/wiki/Wireless_microphone"
+  },
+  "camera-digital": {
+    "name": "Camera Digital",
+    "article": "Digital camera",
+    "source": "https://en.wikipedia.org/wiki/Digital_camera"
+  },
+  "kamera-udara": {
+    "name": "Kamera Udara",
+    "article": "Quadcopter",
+    "source": "https://en.wikipedia.org/wiki/Quadcopter"
+  },
+  "intermediate-telephone-key-telephone": {
+    "name": "Intermediate Telephone/Key Telephone",
+    "article": "Telephone",
+    "source": "https://en.wikipedia.org/wiki/Telephone"
+  },
+  "pesawat-telephone": {
+    "name": "Pesawat Telephone",
+    "article": "Telephone",
+    "source": "https://en.wikipedia.org/wiki/Telephone"
+  },
+  "centrifuge-alat-laboratorium-umum": {
+    "name": "Centrifuge (Alat Laboratorium Umum)",
+    "article": "Laboratory centrifuge",
+    "source": "https://en.wikipedia.org/wiki/Laboratory_centrifuge"
+  },
+  "incubator-alat-laboratorium-umum": {
+    "name": "Incubator (Alat Laboratorium Umum)",
+    "article": "Incubator (culture)",
+    "source": "https://en.wikipedia.org/wiki/Incubator_(culture)"
+  },
+  "autoclave-alat-laboratorium-umum": {
+    "name": "Autoclave (Alat Laboratorium Umum)",
+    "article": "Autoclave",
+    "source": "https://en.wikipedia.org/wiki/Autoclave"
+  },
+  "laminar-air-flow": {
+    "name": "Laminar Air Flow",
+    "article": "Laminar flow cabinet",
+    "source": "https://en.wikipedia.org/wiki/Laminar_flow_cabinet"
+  },
+  "refrigerator": {
+    "name": "Refrigerator",
+    "article": "Refrigerator",
+    "source": "https://en.wikipedia.org/wiki/Refrigerator"
+  },
+  "refractometer-alat-laboratorium-umum": {
+    "name": "Refractometer (Alat Laboratorium Umum)",
+    "article": "Refractometer",
+    "source": "https://en.wikipedia.org/wiki/Refractometer"
+  },
+  "microcentrifuge": {
+    "name": "Microcentrifuge",
+    "article": "Laboratory centrifuge",
+    "source": "https://en.wikipedia.org/wiki/Laboratory_centrifuge"
+  },
+  "tv-monitor": {
+    "name": "TV Monitor",
+    "article": "Television set",
+    "source": "https://en.wikipedia.org/wiki/Television_set"
+  },
+  "sentrifus-elektrik": {
+    "name": "Sentrifus Elektrik",
+    "article": "Laboratory centrifuge",
+    "source": "https://en.wikipedia.org/wiki/Laboratory_centrifuge"
+  },
+  "lemari-asam": {
+    "name": "Lemari Asam",
+    "article": "Fume hood",
+    "source": "https://en.wikipedia.org/wiki/Fume_hood"
+  },
+  "cooler-alat-laboratorium-makanan": {
+    "name": "Cooler (Alat Laboratorium Makanan)",
+    "article": "Cooler",
+    "source": "https://en.wikipedia.org/wiki/Cooler"
+  },
+  "ph-meter-digital": {
+    "name": "PH Meter Digital",
+    "article": "PH meter",
+    "source": "https://en.wikipedia.org/wiki/PH_meter"
+  },
+  "refrigerator-freezer": {
+    "name": "Refrigerator/Freezer",
+    "article": "Refrigerator",
+    "source": "https://en.wikipedia.org/wiki/Refrigerator"
+  },
+  "p-c-unit": {
+    "name": "P.C Unit",
+    "article": "Desktop computer",
+    "source": "https://en.wikipedia.org/wiki/Desktop_computer"
+  },
+  "lap-top": {
+    "name": "Lap Top",
+    "article": "Laptop",
+    "source": "https://en.wikipedia.org/wiki/Laptop"
+  },
+  "note-book": {
+    "name": "Note Book",
+    "article": "Laptop",
+    "source": "https://en.wikipedia.org/wiki/Laptop"
+  },
+  "scanner-peralatan-personal-komputer": {
+    "name": "Scanner (Peralatan Personal Komputer)",
+    "article": "Image scanner",
+    "source": "https://en.wikipedia.org/wiki/Image_scanner"
+  },
+  "peralatan-personal-komputer-lainnya": {
+    "name": "Peralatan Personal Komputer Lainnya",
+    "article": "Computer keyboard",
+    "source": "https://en.wikipedia.org/wiki/Computer_keyboard"
+  },
+  "server": {
+    "name": "Server",
+    "article": "Server (computing)",
+    "source": "https://en.wikipedia.org/wiki/Server_(computing)"
+  },
+  "baju-pengaman-lainnya": {
+    "name": "Baju Pengaman Lainnya",
+    "article": "Personal protective equipment",
+    "source": "https://en.wikipedia.org/wiki/Personal_protective_equipment"
+  },
+  "tangki-air": {
+    "name": "Tangki Air",
+    "article": "Water tank",
+    "source": "https://en.wikipedia.org/wiki/Water_tank"
+  },
+  "digital-keyboard-technics": {
+    "name": "Digital Keyboard Technics",
+    "article": "Electronic keyboard",
+    "source": "https://en.wikipedia.org/wiki/Electronic_keyboard"
+  },
+  "power-supply-peralatan-studio-video-dan-film": {
+    "name": "Power Supply (Peralatan Studio Video Dan Film)",
+    "article": "Power supply",
+    "source": "https://en.wikipedia.org/wiki/Power_supply"
+  },
+  "micro-meter": {
+    "name": "Micro Meter",
+    "article": "Micrometer (device)",
+    "source": "https://en.wikipedia.org/wiki/Micrometer_(device)"
+  },
+  "microscope": {
+    "name": "Microscope",
+    "article": "Optical microscope",
+    "source": "https://en.wikipedia.org/wiki/Optical_microscope"
+  },
+  "micropipette-50-200-ui": {
+    "name": "Micropipette 50-200 UI",
+    "article": "Air displacement pipette",
+    "source": "https://en.wikipedia.org/wiki/Air_displacement_pipette"
+  },
+  "propipette": {
+    "name": "Propipette",
+    "article": "Pipette",
+    "source": "https://en.wikipedia.org/wiki/Pipette"
+  },
+  "microscope-binocular": {
+    "name": "Microscope Binocular",
+    "article": "Optical microscope",
+    "source": "https://en.wikipedia.org/wiki/Optical_microscope"
+  },
+  "micro-pippettes": {
+    "name": "Micro Pippettes",
+    "article": "Air displacement pipette",
+    "source": "https://en.wikipedia.org/wiki/Air_displacement_pipette"
+  },
+  "analytical-balance-electric": {
+    "name": "Analytical Balance Electric",
+    "article": "Analytical balance",
+    "source": "https://en.wikipedia.org/wiki/Analytical_balance"
+  },
+  "deep-freezer-alat-laboratorium-kimia": {
+    "name": "Deep Freezer (Alat Laboratorium Kimia)",
+    "article": "Ultra-low temperature freezer",
+    "source": "https://en.wikipedia.org/wiki/Ultra-low_temperature_freezer"
+  },
+  "freezer-alat-laboratorium-patologi": {
+    "name": "Freezer (Alat Laboratorium Patologi)",
+    "article": "Ultra-low temperature freezer",
+    "source": "https://en.wikipedia.org/wiki/Ultra-low_temperature_freezer"
+  },
+  "bunsen-burner-kelengkapannya": {
+    "name": "Bunsen Burner & Kelengkapannya",
+    "article": "Bunsen burner",
+    "source": "https://en.wikipedia.org/wiki/Bunsen_burner"
+  },
+  "deep-freezer-alat-laboratorium-pertanian": {
+    "name": "Deep Freezer (Alat Laboratorium Pertanian)",
+    "article": "Ultra-low temperature freezer",
+    "source": "https://en.wikipedia.org/wiki/Ultra-low_temperature_freezer"
+  },
+  "elisa-reader-computerized-semi-manual": {
+    "name": "Elisa Reader(Computerized,Semi Manual)",
+    "article": "Plate reader",
+    "source": "https://en.wikipedia.org/wiki/Plate_reader"
+  },
+  "stomacher": {
+    "name": "Stomacher",
+    "article": "Stomacher",
+    "source": "https://en.wikipedia.org/wiki/Stomacher"
+  },
+  "vortex-mixer-alat-laboratorium-pertanian": {
+    "name": "Vortex Mixer(Alat Laboratorium Pertanian)",
+    "article": "Vortex mixer",
+    "source": "https://en.wikipedia.org/wiki/Vortex_mixer"
+  },
+  "waterbath-shake-still": {
+    "name": "Waterbath (Shake,Still)",
+    "article": "Bain-marie",
+    "source": "https://en.wikipedia.org/wiki/Bain-marie"
+  },
+  "hot-plate-stirrer-alat-laboratorium-oceanografi": {
+    "name": "Hot Plate Stirrer (Alat Laboratorium Oceanografi)",
+    "article": "Magnetic stirrer",
+    "source": "https://en.wikipedia.org/wiki/Magnetic_stirrer"
+  },
+  "meja-kerja-alat-laboratorium-lainnya": {
+    "name": "Meja Kerja (Alat Laboratorium Lainnya)",
+    "article": "Workbench",
+    "source": "https://en.wikipedia.org/wiki/Workbench"
+  },
+  "generator-set-lab-scale": {
+    "name": "Generator Set (Lab Scale)",
+    "article": "Diesel generator",
+    "source": "https://en.wikipedia.org/wiki/Diesel_generator"
+  },
+  "plankton-net-alat-laboratorium-kwalitas-air-dan-tanah": {
+    "name": "Plankton Net (Alat Laboratorium Kwalitas Air Dan Tanah)",
+    "article": "Plankton net",
+    "source": "https://en.wikipedia.org/wiki/Plankton_net"
+  },
+  "evaporator": {
+    "name": "Evaporator",
+    "article": "Rotary evaporator",
+    "source": "https://en.wikipedia.org/wiki/Rotary_evaporator"
+  },
+  "hard-disk": {
+    "name": "Hard Disk",
+    "article": "Hard disk drive",
+    "source": "https://en.wikipedia.org/wiki/Hard_disk_drive"
+  },
+  "printer-peralatan-personal-komputer": {
+    "name": "Printer (Peralatan Personal Komputer)",
+    "article": "Inkjet printing",
+    "source": "https://en.wikipedia.org/wiki/Inkjet_printing"
+  },
+  "alat-selam-seet": {
+    "name": "Alat Selam Seet",
+    "article": "Scuba set",
+    "source": "https://en.wikipedia.org/wiki/Scuba_set"
+  },
+  "bangunan-gedung-laboratorium-permanen": {
+    "name": "Bangunan Gedung Laboratorium Permanen",
+    "article": "Laboratory",
+    "source": "https://en.wikipedia.org/wiki/Laboratory"
+  },
+  "gedung-pos-jaga-permanen": {
+    "name": "Gedung Pos Jaga Permanen",
+    "article": "Guardhouse",
+    "source": "https://en.wikipedia.org/wiki/Guardhouse"
+  },
+  "bangunan-parkir-terbuka-semi-permanen": {
+    "name": "Bangunan Parkir Terbuka Semi Permanen",
+    "article": "Carport",
+    "source": "https://en.wikipedia.org/wiki/Carport"
+  }
+}
