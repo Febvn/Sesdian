@@ -62,7 +62,9 @@
     var card = el('div', { class: 'sesd-aset-card' });
     card.addEventListener('click', function () { location.href = 'aset-detail.html?' + (g.qr_code ? ('qr=' + encodeURIComponent(g.qr_code)) : ('id=' + g.repId)); });
     var band = el('div', { class: 'sesd-aset-img' });
-    band.appendChild(el('img', { src: g.image || PLACEHOLDER, alt: '', loading: 'lazy', decoding: 'async' }));
+    var img = el('img', { src: g.image || PLACEHOLDER, alt: '', loading: 'lazy', decoding: 'async' });
+    img.onerror = function () { this.onerror = null; this.src = PLACEHOLDER; };
+    band.appendChild(img);
     card.appendChild(band);
     var body = el('div', { class: 'sesd-aset-body' });
     var top = el('div', { class: 'sesd-aset-top' });
@@ -145,7 +147,9 @@
     catch (e) { root.innerHTML = '<div class="sesd-empty">Aset tidak ditemukan.</div>'; return; }
     var a = res.asset, authed = res.authed;
     root.innerHTML = '';
-    root.appendChild(el('img', { src: a.image || PLACEHOLDER, style: 'width:100%;height:240px;object-fit:cover;border-radius:16px;background:linear-gradient(135deg,#eef2ff,#e0e7ff)' }));
+    var dImg = el('img', { src: a.image || PLACEHOLDER, style: 'width:100%;height:240px;object-fit:cover;border-radius:16px;background:linear-gradient(135deg,#eef2ff,#e0e7ff)' });
+    dImg.onerror = function () { this.onerror = null; this.src = PLACEHOLDER; };
+    root.appendChild(dImg);
     root.appendChild(el('div', { style: 'font-family:"JetBrains Mono",monospace;font-size:0.75rem;color:var(--text-muted);margin-top:1rem' }, a.code || ''));
     root.appendChild(el('h1', { style: 'font-size:1.6rem;font-weight:800;margin:2px 0' }, a.name || ''));
     root.appendChild(el('p', { style: 'color:var(--text-muted)' }, a.brand || ''));

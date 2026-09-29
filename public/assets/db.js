@@ -85,7 +85,16 @@
 
   async function categories() { return demo ? P(DEMO.categories.slice()) : (await cachedReq('categories', 60000)).categories; }
   async function rooms() { return demo ? P(DEMO.rooms.slice()) : (await cachedReq('rooms', 60000)).rooms; }
-  async function assets() { return demo ? P(DEMO.assets.map(demoAsset)) : (await req('assets')).assets; }
+
+  // Assets without an uploaded photo fall back to a generated illustration named
+  // after the item: assets/aset/<slug>.webp (see scripts/generate-asset-images.mjs).
+  // MUST stay in sync with slug() in that script.
+  function slugAsset(s) { return String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''); }
+  function fillAssetImage(a) {
+    if (a && !a.image) { var k = slugAsset(a.name); if (k) a.image = 'assets/aset/' + k + '.webp'; }
+    return a;
+  }
+  async function assets() { return demo ? P(DEMO.assets.map(demoAsset).map(fillAssetImage)) : (await req('assets')).assets.map(fillAssetImage); }
 
   function fmtBorrow(b) {
     var d = b.created_at ? new Date(b.created_at) : null;
@@ -140,7 +149,9 @@
   function publicAsset(a) { return { id: a.id, code: a.code, name: a.name, brand: a.brand, type: a.type, image: a.image, qr_code: a.qr_code, category: a.category, room: a.room }; }
   async function catalog() {
     if (demo) { var as = await assets(); return P({ assets: as.map(publicAsset), categories: DEMO.categories.slice(), rooms: DEMO.rooms.slice() }); }
-    return req('public?resource=catalog');
+    var data = await req('public?resource=catalog');
+    if (data.assets) data.assets = data.assets.map(fillAssetImage);
+    return data;
   }
   async function assetDetail(o) {
     o = o || {};
@@ -151,7 +162,9 @@
       return P({ asset: publicAsset(a), authed: !!currentUserRaw() });
     }
     var qs = o.qr ? ('qr=' + encodeURIComponent(o.qr)) : ('id=' + encodeURIComponent(o.id));
-    return req('public?resource=detail&' + qs);
+    var data = await req('public?resource=detail&' + qs);
+    if (data.asset) fillAssetImage(data.asset);
+    return data;
   }
 
   /* ====================== reports (admin/verifikator) ====================== */

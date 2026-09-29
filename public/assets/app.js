@@ -190,7 +190,7 @@
       var f = e.getAttribute('data-bind');
       if (f === 'stock_bar') { var pct = rec.stock_total ? Math.round((rec.stock_available / rec.stock_total) * 100) : (rec.total ? Math.round(rec.available / rec.total * 100) : 0); e.style.width = pct + '%'; return; }
       if (f === 'status_badge') { setStatusBadge(e, rec.status); return; }
-      if (f === 'image') { e.loading = 'lazy'; e.decoding = 'async'; e.src = rec.image || PLACEHOLDER; return; }
+      if (f === 'image') { e.loading = 'lazy'; e.decoding = 'async'; e.onerror = function () { this.onerror = null; this.src = PLACEHOLDER; }; e.src = rec.image || PLACEHOLDER; return; }
       if (f === 'icon') { var nm = iconFor(rec.icon); if (nm) { e.innerHTML = window.SESDIAN_ICONS[nm]; e.style.color = 'var(--primary)'; } else { e.textContent = rec.icon || ''; } return; }
       var v = rec[f];
       if (v !== undefined && v !== null) e.textContent = v;
@@ -693,7 +693,9 @@
   function openAssetDetail(r) {
     if (modalOpen()) return;
     var ov = overlay(), m = el('div', { class: 'sesd-modal', style: 'width:520px' });
-    m.appendChild(el('img', { src: r.image || PLACEHOLDER, style: 'width:100%;height:180px;object-fit:cover;border-radius:12px;background:linear-gradient(135deg,#eef4fb,#e3f0fb)' }));
+    var dImg = el('img', { src: r.image || PLACEHOLDER, style: 'width:100%;height:180px;object-fit:cover;border-radius:12px;background:linear-gradient(135deg,#eef4fb,#e3f0fb)' });
+    dImg.onerror = function () { this.onerror = null; this.src = PLACEHOLDER; };
+    m.appendChild(dImg);
     m.appendChild(el('div', { style: 'font-family:"JetBrains Mono",monospace;font-size:.72rem;color:var(--text-muted);margin-top:.75rem' }, r.code || ''));
     m.appendChild(el('h3', { style: 'font-size:1.3rem;font-weight:800;margin:2px 0' }, r.name || ''));
     m.appendChild(el('p', { style: 'color:var(--text-muted);font-size:.85rem;margin-bottom:1rem' }, r.brand || ''));
@@ -1695,7 +1697,9 @@
       card.addEventListener('click', function (ev) { if (ev.target.closest('.sesd-admin-actions')) return; openGroupDetail(g); });
       if (g.image) {
         var band = el('div', { class: 'sesd-aset-img' });
-        band.appendChild(el('img', { src: g.image, alt: '', loading: 'lazy', decoding: 'async' }));
+        var gImg = el('img', { src: g.image, alt: '', loading: 'lazy', decoding: 'async' });
+        gImg.onerror = function () { band.remove(); };   // no generated file for this name: card falls back to text-only
+        band.appendChild(gImg);
         card.appendChild(band);
       }
       var body = el('div', { class: 'sesd-aset-body' });
