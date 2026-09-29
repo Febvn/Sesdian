@@ -2087,6 +2087,26 @@ aside [data-user-initials] img { width: 100%; height: 100%; object-fit: cover; b
 .sesd-scroll::-webkit-scrollbar-thumb:active { background: var(--primary); background-clip: padding-box; }
 .sesd-scroll::-webkit-scrollbar-corner { background: transparent; }
 
+/* image drag & drop picker (asset forms + per-jenis image editor) */
+.sesd-drop {
+  position: relative; min-height: 150px; cursor: pointer;
+  border: 2px dashed var(--border); border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  text-align: center; overflow: hidden; background: var(--bg);
+  transition: border-color var(--dur-fast) var(--ease-smooth), background-color var(--dur-fast) var(--ease-smooth);
+}
+.sesd-drop:hover { border-color: rgba(0, 117, 222, 0.45); }
+.sesd-drop.is-over { border-color: var(--primary); background: var(--primary-light); }
+.sesd-drop .sesd-drop-hint { padding: 1rem; font-size: 0.85rem; color: var(--text); position: relative; z-index: 1; pointer-events: none; }
+.sesd-drop .sesd-drop-hint svg { font-size: 1.4rem; color: var(--text-muted); }
+.sesd-drop .sesd-drop-prev { display: none; position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.sesd-drop.has-img .sesd-drop-prev { display: block; }
+.sesd-drop.has-img .sesd-drop-hint {
+  background: rgba(25, 25, 24, 0.62); color: #fff; border-radius: 10px; padding: 0.5rem 0.8rem;
+}
+.sesd-drop.has-img .sesd-drop-hint span { color: rgba(255, 255, 255, 0.75) !important; }
+.sesd-drop.has-img .sesd-drop-hint svg { color: #fff; }
+
 /* segmented status filter (radio-style, single select) for the tables */
 .sesd-segfilter { display: inline-flex; flex-wrap: wrap; gap: 4px; padding: 4px; background: var(--bg); border: 1px solid var(--border); border-radius: 13px; }
 .sesd-segfilter > button {

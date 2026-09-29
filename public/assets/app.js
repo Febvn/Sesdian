@@ -568,6 +568,97 @@
     return { wrap: wrap, get: function () { return input.value; } };
   }
 
+  // Downscale + re-encode a picked image in the browser (max 900px, WebP) so the
+  // stored data-URL stays small even when the same image is saved on many units.
+  function compressImage(file) {
+    return new Promise(function (resolve, reject) {
+      var r = new FileReader();
+      r.onload = function () {
+        var img = new Image();
+        img.onload = function () {
+          var MAX = 900, scale = Math.min(1, MAX / Math.max(img.width, img.height));
+          var c = document.createElement('canvas');
+          c.width = Math.max(1, Math.round(img.width * scale));
+          c.height = Math.max(1, Math.round(img.height * scale));
+          c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+          var out = c.toDataURL('image/webp', 0.82);
+          if (out.indexOf('data:image/webp') !== 0) out = c.toDataURL('image/jpeg', 0.82); // Safari fallback
+          resolve(out);
+        };
+        img.onerror = reject;
+        img.src = r.result;
+      };
+      r.onerror = reject;
+      r.readAsDataURL(file);
+    });
+  }
+
+  // Reusable image picker: drag & drop OR click to browse, with live preview.
+  // get() returns the current URL; a fresh pick is always a data: URL.
+  function buildImageDrop(initialUrl) {
+    var state = { url: initialUrl || null };
+    var wrap = el('div');
+    var input = el('input', { type: 'file', accept: 'image/*', style: 'display:none' });
+    var zone = el('div', { class: 'sesd-drop' + (state.url ? ' has-img' : '') });
+    var prev = el('img', { class: 'sesd-drop-prev', alt: '' });
+    if (state.url) prev.src = state.url;
+    prev.onerror = function () { zone.classList.remove('has-img'); };
+    var hint = el('div', { class: 'sesd-drop-hint', html: ic('archive') + '<div style="margin-top:6px"><b>Tarik gambar ke sini</b><br><span style="font-size:.75rem;color:var(--text-muted)">atau klik untuk memilih file</span></div>' });
+    zone.appendChild(prev); zone.appendChild(hint);
+    wrap.appendChild(zone); wrap.appendChild(input);
+    async function handleFile(f) {
+      if (!f) return;
+      if ((f.type || '').indexOf('image/') !== 0) { toast('File harus berupa gambar', 'error'); return; }
+      try { state.url = await compressImage(f); prev.src = state.url; zone.classList.add('has-img'); }
+      catch (e) { toast('Gagal membaca gambar', 'error'); }
+    }
+    zone.addEventListener('click', function () { input.click(); });
+    input.addEventListener('change', function () { if (input.files && input.files[0]) handleFile(input.files[0]); });
+    ['dragenter', 'dragover'].forEach(function (ev) { zone.addEventListener(ev, function (e) { e.preventDefault(); e.stopPropagation(); zone.classList.add('is-over'); }); });
+    ['dragleave', 'drop'].forEach(function (ev) { zone.addEventListener(ev, function (e) { e.preventDefault(); e.stopPropagation(); zone.classList.remove('is-over'); }); });
+    zone.addEventListener('drop', function (e) { handleFile(e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]); });
+    return { wrap: wrap, get: function () { return state.url; } };
+  }
+
+  // Change the image for a WHOLE jenis (every unit sharing the name) in one go,
+  // instead of editing units one by one. Stacks on top of the group modal.
+  function openGroupImageModal(g, onDone) {
+    if (document.querySelector('.sesd-imgedit-overlay')) return;
+    var ov = overlay(); ov.classList.add('sesd-imgedit-overlay'); ov.style.zIndex = '10001';
+    var m = el('div', { class: 'sesd-modal', style: 'width:420px' });
+    m.appendChild(el('h3', {}, 'Ganti Gambar'));
+    m.appendChild(el('div', { style: 'color:var(--text-muted);font-size:.82rem;margin:-6px 0 12px' }, (g.name || '-') + ' · berlaku untuk semua ' + g.units.length + ' unit'));
+    var drop = buildImageDrop(g.image || null);
+    m.appendChild(drop.wrap);
+    var foot = el('div', { style: 'display:flex;gap:8px;margin-top:1rem' });
+    var save = el('button', { class: 'sesd-btn sesd-btn-primary', style: 'flex:1' }, 'Simpan ke Semua Unit');
+    var cancel = el('button', { class: 'sesd-btn sesd-btn-ghost' }, 'Batal');
+    foot.appendChild(save); foot.appendChild(cancel); m.appendChild(foot);
+    ov.appendChild(m); document.body.appendChild(ov);
+    function close() { ov.remove(); }
+    cancel.addEventListener('click', close);
+    ov.addEventListener('click', function (e) { if (e.target === ov) close(); });
+    save.addEventListener('click', async function () {
+      var url = drop.get();
+      if (!url || url.indexOf('data:') !== 0) { toast('Pilih gambar baru terlebih dahulu', 'error'); return; }
+      save.disabled = true; cancel.disabled = true;
+      try {
+        for (var i = 0; i < g.units.length; i++) {
+          save.textContent = 'Menyimpan ' + (i + 1) + '/' + g.units.length + '…';
+          var u = g.units[i];
+          await DB.updateAsset(u.id, assetPatch(u, { image: url }));
+          u.image = url;
+        }
+        g.image = url;
+        toast('Gambar diperbarui untuk ' + g.units.length + ' unit', 'success');
+        close(); if (onDone) onDone(url); reloadData();
+      } catch (e) {
+        toast((e && e.message) || 'Gagal menyimpan gambar', 'error');
+        save.disabled = false; cancel.disabled = false; save.textContent = 'Simpan ke Semua Unit';
+      }
+    });
+  }
+
   async function openAssetForm(rec) {
     if (modalOpen()) return;
     // build the modal immediately (with a loader) so rapid clicks during a slow
@@ -615,11 +706,8 @@
     m.appendChild(field('Jenis', jenisDD.wrap));
     var kondisiDD = buildDropdown({ value: (rec && rec.condition) || 'Baik', options: ['Baik', 'Rusak Ringan', 'Rusak Berat'].map(function (k) { return { value: k, label: k }; }) });
     m.appendChild(field('Kondisi', kondisiDD.wrap));
-    var imgVal = { url: (rec && rec.image) || null };
-    var fileInput = el('input', { type: 'file', accept: 'image/*' });
-    var prev = el('img', { class: 'sesd-imgprev' }); if (imgVal.url) { prev.src = imgVal.url; prev.style.display = 'block'; }
-    fileInput.addEventListener('change', async function () { if (fileInput.files && fileInput.files[0]) { try { var u = await fileToDataURL(fileInput.files[0]); imgVal.url = u; prev.src = u; prev.style.display = 'block'; } catch (e) { toast('Gagal membaca gambar', 'error'); } } });
-    var imgField = field('Gambar (opsional)', fileInput); imgField.appendChild(prev); m.appendChild(imgField);
+    var imgDrop = buildImageDrop((rec && rec.image) || null);   // drag & drop atau klik
+    m.appendChild(field('Gambar (opsional)', imgDrop.wrap));
 
     var foot = el('div', { style: 'display:flex;gap:8px;margin-top:1rem' });
     var save = el('button', { class: 'sesd-btn sesd-btn-primary', style: 'flex:1' }, rec ? 'Simpan' : 'Tambah');
@@ -639,8 +727,12 @@
           room_id: roomDD.get() ? parseInt(roomDD.get(), 10) : null,
           brand: (brandInput.value || '').trim() || null,
           type: jenisDD.get() || 'BMN', condition: kondisiDD.get() || 'Baik',
-          image: imgVal.url, stock_total: 1,
+          stock_total: 1,
         };
+        // only send image when the user picked a NEW one (data: URL); never
+        // persist the generated assets/aset/... fallback path into the DB
+        var pickedImg = imgDrop.get();
+        if (pickedImg && pickedImg.indexOf('data:') === 0 && pickedImg !== (rec && rec.image)) payload.image = pickedImg;
         if (rec) await DB.updateAsset(rec.id, payload); else await DB.createAsset(payload);
         toast(rec ? 'Aset diperbarui' : 'Aset ditambahkan', 'success'); close(); reloadData();
       } catch (e) { toast((e && e.message) || 'Gagal menyimpan', 'error'); save.disabled = false; save.textContent = rec ? 'Simpan' : 'Tambah'; }
@@ -775,6 +867,19 @@
       sum.appendChild(b);
     });
     m.appendChild(sum);
+    if (IS_ADMIN) {
+      // one image per jenis: change it here for ALL units at once (not per unit)
+      var imgRow = el('div', { style: 'display:flex;align-items:center;gap:10px;margin-bottom:12px;padding:8px;border:1px solid var(--border);border-radius:12px;background:var(--bg)' });
+      var thumb = el('img', { src: g.image || PLACEHOLDER, alt: '', style: 'width:76px;height:50px;object-fit:cover;border-radius:8px;flex-shrink:0;background:var(--bg-mid)' });
+      thumb.onerror = function () { this.onerror = null; this.src = PLACEHOLDER; };
+      var imgInfo = el('div', { style: 'flex:1;min-width:0' });
+      imgInfo.appendChild(el('div', { style: 'font-size:.8rem;font-weight:700' }, 'Gambar jenis ini'));
+      imgInfo.appendChild(el('div', { style: 'font-size:.7rem;color:var(--text-muted)' }, 'Satu gambar untuk semua ' + g.units.length + ' unit'));
+      var gbtn = el('button', { class: 'sesd-btn sesd-btn-sm sesd-btn-primary', html: ic('pencil') + ' Ganti Gambar' });
+      gbtn.addEventListener('click', function () { openGroupImageModal(g, function (url) { thumb.src = url; }); });
+      imgRow.appendChild(thumb); imgRow.appendChild(imgInfo); imgRow.appendChild(gbtn);
+      m.appendChild(imgRow);
+    }
     m.appendChild(el('div', { style: 'font-size:.72rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px' }, 'Pilih unit untuk dipinjam (' + g.units.length + ' terdaftar)'));
     var selected = {};
     var ajukan = el('button', { class: 'sesd-btn sesd-btn-success', style: 'flex:1' });
