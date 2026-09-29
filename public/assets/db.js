@@ -89,9 +89,12 @@
   // Assets without an uploaded photo fall back to a generated illustration named
   // after the item: assets/aset/<slug>.webp (see scripts/generate-asset-images.mjs).
   // MUST stay in sync with slug() in that script.
+  // /assets/* is served immutable for 1 year (vercel.json), so bump ASSET_IMG_V
+  // whenever the webp files are regenerated or browsers will keep the old ones.
+  var ASSET_IMG_V = '2';
   function slugAsset(s) { return String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''); }
   function fillAssetImage(a) {
-    if (a && !a.image) { var k = slugAsset(a.name); if (k) a.image = 'assets/aset/' + k + '.webp'; }
+    if (a && !a.image) { var k = slugAsset(a.name); if (k) a.image = 'assets/aset/' + k + '.webp?v=' + ASSET_IMG_V; }
     return a;
   }
   async function assets() { return demo ? P(DEMO.assets.map(demoAsset).map(fillAssetImage)) : (await req('assets')).assets.map(fillAssetImage); }
