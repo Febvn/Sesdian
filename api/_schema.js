@@ -15,6 +15,13 @@ export async function ensureSchema(sql) {
     await sql`alter table borrowings add column if not exists verified_by  bigint`;
     await sql`alter table borrowings add column if not exists verified_at  timestamptz`;
     await sql`alter table borrowings add column if not exists returned_at  timestamptz`;
+    // one image per asset NAME (jenis) — changing it is a single upsert instead of
+    // patching every unit; served as binary via /api/public?resource=img&key=...
+    await sql`create table if not exists asset_images (
+      name_key   text primary key,
+      image      text,
+      updated_at timestamptz default now()
+    )`;
     await reconcileStock(sql);
     _ensured = true;
   } catch (e) {

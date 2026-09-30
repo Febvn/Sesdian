@@ -568,70 +568,134 @@
     return { wrap: wrap, get: function () { return input.value; } };
   }
 
-  // Downscale + re-encode a picked image in the browser (max 900px, WebP) so the
-  // stored data-URL stays small even when the same image is saved on many units.
-  function compressImage(file) {
-    return new Promise(function (resolve, reject) {
-      var r = new FileReader();
-      r.onload = function () {
-        var img = new Image();
-        img.onload = function () {
-          var MAX = 900, scale = Math.min(1, MAX / Math.max(img.width, img.height));
-          var c = document.createElement('canvas');
-          c.width = Math.max(1, Math.round(img.width * scale));
-          c.height = Math.max(1, Math.round(img.height * scale));
-          c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
-          var out = c.toDataURL('image/webp', 0.82);
-          if (out.indexOf('data:image/webp') !== 0) out = c.toDataURL('image/jpeg', 0.82); // Safari fallback
-          resolve(out);
-        };
-        img.onerror = reject;
-        img.src = r.result;
-      };
-      r.onerror = reject;
-      r.readAsDataURL(file);
-    });
-  }
-
-  // Reusable image picker: drag & drop OR click to browse, with live preview.
-  // get() returns the current URL; a fresh pick is always a data: URL.
-  function buildImageDrop(initialUrl) {
-    var state = { url: initialUrl || null };
+  // Image picker WITH cropping: drag & drop / click to browse, then pan (drag)
+  // and zoom (slider or mouse wheel) inside a fixed 640x420 viewport — like a
+  // typical avatar/photo uploader. get() renders the visible crop to a WebP
+  // data-URL; returns null until the user picks a file.
+  function buildImageCropper(initialUrl) {
+    var st = { img: null, natW: 0, natH: 0, z: 1, ox: 0, oy: 0 };
     var wrap = el('div');
     var input = el('input', { type: 'file', accept: 'image/*', style: 'display:none' });
-    var zone = el('div', { class: 'sesd-drop' + (state.url ? ' has-img' : '') });
+
+    // dropzone (shown until a file is picked; shows the current image as preview)
+    var zone = el('div', { class: 'sesd-drop' + (initialUrl ? ' has-img' : '') });
     var prev = el('img', { class: 'sesd-drop-prev', alt: '' });
-    if (state.url) prev.src = state.url;
+    if (initialUrl) prev.src = initialUrl;
     prev.onerror = function () { zone.classList.remove('has-img'); };
     var hint = el('div', { class: 'sesd-drop-hint', html: ic('archive') + '<div style="margin-top:6px"><b>Tarik gambar ke sini</b><br><span style="font-size:.75rem;color:var(--text-muted)">atau klik untuk memilih file</span></div>' });
     zone.appendChild(prev); zone.appendChild(hint);
-    wrap.appendChild(zone); wrap.appendChild(input);
-    async function handleFile(f) {
+
+    // crop stage (hidden until a file is picked)
+    var cropBox = el('div', { style: 'display:none' });
+    var stage = el('div', { class: 'sesd-crop-stage' });
+    var cimg = el('img', { class: 'sesd-crop-img', alt: '', draggable: 'false' });
+    stage.appendChild(cimg);
+    var tools = el('div', { style: 'display:flex;align-items:center;gap:10px;margin-top:8px' });
+    tools.appendChild(el('span', { style: 'font-size:.72rem;font-weight:700;color:var(--text-muted)' }, 'ZOOM'));
+    var zoom = el('input', { type: 'range', min: '1', max: '3', step: '0.01', value: '1', style: 'flex:1' });
+    var rePick = el('button', { type: 'button', class: 'sesd-btn sesd-btn-sm sesd-btn-ghost' }, 'Ganti file');
+    tools.appendChild(zoom); tools.appendChild(rePick);
+    cropBox.appendChild(stage); cropBox.appendChild(tools);
+    cropBox.appendChild(el('div', { style: 'font-size:.7rem;color:var(--text-muted);margin-top:4px' }, 'Geser gambar untuk mengatur bagian yang terlihat.'));
+    wrap.appendChild(zone); wrap.appendChild(cropBox); wrap.appendChild(input);
+
+    function baseScale() { return Math.max(stage.clientWidth / st.natW, stage.clientHeight / st.natH); }
+    function clampPan() {
+      var s = baseScale() * st.z;
+      var mx = Math.max(0, (st.natW * s - stage.clientWidth) / 2);
+      var my = Math.max(0, (st.natH * s - stage.clientHeight) / 2);
+      st.ox = Math.min(mx, Math.max(-mx, st.ox));
+      st.oy = Math.min(my, Math.max(-my, st.oy));
+    }
+    function paint() {
+      if (!st.img) return;
+      cimg.style.width = (st.natW * baseScale()) + 'px';
+      cimg.style.transform = 'translate(-50%, -50%) translate(' + st.ox + 'px,' + st.oy + 'px) scale(' + st.z + ')';
+    }
+    function handleFile(f) {
       if (!f) return;
       if ((f.type || '').indexOf('image/') !== 0) { toast('File harus berupa gambar', 'error'); return; }
-      try { state.url = await compressImage(f); prev.src = state.url; zone.classList.add('has-img'); }
-      catch (e) { toast('Gagal membaca gambar', 'error'); }
+      var r = new FileReader();
+      r.onload = function () {
+        var im = new Image();
+        im.onload = function () {
+          st.img = im; st.natW = im.width; st.natH = im.height; st.z = 1; st.ox = 0; st.oy = 0;
+          cimg.src = im.src; zoom.value = '1';
+          zone.style.display = 'none'; cropBox.style.display = 'block';
+          requestAnimationFrame(function () { clampPan(); paint(); });
+        };
+        im.onerror = function () { toast('Gagal membaca gambar', 'error'); };
+        im.src = r.result;
+      };
+      r.onerror = function () { toast('Gagal membaca gambar', 'error'); };
+      r.readAsDataURL(f);
     }
+
     zone.addEventListener('click', function () { input.click(); });
+    rePick.addEventListener('click', function () { input.click(); });
     input.addEventListener('change', function () { if (input.files && input.files[0]) handleFile(input.files[0]); });
-    ['dragenter', 'dragover'].forEach(function (ev) { zone.addEventListener(ev, function (e) { e.preventDefault(); e.stopPropagation(); zone.classList.add('is-over'); }); });
-    ['dragleave', 'drop'].forEach(function (ev) { zone.addEventListener(ev, function (e) { e.preventDefault(); e.stopPropagation(); zone.classList.remove('is-over'); }); });
-    zone.addEventListener('drop', function (e) { handleFile(e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]); });
-    return { wrap: wrap, get: function () { return state.url; } };
+    ['dragenter', 'dragover'].forEach(function (ev) {
+      [zone, stage].forEach(function (t) { t.addEventListener(ev, function (e) { e.preventDefault(); e.stopPropagation(); zone.classList.add('is-over'); }); });
+    });
+    ['dragleave', 'drop'].forEach(function (ev) {
+      [zone, stage].forEach(function (t) { t.addEventListener(ev, function (e) { e.preventDefault(); e.stopPropagation(); zone.classList.remove('is-over'); }); });
+    });
+    [zone, stage].forEach(function (t) { t.addEventListener('drop', function (e) { handleFile(e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]); }); });
+
+    // pan by dragging, zoom via slider or wheel
+    var drag = null;
+    stage.addEventListener('pointerdown', function (e) {
+      if (!st.img) return;
+      drag = { x: e.clientX, y: e.clientY, ox: st.ox, oy: st.oy };
+      stage.setPointerCapture(e.pointerId); stage.classList.add('is-dragging');
+    });
+    stage.addEventListener('pointermove', function (e) {
+      if (!drag) return;
+      st.ox = drag.ox + (e.clientX - drag.x); st.oy = drag.oy + (e.clientY - drag.y);
+      clampPan(); paint();
+    });
+    ['pointerup', 'pointercancel'].forEach(function (ev) { stage.addEventListener(ev, function () { drag = null; stage.classList.remove('is-dragging'); }); });
+    zoom.addEventListener('input', function () { st.z = parseFloat(zoom.value) || 1; clampPan(); paint(); });
+    stage.addEventListener('wheel', function (e) {
+      if (!st.img) return;
+      e.preventDefault();
+      st.z = Math.min(3, Math.max(1, st.z + (e.deltaY < 0 ? 0.08 : -0.08)));
+      zoom.value = String(st.z); clampPan(); paint();
+    }, { passive: false });
+
+    return {
+      wrap: wrap,
+      // render the visible viewport to 640x420 WebP (null until a file is picked)
+      get: function () {
+        if (!st.img) return null;
+        var W = stage.clientWidth, H = stage.clientHeight;
+        var s = baseScale() * st.z;
+        var sw = W / s, sh = H / s;
+        var sx = (st.natW / 2 - st.ox / s) - sw / 2;
+        var sy = (st.natH / 2 - st.oy / s) - sh / 2;
+        sx = Math.min(Math.max(0, sx), st.natW - sw); sy = Math.min(Math.max(0, sy), st.natH - sh);
+        var c = document.createElement('canvas'); c.width = 640; c.height = 420;
+        c.getContext('2d').drawImage(st.img, sx, sy, sw, sh, 0, 0, 640, 420);
+        var out = c.toDataURL('image/webp', 0.82);
+        if (out.indexOf('data:image/webp') !== 0) out = c.toDataURL('image/jpeg', 0.82); // Safari fallback
+        return out;
+      },
+    };
   }
 
-  // Change the image for a WHOLE jenis (every unit sharing the name) in one go,
-  // instead of editing units one by one. Stacks on top of the group modal.
+  // Change the image for a WHOLE jenis (every unit sharing the name) in ONE
+  // request (asset_images upsert) — no per-unit patching. Stacks on top of the
+  // group modal.
   function openGroupImageModal(g, onDone) {
     if (document.querySelector('.sesd-imgedit-overlay')) return;
     var ov = overlay(); ov.classList.add('sesd-imgedit-overlay'); ov.style.zIndex = '10001';
-    var m = el('div', { class: 'sesd-modal', style: 'width:420px' });
+    var m = el('div', { class: 'sesd-modal', style: 'width:440px' });
     m.appendChild(el('h3', {}, 'Ganti Gambar'));
-    m.appendChild(el('div', { style: 'color:var(--text-muted);font-size:.82rem;margin:-6px 0 12px' }, (g.name || '-') + ' · berlaku untuk semua ' + g.units.length + ' unit'));
-    var drop = buildImageDrop(g.image || null);
-    m.appendChild(drop.wrap);
+    m.appendChild(el('div', { style: 'color:var(--text-muted);font-size:.82rem;margin:-6px 0 12px' }, (g.name || '-') + ' · satu gambar untuk semua ' + g.units.length + ' unit'));
+    var crop = buildImageCropper(g.image || null);
+    m.appendChild(crop.wrap);
     var foot = el('div', { style: 'display:flex;gap:8px;margin-top:1rem' });
-    var save = el('button', { class: 'sesd-btn sesd-btn-primary', style: 'flex:1' }, 'Simpan ke Semua Unit');
+    var save = el('button', { class: 'sesd-btn sesd-btn-primary', style: 'flex:1' }, 'Simpan Gambar');
     var cancel = el('button', { class: 'sesd-btn sesd-btn-ghost' }, 'Batal');
     foot.appendChild(save); foot.appendChild(cancel); m.appendChild(foot);
     ov.appendChild(m); document.body.appendChild(ov);
@@ -639,22 +703,17 @@
     cancel.addEventListener('click', close);
     ov.addEventListener('click', function (e) { if (e.target === ov) close(); });
     save.addEventListener('click', async function () {
-      var url = drop.get();
-      if (!url || url.indexOf('data:') !== 0) { toast('Pilih gambar baru terlebih dahulu', 'error'); return; }
-      save.disabled = true; cancel.disabled = true;
+      var url = crop.get();
+      if (!url) { toast('Pilih gambar terlebih dahulu', 'error'); return; }
+      save.disabled = true; cancel.disabled = true; save.textContent = 'Menyimpan…';
       try {
-        for (var i = 0; i < g.units.length; i++) {
-          save.textContent = 'Menyimpan ' + (i + 1) + '/' + g.units.length + '…';
-          var u = g.units[i];
-          await DB.updateAsset(u.id, assetPatch(u, { image: url }));
-          u.image = url;
-        }
-        g.image = url;
-        toast('Gambar diperbarui untuk ' + g.units.length + ' unit', 'success');
+        await DB.setJenisImage(g.name, url);          // one upsert covers every unit
+        g.image = url; g.units.forEach(function (u) { u.image = url; });
+        toast('Gambar jenis "' + g.name + '" diperbarui', 'success');
         close(); if (onDone) onDone(url); reloadData();
       } catch (e) {
         toast((e && e.message) || 'Gagal menyimpan gambar', 'error');
-        save.disabled = false; cancel.disabled = false; save.textContent = 'Simpan ke Semua Unit';
+        save.disabled = false; cancel.disabled = false; save.textContent = 'Simpan Gambar';
       }
     });
   }
@@ -706,8 +765,8 @@
     m.appendChild(field('Jenis', jenisDD.wrap));
     var kondisiDD = buildDropdown({ value: (rec && rec.condition) || 'Baik', options: ['Baik', 'Rusak Ringan', 'Rusak Berat'].map(function (k) { return { value: k, label: k }; }) });
     m.appendChild(field('Kondisi', kondisiDD.wrap));
-    var imgDrop = buildImageDrop((rec && rec.image) || null);   // drag & drop atau klik
-    m.appendChild(field('Gambar (opsional)', imgDrop.wrap));
+    var imgCrop = buildImageCropper((rec && rec.image) || null);   // drag & drop + crop/zoom
+    m.appendChild(field('Gambar jenis ini (opsional, berlaku untuk semua unit senama)', imgCrop.wrap));
 
     var foot = el('div', { style: 'display:flex;gap:8px;margin-top:1rem' });
     var save = el('button', { class: 'sesd-btn sesd-btn-primary', style: 'flex:1' }, rec ? 'Simpan' : 'Tambah');
@@ -729,11 +788,11 @@
           type: jenisDD.get() || 'BMN', condition: kondisiDD.get() || 'Baik',
           stock_total: 1,
         };
-        // only send image when the user picked a NEW one (data: URL); never
-        // persist the generated assets/aset/... fallback path into the DB
-        var pickedImg = imgDrop.get();
-        if (pickedImg && pickedImg.indexOf('data:') === 0 && pickedImg !== (rec && rec.image)) payload.image = pickedImg;
         if (rec) await DB.updateAsset(rec.id, payload); else await DB.createAsset(payload);
+        // image is stored once per jenis (name), not per unit — a fresh crop
+        // (data: URL) upserts the shared image for every unit with this name
+        var pickedImg = imgCrop.get();
+        if (pickedImg) await DB.setJenisImage(name, pickedImg);
         toast(rec ? 'Aset diperbarui' : 'Aset ditambahkan', 'success'); close(); reloadData();
       } catch (e) { toast((e && e.message) || 'Gagal menyimpan', 'error'); save.disabled = false; save.textContent = rec ? 'Simpan' : 'Tambah'; }
     });

@@ -2107,6 +2107,28 @@ aside [data-user-initials] img { width: 100%; height: 100%; object-fit: cover; b
 .sesd-drop.has-img .sesd-drop-hint span { color: rgba(255, 255, 255, 0.75) !important; }
 .sesd-drop.has-img .sesd-drop-hint svg { color: #fff; }
 
+/* crop viewport: drag to pan, slider/wheel to zoom (fixed 640x420 aspect) */
+.sesd-crop-stage {
+  position: relative; width: 100%; aspect-ratio: 32 / 21;
+  overflow: hidden; border-radius: 12px; background: #191918;
+  cursor: grab; touch-action: none; user-select: none;
+  border: 1px solid var(--border);
+}
+.sesd-crop-stage.is-dragging { cursor: grabbing; }
+.sesd-crop-stage::after {   /* rule-of-thirds guides */
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background:
+    linear-gradient(to right, transparent calc(33.3% - 1px), rgba(255,255,255,0.22) 33.3%, transparent calc(33.3% + 1px)),
+    linear-gradient(to right, transparent calc(66.6% - 1px), rgba(255,255,255,0.22) 66.6%, transparent calc(66.6% + 1px)),
+    linear-gradient(to bottom, transparent calc(33.3% - 1px), rgba(255,255,255,0.22) 33.3%, transparent calc(33.3% + 1px)),
+    linear-gradient(to bottom, transparent calc(66.6% - 1px), rgba(255,255,255,0.22) 66.6%, transparent calc(66.6% + 1px));
+}
+.sesd-crop-img {
+  position: absolute; left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+  max-width: none; pointer-events: none;
+}
+
 /* segmented status filter (radio-style, single select) for the tables */
 .sesd-segfilter { display: inline-flex; flex-wrap: wrap; gap: 4px; padding: 4px; background: var(--bg); border: 1px solid var(--border); border-radius: 13px; }
 .sesd-segfilter > button {

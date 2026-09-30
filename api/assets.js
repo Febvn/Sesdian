@@ -13,7 +13,9 @@ export default async function handler(req, res) {
       const page = parseInt(req.query?.page || 1, 10);
       const limit = Math.min(parseInt(req.query?.limit || 5000, 10), 10000); // load all assets by default
       const offset = (page - 1) * limit;
-      // single round-trip: total via window count instead of a second COUNT query
+      // single round-trip: total via window count instead of a second COUNT query.
+      // jenis image is joined as key+version only (the binary is served separately
+      // via /api/public?resource=img so the payload stays light).
       const rows = await sql`
         select a.id, a.code, a.name, coalesce(a.brand,'') as brand, a.year,
                coalesce(a.condition,'Baik') as condition, coalesce(a.type,'BMN') as type,
@@ -21,10 +23,12 @@ export default async function handler(req, res) {
                a.stock_total, a.stock_available, a.stock_borrowed,
                a.category_id, a.room_id, a.image, a.qr_code,
                coalesce(c.name,'') as category, coalesce(r.name,'') as room,
+               ai.name_key as jenis_key, extract(epoch from ai.updated_at)::bigint as jenis_ver,
                count(*) over() as total_count
         from assets a
         left join categories c on c.id = a.category_id
         left join rooms r on r.id = a.room_id
+        left join asset_images ai on ai.name_key = btrim(regexp_replace(lower(a.name), '[^a-z0-9]+', '-', 'g'), '-')
         order by a.id limit ${limit} offset ${offset}`;
       const total = rows.length ? parseInt(rows[0].total_count, 10) : 0;
       return send(res, 200, { assets: rows, total, page, limit });
@@ -39,6 +43,17 @@ export default async function handler(req, res) {
       const b = await readJson(req);
       // bulk import from Excel (parsed client-side): body.rows present -> import path
       if (Array.isArray(b.rows)) return importAssets(sql, b.rows, res);
+      // one image per jenis: single upsert covers every unit sharing the name
+      if (b.jenis_image && b.jenis_image.name) {
+        const key = String(b.jenis_image.name).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+        const img = String(b.jenis_image.image || '');
+        if (!key) return send(res, 400, { error: 'Nama jenis tidak valid' });
+        if (img.indexOf('data:image/') !== 0) return send(res, 400, { error: 'Gambar tidak valid' });
+        if (img.length > 800000) return send(res, 400, { error: 'Gambar terlalu besar (maks ±600KB)' });
+        await sql`insert into asset_images (name_key, image, updated_at) values (${key}, ${img}, now())
+                  on conflict (name_key) do update set image = ${img}, updated_at = now()`;
+        return send(res, 200, { ok: true, key });
+      }
       if (!b.code || !b.name) return send(res, 400, { error: 'Kode dan nama aset wajib diisi' });
       const total = Math.max(0, parseInt(b.stock_total || 1, 10));
       const rows = await sql`

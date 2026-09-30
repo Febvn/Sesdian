@@ -86,16 +86,29 @@
   async function categories() { return demo ? P(DEMO.categories.slice()) : (await cachedReq('categories', 60000)).categories; }
   async function rooms() { return demo ? P(DEMO.rooms.slice()) : (await cachedReq('rooms', 60000)).rooms; }
 
-  // Assets without an uploaded photo fall back to a generated illustration named
-  // after the item: assets/aset/<slug>.webp (see scripts/generate-asset-images.mjs).
-  // MUST stay in sync with slug() in that script.
+  // Image priority per asset: (1) jenis image (one per NAME, uploaded via the
+  // group editor and served as binary from /api/public?resource=img), then
+  // (2) legacy per-unit photo in assets.image, then (3) the generated
+  // assets/aset/<slug>.webp illustration. slugAsset MUST stay in sync with
+  // scripts/generate-asset-images.mjs and the SQL key in the API joins.
   // /assets/* is served immutable for 1 year (vercel.json), so bump ASSET_IMG_V
   // whenever the webp files are regenerated or browsers will keep the old ones.
   var ASSET_IMG_V = '2';
   function slugAsset(s) { return String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''); }
   function fillAssetImage(a) {
-    if (a && !a.image) { var k = slugAsset(a.name); if (k) a.image = 'assets/aset/' + k + '.webp?v=' + ASSET_IMG_V; }
+    if (!a) return a;
+    if (a.jenis_key && a.jenis_ver) a.image = 'api/public?resource=img&key=' + encodeURIComponent(a.jenis_key) + '&t=' + a.jenis_ver;
+    else if (!a.image) { var k = slugAsset(a.name); if (k) a.image = 'assets/aset/' + k + '.webp?v=' + ASSET_IMG_V; }
     return a;
+  }
+  // one image per jenis: a single upsert covers every unit sharing the name
+  async function setJenisImage(name, image) {
+    if (demo) {
+      var key = (name || '').trim().toLowerCase();
+      DEMO.assets.forEach(function (a) { if ((a.name || '').trim().toLowerCase() === key) a.image = image; });
+      return P({ ok: true });
+    }
+    return req('assets', { method: 'POST', body: { jenis_image: { name: name, image: image } } });
   }
   async function assets() { return demo ? P(DEMO.assets.map(demoAsset).map(fillAssetImage)) : (await req('assets')).assets.map(fillAssetImage); }
 
@@ -276,7 +289,7 @@
     catalog: catalog, assetDetail: assetDetail, reports: reports, importAssets: importAssets,
     users: users, usersFresh: usersFresh, setUserRole: setUserRole, createUser: createUser, deleteUser: deleteUser,
     profile: profile, updateProfile: updateProfile, changePassword: changePassword,
-    createAsset: createAsset, updateAsset: updateAsset, deleteAsset: deleteAsset,
+    createAsset: createAsset, updateAsset: updateAsset, deleteAsset: deleteAsset, setJenisImage: setJenisImage,
     createCategory: createCategory, updateCategory: updateCategory, deleteCategory: deleteCategory,
     createRoom: createRoom, updateRoom: updateRoom, deleteRoom: deleteRoom,
     updateBorrowingStatus: updateBorrowingStatus,
