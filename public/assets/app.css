@@ -1938,7 +1938,18 @@ body[data-page="ajukanpinjam"] [style*="grid-template-columns: 1fr 340px"] { gri
 body[data-page="ajukanpinjam"] [style*="grid-template-columns: 1fr 340px"] > div:nth-child(2) { display: none !important; }
 
 /* ── #4 — profile menu (per-user) + avatar in header & sidebar ── */
-.sesd-head-profile { overflow: hidden; padding: 0; }
+.sesd-head-profile {
+  overflow: hidden; padding: 0;
+  border-color: transparent !important;   /* never show the generic --border ring */
+  outline: none !important;               /* suppress browser focus outlines */
+  -webkit-tap-highlight-color: transparent; /* suppress mobile tap highlight */
+}
+.sesd-head-profile:focus,
+.sesd-head-profile:active,
+.sesd-head-profile:focus-visible {
+  outline: none !important;
+  box-shadow: 0 0 0 2px var(--primary-glow) !important; /* subtle glow instead of sharp outline */
+}
 .sesd-head-profile img { width: 100%; height: 100%; object-fit: cover; display: block; }
 aside [data-user-initials] img { width: 100%; height: 100%; object-fit: cover; border-radius: inherit; display: block; }
 
