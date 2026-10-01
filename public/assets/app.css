@@ -2266,8 +2266,27 @@ html[data-textsize="large"] { font-size: 18px; }
 .sesd-greet-role::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--success); box-shadow: 0 0 0 3px rgba(94,224,138,0.25); }
 @media (max-width: 768px) {
   .sesd-greet { padding: 1.4rem 1.4rem; }
-  .sesd-greet-title { font-size: 1.5rem; }
-  .sesd-greet-sub { font-size: 0.88rem; }
+  .sesd-greet-inner {
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center !important;
+    gap: 1rem !important;
+  }
+  .sesd-greet-inner > div:first-child {
+    width: 100% !important;
+    flex: unset !important;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  /* Hide the large logo on mobile — it takes too much space */
+  .sesd-greet-inner > div:last-child:not(:first-child) {
+    display: none !important;
+  }
+  .sesd-greet-title { font-size: 1.35rem !important; }
+  .sesd-greet-sub { font-size: 0.85rem; text-align: center; }
+  .sesd-greet-eyebrow { font-size: 0.6rem; text-align: center; }
+  .sesd-greet-badges { justify-content: center; }
 }
 
 /* ── #8 — guest (katalog) header theme/text-size controls ── */
