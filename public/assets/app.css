@@ -2311,14 +2311,14 @@ html[data-textsize="large"] { font-size: 18px; }
   }
   
   /* Export/Print buttons centered */
-  [data-page="laporan"] [style*="justify-content: space-between"] {
+  [data-page="laporan"] [style*="justify-content: space-between"]:not([data-topbar]) {
     justify-content: center !important;
     flex-direction: column !important;
     align-items: center !important;
   }
   
   /* Buttons row */
-  [data-page="laporan"] [style*="display: flex"][style*="gap: 8px"] {
+  [data-page="laporan"] [style*="display: flex"][style*="gap: 8px"]:not(.sesd-topbar-crumb) {
     justify-content: center !important;
     width: 100% !important;
   }
