@@ -2237,42 +2237,33 @@ html[data-textsize="large"] { font-size: 18px; }
   .sesd-prof-logout { margin-left: 0; width: 100%; }
 }
 
-/* ── #7 — Dashboard greeting hero (all actors), brand-gradient palette ── */
+/* ── #7 — Dashboard greeting hero (all actors), theme-adaptive flat ── */
 .sesd-greet {
   position: relative; overflow: hidden;
   border-radius: var(--radius-lg);
   padding: 2rem 2.4rem;
   margin-bottom: 1.5rem;
-  background: linear-gradient(120deg, #06203b 0%, #0a4ea0 44%, #137d74 100%);
-  box-shadow: 0 14px 36px rgba(8,68,140,0.30);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  box-shadow: var(--card-shadow);
 }
-.sesd-greet::before {
-  content: ""; position: absolute; top: -60px; right: -20px;
-  width: 240px; height: 240px; border-radius: 50%;
-  background: radial-gradient(circle, rgba(221,91,0,0.38), transparent 64%);
-  pointer-events: none;
-}
-.sesd-greet::after {
-  content: ""; position: absolute; bottom: -80px; right: 150px;
-  width: 200px; height: 200px; border-radius: 50%;
-  background: radial-gradient(circle, rgba(26,174,57,0.26), transparent 66%);
-  pointer-events: none;
-}
+.sesd-greet::before,
+.sesd-greet::after { display: none; }
 .sesd-greet-inner { position: relative; z-index: 1; }
 .sesd-greet-eyebrow {
   font-family: "JetBrains Mono", monospace; font-size: 0.7rem;
-  letter-spacing: 0.18em; color: rgba(255,255,255,0.72); font-weight: 700; margin-bottom: 10px;
+  letter-spacing: 0.18em; color: var(--text-muted); font-weight: 700; margin-bottom: 10px;
 }
-.sesd-greet-title { color: #fff; font-size: 1.95rem; font-weight: 800; letter-spacing: -0.025em; line-height: 1.12; }
-.sesd-greet-sub { color: rgba(255,255,255,0.84); font-size: 0.95rem; margin-top: 8px; max-width: 580px; }
+.sesd-greet-title { color: var(--text); font-size: 1.95rem; font-weight: 800; letter-spacing: -0.025em; line-height: 1.12; }
+.sesd-greet-sub { color: var(--text-muted); font-size: 0.95rem; margin-top: 8px; max-width: 580px; }
 .sesd-greet-badges { margin-top: 14px; display: flex; gap: 8px; flex-wrap: wrap; }
 .sesd-greet-role {
   display: inline-flex; align-items: center; gap: 6px;
-  background: rgba(255,255,255,0.18); color: #fff; font-weight: 800;
+  background: var(--primary-light); color: var(--primary); font-weight: 800;
   font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em;
   padding: 0.34rem 0.75rem; border-radius: var(--radius-pill);
 }
-.sesd-greet-role::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: #5ee08a; box-shadow: 0 0 0 3px rgba(94,224,138,0.25); }
+.sesd-greet-role::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--success); box-shadow: 0 0 0 3px rgba(94,224,138,0.25); }
 @media (max-width: 768px) {
   .sesd-greet { padding: 1.4rem 1.4rem; }
   .sesd-greet-title { font-size: 1.5rem; }
