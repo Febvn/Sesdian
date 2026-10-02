@@ -79,7 +79,7 @@ export default async function handler(req, res) {
       return send(res, 200, { asset: detail, authed });
     }
 
-    // default: catalog (no stock figures)
+    // default: catalog (no stock figures per item, but aggregate stats for the overview)
     const assets = await sql`
       select a.id, a.code, a.name, coalesce(a.brand,'') as brand,
              coalesce(a.type,'BMN') as type, a.image, a.qr_code,
@@ -92,6 +92,20 @@ export default async function handler(req, res) {
       order by a.name`;
     const categories = await sql`select id, name from categories order by name`;
     const rooms = await sql`select id, name from rooms order by name`;
-    return send(res, 200, { assets, categories, rooms });
+    const aggRows = await sql`
+      select count(*)::int as total_assets,
+             coalesce(sum(stock_total),0)::int as total_stock,
+             coalesce(sum(stock_available),0)::int as stock_available,
+             coalesce(sum(stock_borrowed),0)::int as stock_borrowed
+      from assets`;
+    const pendingRows = await sql`select count(*)::int as cnt from borrowings where status = 'pending'`;
+    const stats = {
+      total_assets: aggRows[0].total_assets,
+      total_stock: aggRows[0].total_stock,
+      stock_available: aggRows[0].stock_available,
+      stock_borrowed: aggRows[0].stock_borrowed,
+      pending: pendingRows[0].cnt,
+    };
+    return send(res, 200, { assets, categories, rooms, stats });
   } catch (e) { return send(res, 500, { error: e.message }); }
 }

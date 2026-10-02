@@ -164,7 +164,15 @@
   /* ====================== public catalog / detail (guest) ====================== */
   function publicAsset(a) { return { id: a.id, code: a.code, name: a.name, brand: a.brand, type: a.type, image: a.image, qr_code: a.qr_code, category: a.category, room: a.room }; }
   async function catalog() {
-    if (demo) { var as = await assets(); return P({ assets: as.map(publicAsset), categories: DEMO.categories.slice(), rooms: DEMO.rooms.slice() }); }
+    if (demo) {
+      var as = await assets();
+      var sum = function (k) { return as.reduce(function (t, a) { return t + (a[k] || 0); }, 0); };
+      var bs = await borrowings();
+      return P({
+        assets: as.map(publicAsset), categories: DEMO.categories.slice(), rooms: DEMO.rooms.slice(),
+        stats: { total_assets: as.length, total_stock: sum('stock_total'), stock_available: sum('stock_available'), stock_borrowed: sum('stock_borrowed'), pending: bs.filter(function (b) { return b.status === 'pending'; }).length }
+      });
+    }
     var data = await req('public?resource=catalog');
     if (data.assets) data.assets = data.assets.map(fillAssetImage);
     return data;

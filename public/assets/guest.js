@@ -93,17 +93,19 @@
     var data;
     try { data = await DB.catalog(); } catch (e) { grid.innerHTML = '<div class="sesd-empty">Gagal memuat katalog.</div>'; return; }
     var assets = data.assets || [], cats = data.categories || [];
+    // populate stat cards from the API stats object
+    var stats = data.stats || {};
+    ['total_assets', 'total_stock', 'stock_available', 'stock_borrowed', 'pending'].forEach(function (k) {
+      var numEl = $('[data-cat-stat-num="' + k + '"]');
+      if (numEl) numEl.textContent = (stats[k] != null) ? String(stats[k]) : '0';
+    });
     // #10 — room catalog: ?room=<name> shows only that room's items (QR target).
     var roomFilter = qs('room');
     if (roomFilter) {
       assets = assets.filter(function (a) { return (a.room || '').toLowerCase() === roomFilter.toLowerCase(); });
       document.title = 'SESDIAN - Ruangan ' + roomFilter;
-      var titleEl = $('[data-catalog-title]'); if (titleEl) titleEl.textContent = 'Isi Ruangan: ' + roomFilter;
     }
     var groups = groupCatalog(assets);
-    var sub = $('[data-catalog-sub]'); if (sub) sub.textContent = roomFilter
-      ? ('Ruangan ' + roomFilter + ' · ' + groups.length + ' jenis · ' + assets.length + ' unit')
-      : (groups.length + ' jenis · ' + assets.length + ' unit tersedia');
     var state = { q: '', cat: 'all' };
 
     // category chips
