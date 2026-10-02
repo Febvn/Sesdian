@@ -1779,12 +1779,14 @@ main[style*="overflow: auto"] {
     font-size: 0.65rem !important;
   }
 
-  /* Grid order and placement (2 - 1 - 2) */
+  /* Grid order and placement (2 - 2 - 1) */
   .dashboard-stats-grid > [data-stat-card="total_stock"] { order: 1; }
   .dashboard-stats-grid > [data-stat-card="stock_available"] { order: 2; }
+  .dashboard-stats-grid > [data-stat-card="stock_borrowed"] { order: 3; }
+  .dashboard-stats-grid > [data-stat-card="pending"] { order: 4; }
   
   .dashboard-stats-grid > [data-stat-card="total_assets"] { 
-    order: 3; 
+    order: 5; 
     grid-column: 1 / -1; 
     justify-self: center; 
     width: calc(50% - 0.375rem); /* Exactly 1 column width */
@@ -1794,9 +1796,6 @@ main[style*="overflow: auto"] {
   .dashboard-stats-grid > [data-stat-card="total_assets"] .stat-number {
     font-weight: 900 !important;
   }
-
-  .dashboard-stats-grid > [data-stat-card="stock_borrowed"] { order: 4; }
-  .dashboard-stats-grid > [data-stat-card="pending"] { order: 5; }
 
   /* Reduce container hover expand on mobile (less jarring) */
   [style*="border-radius: 16px"][style*="padding"]:hover,
