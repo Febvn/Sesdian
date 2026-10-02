@@ -95,9 +95,20 @@
     var assets = data.assets || [], cats = data.categories || [];
     // populate stat cards from the API stats object
     var stats = data.stats || {};
-    ['total_assets', 'total_stock', 'stock_available', 'stock_borrowed', 'pending'].forEach(function (k) {
+    ['total_assets', 'total_stock', 'stock_available', 'stock_borrowed', 'pending'].forEach(function (k, i) {
       var numEl = $('[data-cat-stat-num="' + k + '"]');
-      if (numEl) numEl.textContent = (stats[k] != null) ? String(stats[k]) : '0';
+      if (numEl) {
+        var loadingSpan = numEl.querySelector('.sesd-loading-inline');
+        if (loadingSpan) loadingSpan.remove();
+        numEl.textContent = (stats[k] != null) ? String(stats[k]) : '0';
+        numEl.style.opacity = '0';
+        numEl.style.transition = 'opacity 0.3s ease';
+        setTimeout(function() { numEl.style.opacity = '1'; }, i * 100);
+      }
+      var card = $('[data-cat-stat="' + k + '"]');
+      if (card) {
+        setTimeout(function() { card.classList.add('loaded'); }, i * 100);
+      }
     });
     // #10 — room catalog: ?room=<name> shows only that room's items (QR target).
     var roomFilter = qs('room');
