@@ -105,10 +105,6 @@
         numEl.style.transition = 'opacity 0.3s ease';
         setTimeout(function() { numEl.style.opacity = '1'; }, i * 100);
       }
-      var card = $('[data-cat-stat="' + k + '"]');
-      if (card) {
-        setTimeout(function() { card.classList.add('loaded'); }, i * 100);
-      }
     });
     // #10 — room catalog: ?room=<name> shows only that room's items (QR target).
     var roomFilter = qs('room');

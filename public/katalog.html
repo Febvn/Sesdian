@@ -181,16 +181,6 @@
         .stat-icon-wrap { width: 50px; min-width: 50px; }
       }
 
-      /* Loading animations for stat cards */
-      .katalog-stat-card {
-        opacity: 0;
-        transform: translateY(10px);
-        transition: opacity 0.4s ease, transform 0.4s ease;
-      }
-      .katalog-stat-card.loaded {
-        opacity: 1;
-        transform: translateY(0);
-      }
       /* Center the 3-dots loader when it's inside the grid */
       .sesd-cat-grid .sesd-page-loader {
         grid-column: 1 / -1;
@@ -216,7 +206,7 @@
     <main class="sesd-cat-main">
       <!-- stat cards (populated by guest.js) -->
       <div class="sesd-cat-stats">
-        <div class="stat-card katalog-stat-card delay-1" data-cat-stat="total_assets">
+        <div class="stat-card animate-fade-up delay-1" data-cat-stat="total_assets">
           <div class="stat-icon-wrap" style="background: linear-gradient(135deg, #0075de, #005bab);">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M21 8 12 3 3 8v8l9 5 9-5z" />
@@ -229,7 +219,7 @@
             <div class="stat-subtitle">Semua aset</div>
           </div>
         </div>
-        <div class="stat-card katalog-stat-card delay-2" data-cat-stat="total_stock">
+        <div class="stat-card animate-fade-up delay-2" data-cat-stat="total_stock">
           <div class="stat-icon-wrap" style="background: linear-gradient(135deg, #2a9d99, #1f7d7a);">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <rect x="3" y="4" width="18" height="4" rx="1" />
@@ -243,7 +233,7 @@
             <div class="stat-subtitle">Jumlah stok</div>
           </div>
         </div>
-        <div class="stat-card katalog-stat-card delay-3" data-cat-stat="stock_available">
+        <div class="stat-card animate-fade-up delay-3" data-cat-stat="stock_available">
           <div class="stat-icon-wrap" style="background: linear-gradient(135deg, #1aae39, #128a2e);">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="12" cy="12" r="9" />
@@ -256,7 +246,7 @@
             <div class="stat-subtitle">Siap dipinjam</div>
           </div>
         </div>
-        <div class="stat-card katalog-stat-card delay-4" data-cat-stat="stock_borrowed">
+        <div class="stat-card animate-fade-up delay-4" data-cat-stat="stock_borrowed">
           <div class="stat-icon-wrap" style="background: linear-gradient(135deg, #dd5b00, #b94a00);">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M3 12a9 9 0 0 1 15-6.7L21 8" />
@@ -271,7 +261,7 @@
             <div class="stat-subtitle">Sedang dipinjam</div>
           </div>
         </div>
-        <div class="stat-card katalog-stat-card delay-5" data-cat-stat="pending">
+        <div class="stat-card animate-fade-up delay-5" data-cat-stat="pending">
           <div class="stat-icon-wrap" style="background: linear-gradient(135deg, #e03e3e, #c5302f);">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="12" cy="12" r="9" />
