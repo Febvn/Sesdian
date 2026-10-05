@@ -112,8 +112,6 @@
     return { start: localIso(new Date(y, m, 1)), end: localIso(new Date(y, m + 1, 0)) };
   }
 
-  // Contextual control that replaces the old Dari/Sampai inputs: pick the day
-  // (Harian) or the month (Bulanan).
   function renderPeriodControl() {
     var host = $('[data-period-select]'); if (!host) return;
     ensureDates();
@@ -122,12 +120,12 @@
     var inpStyle = 'padding:0.6rem 0.7rem;border:1.5px solid var(--border);border-radius:10px;font-size:0.875rem;outline:none;background:#fff;cursor:pointer;min-width:200px';
     var lbl = el('label', { style: 'font-size:0.72rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;display:block;margin-bottom:5px' });
     if (state.period === 'daily') {
-      lbl.textContent = 'Tanggal';
+      lbl.innerHTML = '<span class="ic" style="vertical-align:-0.12em"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="1em" height="1em" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg></span> Tanggal';
       var di = el('input', { type: 'date', value: state.day, max: localIso(now), style: inpStyle });
       di.addEventListener('change', function () { if (di.value) { state.day = di.value; load(); } });
       host.appendChild(lbl); host.appendChild(di);
     } else {
-      lbl.textContent = 'Bulan';
+      lbl.innerHTML = '<span class="ic" style="vertical-align:-0.12em"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="1em" height="1em" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></span> Bulan';
       var mi = el('input', { type: 'month', value: state.month, max: now.getFullYear() + '-' + pad2(now.getMonth() + 1), style: inpStyle });
       mi.addEventListener('change', function () { if (mi.value) { state.month = mi.value; load(); } });
       host.appendChild(lbl); host.appendChild(mi);
@@ -236,6 +234,130 @@
     w.document.write(html); w.document.close();
   }
 
+  /* ============ Grafik tren peminjaman (Harian / Bulanan / Tahunan) ============
+     Single-series bar chart (inline SVG, no library). Counts = borrowings CREATED
+     in each bucket. One hue (var(--chart-1), theme-validated); no legend needed —
+     the card title names the series. Selective label on the max bar; per-bar
+     hover tooltip; recessive hairline grid. */
+  var MON3 = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+  function trendBuckets(mode, rows) {
+    var now = new Date(), buckets = [], i;
+    function count(match) { var n = 0; rows.forEach(function (r) { if (r.created_at && match(new Date(r.created_at))) n++; }); return n; }
+    if (mode === 'daily') {
+      for (i = 13; i >= 0; i--) {
+        var d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
+        buckets.push({ label: d.getDate() + '/' + (d.getMonth() + 1), full: localIso(d), n: count(function (x) { return localIso(x) === localIso(d); }) });
+      }
+    } else if (mode === 'monthly') {
+      for (i = 0; i < 12; i++) (function (m) {
+        buckets.push({ label: MON3[m], full: MON3[m] + ' ' + now.getFullYear(), n: count(function (x) { return x.getFullYear() === now.getFullYear() && x.getMonth() === m; }) });
+      })(i);
+    } else {
+      for (i = 4; i >= 0; i--) (function (y) {
+        buckets.push({ label: String(y), full: 'Tahun ' + y, n: count(function (x) { return x.getFullYear() === y; }) });
+      })(now.getFullYear() - i);
+    }
+    return buckets;
+  }
+  function drawTrendSvg(host, buckets, tipEl) {
+    var W = 720, H = 250, padL = 34, padR = 8, padT = 20, padB = 24;
+    var plotW = W - padL - padR, plotH = H - padT - padB;
+    var maxN = Math.max(1, Math.max.apply(null, buckets.map(function (b) { return b.n; })));
+    var step = Math.max(1, Math.ceil(maxN / 4));
+    var top = step * 4;
+    var band = plotW / buckets.length;
+    var barW = Math.min(46, Math.max(8, band - 8));
+    var maxIdx = -1; buckets.forEach(function (b, i) { if (b.n > 0 && (maxIdx === -1 || b.n > buckets[maxIdx].n)) maxIdx = i; });
+    var svgNS = 'http://www.w3.org/2000/svg';
+    var svg = document.createElementNS(svgNS, 'svg');
+    svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+    svg.setAttribute('role', 'img');
+    svg.setAttribute('aria-label', 'Grafik jumlah peminjaman per periode');
+    svg.style.cssText = 'width:100%;height:auto;display:block';
+    function sEl(tag, attrs) { var e = document.createElementNS(svgNS, tag); for (var k in attrs) e.setAttribute(k, attrs[k]); return e; }
+    // recessive grid + y labels
+    for (var g = 0; g <= 4; g++) {
+      var y = padT + plotH - (plotH * g / 4);
+      svg.appendChild(sEl('line', { x1: padL, y1: y, x2: W - padR, y2: y, stroke: 'var(--border)', 'stroke-width': g === 0 ? 1.4 : 1 }));
+      var yl = sEl('text', { x: padL - 7, y: y + 3.5, 'text-anchor': 'end', 'font-size': '10', fill: 'var(--text-muted)' });
+      yl.textContent = String(step * g); svg.appendChild(yl);
+    }
+    var labelEvery = buckets.length > 12 ? 2 : 1;
+    buckets.forEach(function (b, i) {
+      var cx = padL + band * i + band / 2;
+      var h = Math.round(plotH * (b.n / top));
+      var x = cx - barW / 2, yTop = padT + plotH - h, r = Math.min(4, h);
+      if (b.n > 0) {
+        // 4px rounded data-end, square base anchored to the baseline
+        var p = 'M' + x + ',' + (padT + plotH) + ' V' + (yTop + r) + ' Q' + x + ',' + yTop + ' ' + (x + r) + ',' + yTop +
+                ' H' + (x + barW - r) + ' Q' + (x + barW) + ',' + yTop + ' ' + (x + barW) + ',' + (yTop + r) + ' V' + (padT + plotH) + ' Z';
+        svg.appendChild(sEl('path', { d: p, fill: 'var(--chart-1)', 'data-bar': i }));
+      }
+      if (i === maxIdx) {   // selective direct label: max only (text token, not series color)
+        var vl = sEl('text', { x: cx, y: yTop - 6, 'text-anchor': 'middle', 'font-size': '10.5', 'font-weight': '700', fill: 'var(--text)' });
+        vl.textContent = String(b.n); svg.appendChild(vl);
+      }
+      if (i % labelEvery === 0) {
+        var xl = sEl('text', { x: cx, y: H - 8, 'text-anchor': 'middle', 'font-size': '10', fill: 'var(--text-muted)' });
+        xl.textContent = b.label; svg.appendChild(xl);
+      }
+      // full-column hit target (bigger than the mark) for the tooltip
+      var hit = sEl('rect', { x: padL + band * i, y: padT, width: band, height: plotH, fill: 'transparent' });
+      hit.style.cursor = 'default';
+      hit.addEventListener('mouseenter', function () {
+        var bar = svg.querySelector('[data-bar="' + i + '"]'); if (bar) bar.style.opacity = '0.78';
+        tipEl.textContent = b.full + ' · ' + b.n + ' peminjaman';
+        tipEl.style.display = 'block';
+      });
+      hit.addEventListener('mousemove', function (e) {
+        var hostR = host.getBoundingClientRect();
+        tipEl.style.left = Math.min(hostR.width - tipEl.offsetWidth - 6, Math.max(6, e.clientX - hostR.left + 12)) + 'px';
+        tipEl.style.top = (e.clientY - hostR.top - 34) + 'px';
+      });
+      hit.addEventListener('mouseleave', function () {
+        var bar = svg.querySelector('[data-bar="' + i + '"]'); if (bar) bar.style.opacity = '1';
+        tipEl.style.display = 'none';
+      });
+      svg.appendChild(hit);
+    });
+    host.innerHTML = ''; host.appendChild(svg);
+  }
+  function buildTrendCard() {
+    var card = $('[data-trend-card]'); if (!card) return;
+    var trendRows = null, mode = 'daily';
+    card.appendChild(el('div', { style: 'font-size:0.95rem;font-weight:800' }, 'Grafik Peminjaman'));
+    var sub = el('div', { style: 'font-size:0.75rem;color:var(--text-muted);margin:2px 0 12px' }, 'Jumlah pengajuan peminjaman per periode');
+    card.appendChild(sub);
+    var seg = el('div', { class: 'sesd-segfilter', role: 'tablist', 'aria-label': 'Periode grafik', style: 'margin-bottom:12px' });
+    var chartHost = el('div');
+    var tip = el('div', { style: 'display:none;position:absolute;z-index:5;background:var(--text);color:var(--bg-card);font-size:0.72rem;font-weight:700;padding:0.3rem 0.6rem;border-radius:8px;pointer-events:none;white-space:nowrap' });
+    card.appendChild(seg); card.appendChild(chartHost); card.appendChild(tip);
+    function draw() {
+      var b = trendBuckets(mode, trendRows || []);
+      var now = new Date();
+      sub.textContent = mode === 'daily' ? 'Pengajuan per hari · 14 hari terakhir'
+        : mode === 'monthly' ? 'Pengajuan per bulan · tahun ' + now.getFullYear()
+        : 'Pengajuan per tahun · 5 tahun terakhir';
+      if (!b.some(function (x) { return x.n > 0; })) { chartHost.innerHTML = '<div style="padding:2.2rem;text-align:center;color:var(--text-muted);font-size:0.85rem">Belum ada data pada periode ini.</div>'; return; }
+      drawTrendSvg(chartHost, b, tip);
+    }
+    [['daily', 'Harian'], ['monthly', 'Bulanan'], ['yearly', 'Tahunan']].forEach(function (o) {
+      var btn = el('button', { type: 'button' });
+      btn.appendChild(el('span', {}, o[1]));
+      if (o[0] === mode) btn.setAttribute('data-filter-active', '');
+      btn.addEventListener('click', function () {
+        mode = o[0];
+        Array.prototype.forEach.call(seg.children, function (x) { x.removeAttribute('data-filter-active'); });
+        btn.setAttribute('data-filter-active', '');
+        draw();
+      });
+      seg.appendChild(btn);
+    });
+    chartHost.innerHTML = '<div style="padding:2rem;text-align:center;color:var(--text-muted);font-size:0.85rem">Memuat grafik...</div>';
+    DB.borrowings().then(function (rows) { trendRows = rows; draw(); })
+      .catch(function () { chartHost.innerHTML = '<div style="padding:2rem;text-align:center;color:var(--text-muted);font-size:0.85rem">Gagal memuat data grafik.</div>'; });
+  }
+
   function boot() {
     $$('[data-period]').forEach(function (b) { b.addEventListener('click', function () { applyPeriod(b.getAttribute('data-period')); }); });
     $('[data-export]').addEventListener('click', exportCsv);
@@ -243,6 +365,7 @@
     setPeriod(state.period);
     renderPeriodControl();               // dates are now auto per preset; no manual Dari/Sampai
     buildReportFilter();                 // status segmented filter for the table
+    buildTrendCard();                    // grafik tren di bawah laporan
     // app.js showed the page loader for laporan; hide it once the first report renders
     load().then(function () { if (window.SESDIAN_LOADER) window.SESDIAN_LOADER.hide(); });
   }

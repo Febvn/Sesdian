@@ -12,8 +12,8 @@
       rel="stylesheet"
     />
     <script>(function(){try{var d=document.documentElement;if(localStorage.getItem('sesdian_theme')==='dark')d.setAttribute('data-theme','dark');var ts=localStorage.getItem('sesdian_textsize');if(ts==='small'||ts==='large')d.setAttribute('data-textsize',ts);if(localStorage.getItem('sesdian_rail')==='1')d.classList.add('sesd-rail-pref');}catch(e){}})();</script>
-    <link rel="stylesheet" href="assets/app.css?v=48" />
-    <link rel="stylesheet" href="assets/preloader.css?v=48" />
+    <link rel="stylesheet" href="assets/app.css?v=49" />
+    <link rel="stylesheet" href="assets/preloader.css?v=49" />
   </head>
   <body
     data-page="laporan"
@@ -73,8 +73,8 @@
                 </p>
               </div>
               <div style="display: flex; gap: 8px; flex-wrap: wrap">
-                <button data-export class="sesd-btn sesd-btn-lg sesd-btn-success">Export CSV</button>
-                <button data-print class="sesd-btn sesd-btn-lg sesd-btn-danger">Cetak PDF</button>
+                <button data-export class="sesd-btn sesd-btn-lg sesd-btn-success"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="1em" height="1em" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg></span> Export CSV</button>
+                <button data-print class="sesd-btn sesd-btn-lg sesd-btn-danger"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="1em" height="1em" aria-hidden="true"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg></span> Cetak PDF</button>
               </div>
             </div>
 
@@ -105,9 +105,9 @@
             <!-- summary -->
             <div style="display: grid; grid-template-columns: 220px 1fr; gap: 1rem; margin-bottom: 1.25rem">
               <div class="sesd-report-total" style="background: linear-gradient(135deg, rgb(99, 102, 241), rgb(139, 92, 246)); color: #fff; border-radius: 16px; padding: 1.25rem; box-shadow: var(--shadow-lg)">
-                <div style="font-size: 0.8rem; font-weight: 600">Total Peminjaman</div>
+                <div style="font-size: 0.8rem; font-weight: 600; display: flex; align-items: center; gap: 6px"><span class="ic" style="opacity:0.85"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="1em" height="1em" aria-hidden="true"><rect x="8" y="3" width="8" height="4" rx="1"/><path d="M8 5H6v16h12V5h-2"/><path d="M9 12h6M9 16h6"/></svg></span> Total Peminjaman</div>
                 <div data-total style="font-size: 2.6rem; font-weight: 800; line-height: 1.1; margin-top: 6px">0</div>
-                <div class="sesd-report-sub" style="font-size: 0.72rem; margin-top: 4px">pada periode terpilih</div>
+                <div class="sesd-report-sub" style="font-size: 0.72rem; margin-top: 4px; display: flex; align-items: center; gap: 4px"><span class="ic" style="opacity:0.7"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="0.85em" height="0.85em" aria-hidden="true"><path d="M4 4v16h16"/><rect x="7" y="11" width="3" height="6"/><rect x="12" y="7" width="3" height="10"/><rect x="17" y="13" width="3" height="4"/></svg></span> pada periode terpilih</div>
               </div>
               <div style="background: #fff; border-radius: 16px; padding: 1.25rem; box-shadow: var(--shadow)">
                 <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 10px">Berdasarkan Status</div>
@@ -136,16 +136,19 @@
                 <tbody data-report-rows></tbody>
               </table>
             </div>
+
+            <!-- grafik tren peminjaman (Harian / Bulanan / Tahunan) -->
+            <div data-trend-card style="background: #fff; border-radius: 16px; box-shadow: var(--shadow); padding: 1.25rem; margin-top: 1.25rem; position: relative"></div>
           </div>
         </main>
       </div>
     </div>
-    <script defer src="assets/config.js?v=48"></script>
-    <script defer src="assets/db.js?v=48"></script>
-    <script defer src="assets/icons.js?v=48"></script>
-    <script defer src="assets/preloader.js?v=48"></script>
-    <script defer src="assets/app.js?v=48"></script>
-    <script defer src="assets/reports.js?v=48"></script>
-      <script defer src="assets/theme.js?v=48"></script>
+    <script defer src="assets/config.js?v=49"></script>
+    <script defer src="assets/db.js?v=49"></script>
+    <script defer src="assets/icons.js?v=49"></script>
+    <script defer src="assets/preloader.js?v=49"></script>
+    <script defer src="assets/app.js?v=49"></script>
+    <script defer src="assets/reports.js?v=49"></script>
+      <script defer src="assets/theme.js?v=49"></script>
   </body>
 </html>

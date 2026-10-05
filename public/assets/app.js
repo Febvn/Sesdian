@@ -1997,6 +1997,7 @@
     var aside = $('aside');
     var header = $('main > div');
     if (!aside || !header) return;
+    if ($('.sesd-hamburger')) return;   // idempotent: never inject twice
     var backdrop = el('div', { class: 'sesd-mobile-backdrop' });
     document.body.appendChild(backdrop);
     var hamburger = el('button', { class: 'sesd-hamburger' });
@@ -2015,13 +2016,19 @@
   function setupSidebarCollapse() {
     var aside = $('aside'); if (!aside) return;
     var head = aside.firstElementChild;
-    var btn = byText(/^‹$/, 'aside button')[0];
+    // idempotent: prefer an already-wired button, then the static "‹" one; only
+    // create as a last resort — and remove any strays so a double boot (or a
+    // stale DOM) can never leave TWO collapse boxes in the header.
+    var btn = aside.querySelector('.sesd-collapse-btn') || byText(/^‹$/, 'aside button')[0];
     if (!btn) {
       if (!head) return;
       btn = el('button', { type: 'button', style: 'margin-left:auto' });
       head.appendChild(btn);
     }
+    $$('aside .sesd-collapse-btn').concat(byText(/^‹$/, 'aside button')).forEach(function (x) { if (x !== btn) x.remove(); });
     btn.classList.add('sesd-collapse-btn');
+    if (btn._sesdWired) return;   // never stack duplicate click handlers
+    btn._sesdWired = true;
     btn.innerHTML = SIDEBAR_CHEVRON;
     btn.setAttribute('aria-label', 'Tutup atau buka sidebar');
     btn.title = 'Tutup / buka sidebar';
