@@ -27,7 +27,7 @@
   "mini-bus-penumpang-14-orang-kebawah-toyota-new-kijang-innova": {
     "name": "Mini Bus ( Penumpang 14 Orang Kebawah )",
     "brand": "Toyota New Kijang Innova",
-    "source": "icon"
+    "source": "https://momobil.id/news/wp-content/uploads/2023/09/Toyota-Kijang-Innova-Reborn-Diesel.jpg"
   },
   "sepeda-motor-honda": {
     "name": "Sepeda Motor",
@@ -62,7 +62,8 @@
   "sepeda-motor-honde-beat": {
     "name": "Sepeda Motor",
     "brand": "HONDE BEAT",
-    "source": "icon"
+    "source": "https://en.wikipedia.org/wiki/Honda_FC50",
+    "query": "Honda Beat motor"
   },
   "sepeda-motor-honda-beat": {
     "name": "Sepeda Motor",
@@ -352,7 +353,8 @@
   "kursi-besi-metal-ichico-bahan-oscar": {
     "name": "Kursi Besi/Metal",
     "brand": "Ichico bahan oscar",
-    "source": "icon"
+    "source": "https://en.wikipedia.org/wiki/Office_chair",
+    "query": "kursi kerja kantor bahan oscar"
   },
   "kursi-besi-metal-stainless": {
     "name": "Kursi Besi/Metal",
@@ -402,57 +404,62 @@
   "kasur-spring-bed-busa-informa": {
     "name": "Kasur/Spring Bed",
     "brand": "Busa (informa)",
-    "source": "icon"
+    "source": "https://en.wikipedia.org/wiki/Mattress",
+    "query": "kasur busa spring bed informa"
   },
   "sketsel-rotan-kayu": {
     "name": "Sketsel",
     "brand": "rotan/kayu",
-    "source": "icon"
+    "source": "https://en.wikipedia.org/wiki/Folding_screen",
+    "query": "sketsel penyekat ruangan rotan"
   },
   "sketsel-kayu-lokal-pinus": {
     "name": "Sketsel",
     "brand": "Kayu Lokal (Pinus)",
-    "source": "icon"
+    "source": "https://sp-ao.shortpixel.ai/client/to_webp,q_glossy,ret_img,w_850,h_450/https://www.lantai-kayu.co.id/wp-content/uploads/2023/04/harga-partisi-kayu.jpg"
   },
   "publik-astari-pembatas-antrian-stainless-steel": {
     "name": "Publik Astari (Pembatas Antrian)",
     "brand": "Stainless Steel",
-    "source": "icon"
+    "source": "https://en.wikipedia.org/wiki/Crowd_control_barrier",
+    "query": "tiang antrian stainless steel"
   },
   "sofa-lokal": {
     "name": "Sofa",
     "brand": "Lokal",
-    "source": "icon"
+    "source": "https://indiannest.in/cdn/shop/files/IMG-20231018-WA0003.jpg?v=1697653683&width=1445"
   },
   "sofa-lokal-satuan": {
     "name": "Sofa",
     "brand": "lokal/satuan",
-    "source": "icon"
+    "source": "https://images.sofology.co.uk/dpr_auto/f_auto,c_limit,w_3840,q_auto/ProductMedia/LifeStyle/SKU001311465.jpg"
   },
   "jam-elektronik-seiko": {
     "name": "Jam Elektronik",
     "brand": "SEIKO",
-    "source": "icon"
+    "source": "https://en.wikipedia.org/wiki/Digital_clock",
+    "query": "jam dinding digital Seiko"
   },
   "mesin-pemotong-rumput-stihl-fr-3001": {
     "name": "Mesin Pemotong Rumput",
     "brand": "STIHL FR 3001",
-    "source": "icon"
+    "source": "https://en.wikipedia.org/wiki/String_trimmer",
+    "query": "STIHL FR 3001 brushcutter"
   },
   "lemari-es-sharp": {
     "name": "Lemari Es",
     "brand": "Sharp",
-    "source": "icon"
+    "source": "https://3.bp.blogspot.com/-g-2JwhGen6E/VTqhKfY2SgI/AAAAAAAABpk/r-e-vGLCp9U/s1600/kulkas2%2Bpintu.jpg"
   },
   "lemari-es-panasonic": {
     "name": "Lemari Es",
     "brand": "Panasonic",
-    "source": "icon"
+    "source": "https://lh7-us.googleusercontent.com/THwJwMthOkt2RWQBS4NfUY_l7oOcjd78jG2AwCt5zD9NOsh8_5S6TmJLsueCigPnwa8fQl4xpcsiMiS0zh34xHF3TZ68bfSDFnA6jqXevbQcw_NE2Uanyvg_uvZEMBBTLkjb1IsSvpLM9I7tXc8rQYM"
   },
   "lemari-es-lg": {
     "name": "Lemari Es",
     "brand": "LG",
-    "source": "icon"
+    "source": "https://lh7-us.googleusercontent.com/pc5wAcXrctUlPTaaWlV2CyCGmgx7j_VCTPdyBAWyoPt2VhLcFflxXBcJQGLbo7d1KvGV4c04Rd-fLzqW4eiLAP4b-0K2A5k_McPvCZRd5FSEJ9llGG8AtAfMMLD-axywJfdZPJB-q5D9Qozlb794UFI"
   },
   "a-c-sentral-daikin": {
     "name": "A.C. Sentral",
@@ -692,7 +699,8 @@
   "micro-meter-krisbow": {
     "name": "Micro Meter",
     "brand": "krisbow",
-    "source": "icon"
+    "source": "https://en.wikipedia.org/wiki/Micrometer_(device)",
+    "query": "micrometer Krisbow"
   },
   "centrifuge-alat-laboratorium-umum-heraues": {
     "name": "Centrifuge (Alat Laboratorium Umum)",
@@ -772,7 +780,8 @@
   "refractometer-alat-laboratorium-umum-sperscientific": {
     "name": "Refractometer (Alat Laboratorium Umum)",
     "brand": "Sperscientific",
-    "source": "icon"
+    "source": "https://en.wikipedia.org/wiki/Refractometer",
+    "query": "handheld refractometer"
   },
   "bacteriological-colony-counter-stuart": {
     "name": "Bacteriological Colony Counter",
@@ -1152,7 +1161,8 @@
   "baju-pengaman-lainnya-atunas": {
     "name": "Baju Pengaman Lainnya",
     "brand": "ATUNAS",
-    "source": "icon"
+    "source": "https://en.wikipedia.org/wiki/Wetsuit",
+    "query": "Atunas wetsuit diving"
   },
   "alat-selam-seet-mares": {
     "name": "Alat Selam Seet",

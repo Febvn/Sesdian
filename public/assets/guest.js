@@ -71,7 +71,9 @@
     top.appendChild(el('span', { class: 'sesd-aset-type ' + (isNon ? 'is-non' : 'is-bmn') }, isNon ? 'Non-BMN' : 'BMN'));
     if (g.count > 1) top.appendChild(el('span', { class: 'sesd-cat-count' }, g.count + ' unit'));
     body.appendChild(top);
-    body.appendChild(el('div', { class: 'sesd-aset-name' }, g.name || ''));
+    var nameEl = el('div', { class: 'sesd-aset-name' }, g.name || '');
+    if (g.brand) nameEl.appendChild(el('span', { class: 'sesd-aset-merk' }, g.brand));   // distinct: nama sama, merk beda
+    body.appendChild(nameEl);
     var chips = el('div', { class: 'sesd-aset-chips' });
     [['tag', g.category], ['factory', g.brand], ['pin', g.room]].forEach(function (c) {
       if (!c[1]) return;
