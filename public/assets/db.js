@@ -93,22 +93,24 @@
   // scripts/generate-asset-images.mjs and the SQL key in the API joins.
   // /assets/* is served immutable for 1 year (vercel.json), so bump ASSET_IMG_V
   // whenever the webp files are regenerated or browsers will keep the old ones.
-  var ASSET_IMG_V = '2';
+  var ASSET_IMG_V = '3';
   function slugAsset(s) { return String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''); }
+  // image identity = (nama, merk): units sharing name+brand share ONE image
+  function assetImgKey(name, brand) { return slugAsset(String(name || '') + ' ' + String(brand || '')); }
   function fillAssetImage(a) {
     if (!a) return a;
     if (a.jenis_key && a.jenis_ver) a.image = 'api/public?resource=img&key=' + encodeURIComponent(a.jenis_key) + '&t=' + a.jenis_ver;
-    else if (!a.image) { var k = slugAsset(a.name); if (k) a.image = 'assets/aset/' + k + '.webp?v=' + ASSET_IMG_V; }
+    else if (!a.image) { var k = assetImgKey(a.name, a.brand); if (k) a.image = 'assets/aset/' + k + '.webp?v=' + ASSET_IMG_V; }
     return a;
   }
-  // one image per jenis: a single upsert covers every unit sharing the name
-  async function setJenisImage(name, image) {
+  // one image per jenis (nama + merk): a single upsert covers every matching unit
+  async function setJenisImage(name, brand, image) {
     if (demo) {
-      var key = (name || '').trim().toLowerCase();
-      DEMO.assets.forEach(function (a) { if ((a.name || '').trim().toLowerCase() === key) a.image = image; });
+      var key = assetImgKey(name, brand);
+      DEMO.assets.forEach(function (a) { if (assetImgKey(a.name, a.brand) === key) a.image = image; });
       return P({ ok: true });
     }
-    return req('assets', { method: 'POST', body: { jenis_image: { name: name, image: image } } });
+    return req('assets', { method: 'POST', body: { jenis_image: { name: String(name || '') + ' ' + String(brand || ''), image: image } } });
   }
   async function assets() { return demo ? P(DEMO.assets.map(demoAsset).map(fillAssetImage)) : (await req('assets')).assets.map(fillAssetImage); }
 

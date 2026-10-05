@@ -596,14 +596,22 @@
     var rePick = el('button', { type: 'button', class: 'sesd-btn sesd-btn-sm sesd-btn-ghost' }, 'Ganti file');
     tools.appendChild(zoom); tools.appendChild(rePick);
     cropBox.appendChild(stage); cropBox.appendChild(tools);
-    cropBox.appendChild(el('div', { style: 'font-size:.7rem;color:var(--text-muted);margin-top:4px' }, 'Geser gambar untuk mengatur bagian yang terlihat.'));
+    cropBox.appendChild(el('div', { style: 'font-size:.7rem;color:var(--text-muted);margin-top:4px' }, 'Geser gambar untuk mengatur posisinya; zoom bisa diperkecil sampai seluruh gambar terlihat.'));
     wrap.appendChild(zone); wrap.appendChild(cropBox); wrap.appendChild(input);
 
     function baseScale() { return Math.max(stage.clientWidth / st.natW, stage.clientHeight / st.natH); }
+    // zoom out is allowed down to "fit" (the whole image visible, letterboxed on
+    // the paper background), zoom in up to 3x cover
+    function zMin() {
+      var contain = Math.min(stage.clientWidth / st.natW, stage.clientHeight / st.natH);
+      return Math.min(1, contain / baseScale());
+    }
     function clampPan() {
       var s = baseScale() * st.z;
-      var mx = Math.max(0, (st.natW * s - stage.clientWidth) / 2);
-      var my = Math.max(0, (st.natH * s - stage.clientHeight) / 2);
+      // symmetric clamp: when the image overflows the stage this limits panning to
+      // the excess; when it is SMALLER (zoomed out) it keeps it fully inside
+      var mx = Math.abs(st.natW * s - stage.clientWidth) / 2;
+      var my = Math.abs(st.natH * s - stage.clientHeight) / 2;
       st.ox = Math.min(mx, Math.max(-mx, st.ox));
       st.oy = Math.min(my, Math.max(-my, st.oy));
     }
@@ -622,7 +630,7 @@
           st.img = im; st.natW = im.width; st.natH = im.height; st.z = 1; st.ox = 0; st.oy = 0;
           cimg.src = im.src; zoom.value = '1';
           zone.style.display = 'none'; cropBox.style.display = 'block';
-          requestAnimationFrame(function () { clampPan(); paint(); });
+          requestAnimationFrame(function () { zoom.min = String(Math.floor(zMin() * 100) / 100); clampPan(); paint(); });
         };
         im.onerror = function () { toast('Gagal membaca gambar', 'error'); };
         im.src = r.result;
@@ -655,27 +663,29 @@
       clampPan(); paint();
     });
     ['pointerup', 'pointercancel'].forEach(function (ev) { stage.addEventListener(ev, function () { drag = null; stage.classList.remove('is-dragging'); }); });
-    zoom.addEventListener('input', function () { st.z = parseFloat(zoom.value) || 1; clampPan(); paint(); });
+    zoom.addEventListener('input', function () { st.z = Math.max(zMin(), parseFloat(zoom.value) || 1); clampPan(); paint(); });
     stage.addEventListener('wheel', function (e) {
       if (!st.img) return;
       e.preventDefault();
-      st.z = Math.min(3, Math.max(1, st.z + (e.deltaY < 0 ? 0.08 : -0.08)));
+      st.z = Math.min(3, Math.max(zMin(), st.z + (e.deltaY < 0 ? 0.08 : -0.08)));
       zoom.value = String(st.z); clampPan(); paint();
     }, { passive: false });
 
     return {
       wrap: wrap,
-      // render the visible viewport to 640x420 WebP (null until a file is picked)
+      // render the visible viewport to 640x420 WebP (null until a file is picked).
+      // Drawn destination-side so zoom OUT (image smaller than the viewport) works
+      // too — uncovered areas get a clean white letterbox.
       get: function () {
         if (!st.img) return null;
-        var W = stage.clientWidth, H = stage.clientHeight;
+        var W = stage.clientWidth, H = stage.clientHeight, k = 640 / W;
         var s = baseScale() * st.z;
-        var sw = W / s, sh = H / s;
-        var sx = (st.natW / 2 - st.ox / s) - sw / 2;
-        var sy = (st.natH / 2 - st.oy / s) - sh / 2;
-        sx = Math.min(Math.max(0, sx), st.natW - sw); sy = Math.min(Math.max(0, sy), st.natH - sh);
+        var dw = st.natW * s * k, dh = st.natH * s * k;
+        var dx = (W / 2 + st.ox) * k - dw / 2, dy = (H / 2 + st.oy) * (420 / H) - dh / 2;
         var c = document.createElement('canvas'); c.width = 640; c.height = 420;
-        c.getContext('2d').drawImage(st.img, sx, sy, sw, sh, 0, 0, 640, 420);
+        var ctx = c.getContext('2d');
+        ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, 640, 420);
+        ctx.drawImage(st.img, dx, dy, dw, dh);
         var out = c.toDataURL('image/webp', 0.82);
         if (out.indexOf('data:image/webp') !== 0) out = c.toDataURL('image/jpeg', 0.82); // Safari fallback
         return out;
@@ -707,9 +717,9 @@
       if (!url) { toast('Pilih gambar terlebih dahulu', 'error'); return; }
       save.disabled = true; cancel.disabled = true; save.textContent = 'Menyimpan…';
       try {
-        await DB.setJenisImage(g.name, url);          // one upsert covers every unit
+        await DB.setJenisImage(g.name, g.brand, url);   // one upsert covers every unit of this nama+merk
         g.image = url; g.units.forEach(function (u) { u.image = url; });
-        toast('Gambar jenis "' + g.name + '" diperbarui', 'success');
+        toast('Gambar "' + g.name + (g.brand ? ' ' + g.brand : '') + '" diperbarui', 'success');
         close(); if (onDone) onDone(url); reloadData();
       } catch (e) {
         toast((e && e.message) || 'Gagal menyimpan gambar', 'error');
@@ -789,10 +799,10 @@
           stock_total: 1,
         };
         if (rec) await DB.updateAsset(rec.id, payload); else await DB.createAsset(payload);
-        // image is stored once per jenis (name), not per unit — a fresh crop
-        // (data: URL) upserts the shared image for every unit with this name
+        // image is stored once per jenis (nama + merk), not per unit — a fresh
+        // crop upserts the shared image for every unit with this name+brand
         var pickedImg = imgCrop.get();
-        if (pickedImg) await DB.setJenisImage(name, pickedImg);
+        if (pickedImg) await DB.setJenisImage(name, payload.brand, pickedImg);
         toast(rec ? 'Aset diperbarui' : 'Aset ditambahkan', 'success'); close(); reloadData();
       } catch (e) { toast((e && e.message) || 'Gagal menyimpan', 'error'); save.disabled = false; save.textContent = rec ? 'Simpan' : 'Tambah'; }
     });
@@ -892,9 +902,9 @@
   function groupAssets(list) {
     var map = {}, order = [];
     list.forEach(function (a) {
-      // #2 — group purely by name: same name = same "jenis" even if brand/category differ
-      // (e.g. all "AC Split" units land in one group regardless of merek).
-      var key = (a.name || '').trim().toLowerCase();
+      // group by name + MEREK: units sharing the same (nama, merk) form one jenis
+      // card and share ONE image (per user request, aligned with daftar aset 2026).
+      var key = (a.name || '').trim().toLowerCase() + '|' + (a.brand || '').trim().toLowerCase();
       var g = map[key];
       if (!g) { g = map[key] = { name: a.name, category: a.category, brand: a.brand, room: a.room, type: a.type, condition: a.condition, image: a.image, units: [], stock_total: 0, stock_available: 0, stock_borrowed: 0 }; order.push(key); }
       g.units.push(a);
@@ -902,7 +912,6 @@
       g.stock_available += (a.stock_available || 0);
       g.stock_borrowed += (a.stock_borrowed || 0);
       if (!g.image && a.image) g.image = a.image;
-      if (g.brand && a.brand && g.brand !== a.brand) g.brand = 'Beragam';
       if (g.category && a.category && g.category !== a.category) g.category = 'Beragam';
       if (g.room && a.room && g.room !== a.room) g.room = 'Beberapa ruangan';
     });

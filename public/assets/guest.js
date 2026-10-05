@@ -35,12 +35,12 @@
   function groupCatalog(list) {
     var map = {}, order = [];
     list.forEach(function (a) {
-      var key = (a.name || '').trim().toLowerCase() + '|' + (a.category || '').toLowerCase();
+      // same grouping as the authed app: (nama, merk) = one jenis, one image
+      var key = (a.name || '').trim().toLowerCase() + '|' + (a.brand || '').trim().toLowerCase();
       var g = map[key];
       if (!g) { g = map[key] = { name: a.name, category: a.category, room: a.room, brand: a.brand, type: a.type, image: a.image, count: 0, repId: a.id, qr_code: a.qr_code }; order.push(key); }
       g.count++;
       if (!g.image && a.image) g.image = a.image;
-      if (g.brand && a.brand && g.brand !== a.brand) g.brand = 'Beragam';
       if (g.room && a.room && g.room !== a.room) g.room = 'Beberapa ruangan';
     });
     return order.map(function (k) { return map[k]; }).sort(function (x, y) { return (x.name || '').localeCompare(y.name || ''); });

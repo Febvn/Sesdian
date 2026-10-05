@@ -46,7 +46,7 @@ export default async function handler(req, res) {
             from assets a
             left join categories c on c.id = a.category_id
             left join rooms r on r.id = a.room_id
-            left join asset_images ai on ai.name_key = btrim(regexp_replace(lower(a.name), '[^a-z0-9]+', '-', 'g'), '-')
+            left join asset_images ai on ai.name_key = btrim(regexp_replace(lower(a.name || ' ' || coalesce(a.brand,'')), '[^a-z0-9]+', '-', 'g'), '-')
             where a.id = ${id}`
         : await sql`
             select a.id, a.code, a.name, coalesce(a.brand,'') as brand, a.year,
@@ -58,7 +58,7 @@ export default async function handler(req, res) {
             from assets a
             left join categories c on c.id = a.category_id
             left join rooms r on r.id = a.room_id
-            left join asset_images ai on ai.name_key = btrim(regexp_replace(lower(a.name), '[^a-z0-9]+', '-', 'g'), '-')
+            left join asset_images ai on ai.name_key = btrim(regexp_replace(lower(a.name || ' ' || coalesce(a.brand,'')), '[^a-z0-9]+', '-', 'g'), '-')
             where a.qr_code = ${qr}`;
 
       if (!rows.length) return send(res, 404, { error: 'Aset tidak ditemukan' });
@@ -88,7 +88,7 @@ export default async function handler(req, res) {
       from assets a
       left join categories c on c.id = a.category_id
       left join rooms r on r.id = a.room_id
-      left join asset_images ai on ai.name_key = btrim(regexp_replace(lower(a.name), '[^a-z0-9]+', '-', 'g'), '-')
+      left join asset_images ai on ai.name_key = btrim(regexp_replace(lower(a.name || ' ' || coalesce(a.brand,'')), '[^a-z0-9]+', '-', 'g'), '-')
       order by a.name`;
     const categories = await sql`select id, name from categories order by name`;
     const rooms = await sql`select id, name from rooms order by name`;

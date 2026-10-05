@@ -28,7 +28,7 @@ export default async function handler(req, res) {
         from assets a
         left join categories c on c.id = a.category_id
         left join rooms r on r.id = a.room_id
-        left join asset_images ai on ai.name_key = btrim(regexp_replace(lower(a.name), '[^a-z0-9]+', '-', 'g'), '-')
+        left join asset_images ai on ai.name_key = btrim(regexp_replace(lower(a.name || ' ' || coalesce(a.brand,'')), '[^a-z0-9]+', '-', 'g'), '-')
         order by a.id limit ${limit} offset ${offset}`;
       const total = rows.length ? parseInt(rows[0].total_count, 10) : 0;
       return send(res, 200, { assets: rows, total, page, limit });
