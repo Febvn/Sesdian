@@ -925,10 +925,13 @@
   function openGroupDetail(g) {
     if (modalOpen()) return;
     var ov = overlay(), m = el('div', { class: 'sesd-modal', style: 'width:560px' });
-    var h3 = el('h3', {}, g.name || 'Aset');
-    if (g.brand) h3.appendChild(el('span', { class: 'sesd-aset-merk', style: 'font-size:.85rem' }, g.brand));
-    m.appendChild(h3);
-    m.appendChild(el('div', { style: 'color:var(--text-muted);font-size:.82rem;margin:-6px 0 12px' }, (g.category || '-') + (g.brand ? (' · ' + g.brand) : '')));
+    m.appendChild(el('h3', {}, g.name || 'Aset'));
+    if (g.brand) {   // merk = badge tersendiri di bawah judul, bukan bagian teks nama
+      var mrow = el('div', { style: 'margin:-4px 0 8px' });
+      mrow.appendChild(el('span', { class: 'sesd-aset-merk' }, g.brand));
+      m.appendChild(mrow);
+    }
+    m.appendChild(el('div', { style: 'color:var(--text-muted);font-size:.82rem;margin:-2px 0 12px' }, g.category || '-'));
     var sum = el('div', { style: 'display:flex;gap:.6rem;margin-bottom:1rem' });
     [['Total', g.stock_total, 'var(--text)'], ['Tersedia', g.stock_available, 'rgb(16,185,129)'], ['Dipinjam', g.stock_borrowed, 'rgb(245,158,11)']].forEach(function (s) {
       var b = el('div', { style: 'flex:1;text-align:center;background:var(--bg);border-radius:10px;padding:.6rem' });
@@ -1886,11 +1889,11 @@
       top.appendChild(availBadge);
       body.appendChild(top);
       if (g.code) body.appendChild(el('div', { class: 'sesd-aset-code' }, g.code));
-      var nameEl = el('div', { class: 'sesd-aset-name' }, g.name || '-');
-      if (g.brand) nameEl.appendChild(el('span', { class: 'sesd-aset-merk' }, g.brand));   // distinct: nama sama, merk beda
-      body.appendChild(nameEl);
+      body.appendChild(el('div', { class: 'sesd-aset-name' }, g.name || '-'));
+      // merk = badge tersendiri di bawah nama (bukan bagian teks nama)
+      if (g.brand) body.appendChild(el('span', { class: 'sesd-aset-merk' }, g.brand));
       var chips = el('div', { class: 'sesd-aset-chips' });
-      [['tag', g.category], ['factory', g.brand], ['pin', g.room]].forEach(function (c) {
+      [['tag', g.category], ['pin', g.room]].forEach(function (c) {
         var ch = assetChip(c[0], c[1]); if (ch) chips.appendChild(ch);
       });
       if (chips.children.length) body.appendChild(chips);
@@ -1937,9 +1940,12 @@
       top.appendChild(el('span', { style: 'font-size:0.65rem;font-weight:800;padding:0.15rem 0.5rem;border-radius:20px;background:rgb(219,234,254);color:rgb(30,64,175)' }, g.type || 'BMN'));
       top.appendChild(el('span', { style: 'font-size:0.68rem;font-weight:800;padding:0.15rem 0.55rem;border-radius:20px;' + (avail > 0 ? 'background:rgb(220,252,231);color:rgb(22,101,52)' : 'background:rgb(254,226,226);color:rgb(153,27,27)') }, avail > 0 ? ('Tersedia ' + avail) : 'Habis'));
       card.appendChild(top);
-      var ajName = el('div', { style: 'font-weight:700;font-size:0.95rem;margin-bottom:6px' }, g.name || '');
-      if (g.brand) ajName.appendChild(el('span', { class: 'sesd-aset-merk' }, g.brand));
-      card.appendChild(ajName);
+      card.appendChild(el('div', { style: 'font-weight:700;font-size:0.95rem;margin-bottom:4px' }, g.name || ''));
+      if (g.brand) {   // merk = badge tersendiri di bawah nama
+        var mrow = el('div', { style: 'margin-bottom:6px' });
+        mrow.appendChild(el('span', { class: 'sesd-aset-merk' }, g.brand));
+        card.appendChild(mrow);
+      }
       card.appendChild(el('div', { style: 'font-size:0.75rem;color:var(--text-muted)' }, (g.category || '-') + ' · ' + g.units.length + ' unit'));
       container.appendChild(card);
     });

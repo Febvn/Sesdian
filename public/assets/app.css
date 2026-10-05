@@ -1324,6 +1324,16 @@ main[style*="overflow: auto"] {
 [data-theme="dark"] .sesd-aset-avail.is-out { background: rgba(224,62,62,0.2); color: #f6a5a5; }
 .sesd-aset-code { font-family: "JetBrains Mono", monospace; font-size: 0.66rem; color: var(--text-muted); }
 .sesd-aset-name { font-weight: 700; font-size: 0.95rem; letter-spacing: -0.01em; line-height: 1.25; color: var(--text); }
+/* Merk berdiri sendiri sebagai badge di bawah nama — bukan bagian teks nama —
+   supaya jenis bernama sama langsung terbedakan lewat merknya. */
+.sesd-aset-merk {
+  display: inline-flex; align-items: center; align-self: flex-start; max-width: 100%;
+  padding: 0.16rem 0.55rem; border-radius: var(--radius-pill);
+  background: var(--primary-light); color: var(--primary);
+  box-shadow: inset 0 0 0 1px var(--primary-light);
+  font-size: 0.64rem; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase;
+  line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
 .sesd-aset-chips { display: flex; flex-wrap: wrap; gap: 4px; }
 .sesd-aset-chip {
   display: inline-flex; align-items: center; gap: 4px; max-width: 100%;

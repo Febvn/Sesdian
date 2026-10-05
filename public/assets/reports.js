@@ -235,10 +235,11 @@
   }
 
   /* ============ Grafik tren peminjaman (Harian / Bulanan / Tahunan) ============
-     Single-series bar chart (inline SVG, no library). Counts = borrowings CREATED
+     Single-series LINE chart (inline SVG, no library). Counts = borrowings CREATED
      in each bucket. One hue (var(--chart-1), theme-validated); no legend needed —
-     the card title names the series. Selective label on the max bar; per-bar
-     hover tooltip; recessive hairline grid. */
+     the card title names the series. 2px line + area wash, dot markers with a
+     surface ring, crosshair hover snapping to the nearest point, selective label
+     on the max point only; recessive hairline grid. */
   var MON3 = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
   function trendBuckets(mode, rows) {
     var now = new Date(), buckets = [], i;
@@ -260,66 +261,100 @@
     return buckets;
   }
   function drawTrendSvg(host, buckets, tipEl) {
-    var W = 720, H = 250, padL = 34, padR = 8, padT = 20, padB = 24;
+    var W = 720, H = 250, padL = 34, padR = 14, padT = 20, padB = 24;
     var plotW = W - padL - padR, plotH = H - padT - padB;
     var maxN = Math.max(1, Math.max.apply(null, buckets.map(function (b) { return b.n; })));
     var step = Math.max(1, Math.ceil(maxN / 4));
     var top = step * 4;
     var band = plotW / buckets.length;
-    var barW = Math.min(46, Math.max(8, band - 8));
+    var baseY = padT + plotH;
     var maxIdx = -1; buckets.forEach(function (b, i) { if (b.n > 0 && (maxIdx === -1 || b.n > buckets[maxIdx].n)) maxIdx = i; });
     var svgNS = 'http://www.w3.org/2000/svg';
     var svg = document.createElementNS(svgNS, 'svg');
     svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
     svg.setAttribute('role', 'img');
-    svg.setAttribute('aria-label', 'Grafik jumlah peminjaman per periode');
+    svg.setAttribute('aria-label', 'Grafik garis jumlah peminjaman per periode');
     svg.style.cssText = 'width:100%;height:auto;display:block';
     function sEl(tag, attrs) { var e = document.createElementNS(svgNS, tag); for (var k in attrs) e.setAttribute(k, attrs[k]); return e; }
     // recessive grid + y labels
     for (var g = 0; g <= 4; g++) {
-      var y = padT + plotH - (plotH * g / 4);
+      var y = baseY - (plotH * g / 4);
       svg.appendChild(sEl('line', { x1: padL, y1: y, x2: W - padR, y2: y, stroke: 'var(--border)', 'stroke-width': g === 0 ? 1.4 : 1 }));
       var yl = sEl('text', { x: padL - 7, y: y + 3.5, 'text-anchor': 'end', 'font-size': '10', fill: 'var(--text-muted)' });
       yl.textContent = String(step * g); svg.appendChild(yl);
     }
+    // point coordinates: one per bucket, centered in its band (zeros included —
+    // a line is a continuous series, gaps would misstate the data)
+    var pts = buckets.map(function (b, i) {
+      return { x: padL + band * i + band / 2, y: baseY - plotH * (b.n / top) };
+    });
+    // smooth monotone curve (harmonic-mean tangents): rounded like a spline but
+    // never overshoots past the data values, so the curve stays honest
+    function smoothPath(p) {
+      if (p.length < 3) return p.map(function (q, i) { return (i ? 'L' : 'M') + q.x.toFixed(1) + ',' + q.y.toFixed(1); }).join(' ');
+      var n = p.length, s = [], m, i;
+      for (i = 0; i < n - 1; i++) s.push((p[i + 1].y - p[i].y) / (p[i + 1].x - p[i].x));
+      m = [s[0]];
+      for (i = 1; i < n - 1; i++) m.push(s[i - 1] * s[i] <= 0 ? 0 : 2 * s[i - 1] * s[i] / (s[i - 1] + s[i]));
+      m.push(s[n - 2]);
+      var d = 'M' + p[0].x.toFixed(1) + ',' + p[0].y.toFixed(1);
+      for (i = 0; i < n - 1; i++) {
+        var dx3 = (p[i + 1].x - p[i].x) / 3;
+        d += ' C' + (p[i].x + dx3).toFixed(1) + ',' + (p[i].y + m[i] * dx3).toFixed(1) +
+             ' ' + (p[i + 1].x - dx3).toFixed(1) + ',' + (p[i + 1].y - m[i + 1] * dx3).toFixed(1) +
+             ' ' + p[i + 1].x.toFixed(1) + ',' + p[i + 1].y.toFixed(1);
+      }
+      return d;
+    }
+    // area wash under the curve (series hue at ~10%), then the 2px curve itself
+    var lineD = smoothPath(pts);
+    svg.appendChild(sEl('path', { d: lineD + ' L' + pts[pts.length - 1].x.toFixed(1) + ',' + baseY + ' L' + pts[0].x.toFixed(1) + ',' + baseY + ' Z', fill: 'var(--chart-1)', 'fill-opacity': '0.1', stroke: 'none' }));
+    svg.appendChild(sEl('path', { d: lineD, fill: 'none', stroke: 'var(--chart-1)', 'stroke-width': '2', 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }));
+    // crosshair (hidden until hover) — readers aim at a period, not at a 2px line
+    var cross = sEl('line', { x1: 0, y1: padT, x2: 0, y2: baseY, stroke: 'var(--text-muted)', 'stroke-width': '1', opacity: '0' });
+    svg.appendChild(cross);
+    // dot markers with a 2px surface ring so they stay legible on the line
+    var dots = pts.map(function (p, i) {
+      var c = sEl('circle', { cx: p.x, cy: p.y, r: 4, fill: 'var(--chart-1)', stroke: 'var(--bg-card)', 'stroke-width': '2', 'data-dot': i });
+      svg.appendChild(c); return c;
+    });
     var labelEvery = buckets.length > 12 ? 2 : 1;
     buckets.forEach(function (b, i) {
-      var cx = padL + band * i + band / 2;
-      var h = Math.round(plotH * (b.n / top));
-      var x = cx - barW / 2, yTop = padT + plotH - h, r = Math.min(4, h);
-      if (b.n > 0) {
-        // 4px rounded data-end, square base anchored to the baseline
-        var p = 'M' + x + ',' + (padT + plotH) + ' V' + (yTop + r) + ' Q' + x + ',' + yTop + ' ' + (x + r) + ',' + yTop +
-                ' H' + (x + barW - r) + ' Q' + (x + barW) + ',' + yTop + ' ' + (x + barW) + ',' + (yTop + r) + ' V' + (padT + plotH) + ' Z';
-        svg.appendChild(sEl('path', { d: p, fill: 'var(--chart-1)', 'data-bar': i }));
-      }
       if (i === maxIdx) {   // selective direct label: max only (text token, not series color)
-        var vl = sEl('text', { x: cx, y: yTop - 6, 'text-anchor': 'middle', 'font-size': '10.5', 'font-weight': '700', fill: 'var(--text)' });
+        var vl = sEl('text', { x: pts[i].x, y: pts[i].y - 10, 'text-anchor': 'middle', 'font-size': '10.5', 'font-weight': '700', fill: 'var(--text)' });
         vl.textContent = String(b.n); svg.appendChild(vl);
       }
       if (i % labelEvery === 0) {
-        var xl = sEl('text', { x: cx, y: H - 8, 'text-anchor': 'middle', 'font-size': '10', fill: 'var(--text-muted)' });
+        var xl = sEl('text', { x: pts[i].x, y: H - 8, 'text-anchor': 'middle', 'font-size': '10', fill: 'var(--text-muted)' });
         xl.textContent = b.label; svg.appendChild(xl);
       }
-      // full-column hit target (bigger than the mark) for the tooltip
-      var hit = sEl('rect', { x: padL + band * i, y: padT, width: band, height: plotH, fill: 'transparent' });
-      hit.style.cursor = 'default';
-      hit.addEventListener('mouseenter', function () {
-        var bar = svg.querySelector('[data-bar="' + i + '"]'); if (bar) bar.style.opacity = '0.78';
-        tipEl.textContent = b.full + ' · ' + b.n + ' peminjaman';
-        tipEl.style.display = 'block';
-      });
-      hit.addEventListener('mousemove', function (e) {
-        var hostR = host.getBoundingClientRect();
-        tipEl.style.left = Math.min(hostR.width - tipEl.offsetWidth - 6, Math.max(6, e.clientX - hostR.left + 12)) + 'px';
-        tipEl.style.top = (e.clientY - hostR.top - 34) + 'px';
-      });
-      hit.addEventListener('mouseleave', function () {
-        var bar = svg.querySelector('[data-bar="' + i + '"]'); if (bar) bar.style.opacity = '1';
-        tipEl.style.display = 'none';
-      });
-      svg.appendChild(hit);
     });
+    // one hover layer over the whole plot; the crosshair snaps to the nearest point
+    var active = -1;
+    function setActive(i) {
+      if (i === active) return;
+      if (active >= 0) dots[active].setAttribute('r', 4);
+      active = i;
+      if (i < 0) { cross.setAttribute('opacity', '0'); tipEl.style.display = 'none'; return; }
+      dots[i].setAttribute('r', 5.5);
+      cross.setAttribute('x1', pts[i].x); cross.setAttribute('x2', pts[i].x);
+      cross.setAttribute('opacity', '0.4');
+      tipEl.textContent = buckets[i].full + ' · ' + buckets[i].n + ' peminjaman';
+      tipEl.style.display = 'block';
+    }
+    var hover = sEl('rect', { x: padL, y: padT, width: plotW, height: plotH, fill: 'transparent' });
+    hover.style.cursor = 'default';
+    hover.addEventListener('mousemove', function (e) {
+      var svgR = svg.getBoundingClientRect();
+      var xu = (e.clientX - svgR.left) * (W / svgR.width);          // px -> viewBox units
+      var i = Math.max(0, Math.min(buckets.length - 1, Math.floor((xu - padL) / band)));
+      setActive(i);
+      var hostR = host.getBoundingClientRect();
+      tipEl.style.left = Math.min(hostR.width - tipEl.offsetWidth - 6, Math.max(6, e.clientX - hostR.left + 12)) + 'px';
+      tipEl.style.top = (e.clientY - hostR.top - 34) + 'px';
+    });
+    hover.addEventListener('mouseleave', function () { setActive(-1); });
+    svg.appendChild(hover);
     host.innerHTML = ''; host.appendChild(svg);
   }
   function buildTrendCard() {

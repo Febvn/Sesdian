@@ -93,7 +93,7 @@
   // scripts/generate-asset-images.mjs and the SQL key in the API joins.
   // /assets/* is served immutable for 1 year (vercel.json), so bump ASSET_IMG_V
   // whenever the webp files are regenerated or browsers will keep the old ones.
-  var ASSET_IMG_V = '3';
+  var ASSET_IMG_V = '4';
   function slugAsset(s) { return String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''); }
   // image identity = (nama, merk): units sharing name+brand share ONE image
   function assetImgKey(name, brand) { return slugAsset(String(name || '') + ' ' + String(brand || '')); }

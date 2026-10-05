@@ -71,11 +71,11 @@
     top.appendChild(el('span', { class: 'sesd-aset-type ' + (isNon ? 'is-non' : 'is-bmn') }, isNon ? 'Non-BMN' : 'BMN'));
     if (g.count > 1) top.appendChild(el('span', { class: 'sesd-cat-count' }, g.count + ' unit'));
     body.appendChild(top);
-    var nameEl = el('div', { class: 'sesd-aset-name' }, g.name || '');
-    if (g.brand) nameEl.appendChild(el('span', { class: 'sesd-aset-merk' }, g.brand));   // distinct: nama sama, merk beda
-    body.appendChild(nameEl);
+    body.appendChild(el('div', { class: 'sesd-aset-name' }, g.name || ''));
+    // merk = badge tersendiri di bawah nama (bukan bagian teks nama)
+    if (g.brand) body.appendChild(el('span', { class: 'sesd-aset-merk' }, g.brand));
     var chips = el('div', { class: 'sesd-aset-chips' });
-    [['tag', g.category], ['factory', g.brand], ['pin', g.room]].forEach(function (c) {
+    [['tag', g.category], ['pin', g.room]].forEach(function (c) {
       if (!c[1]) return;
       var chip = el('span', { class: 'sesd-aset-chip' });
       chip.innerHTML = ic(c[0]);

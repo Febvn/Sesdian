@@ -22,3 +22,7 @@ node_modules/
 .agents/
 .claude/
 skills-lock.json
+
+# kandidat kurasi gambar (hasil scripts/fetch-google-images.mjs, sementara)
+.cand/
+.cand-google/

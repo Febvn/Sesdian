@@ -27,7 +27,9 @@
   "mini-bus-penumpang-14-orang-kebawah-toyota-new-kijang-innova": {
     "name": "Mini Bus ( Penumpang 14 Orang Kebawah )",
     "brand": "Toyota New Kijang Innova",
-    "source": "https://momobil.id/news/wp-content/uploads/2023/09/Toyota-Kijang-Innova-Reborn-Diesel.jpg"
+    "source": "https://cdn-jk01.kabaroto.com/media/35/73/57/357357e8827b37b0f71b8e44d7106afd.jpeg",
+    "query": "Mini Bus Toyota New Kijang Innova",
+    "via": "google-images"
   },
   "sepeda-motor-honda": {
     "name": "Sepeda Motor",
@@ -62,8 +64,9 @@
   "sepeda-motor-honde-beat": {
     "name": "Sepeda Motor",
     "brand": "HONDE BEAT",
-    "source": "https://en.wikipedia.org/wiki/Honda_FC50",
-    "query": "Honda Beat motor"
+    "source": "https://www.wahanahonda.com/assets/upload/berita/BERITA_1528186289_c3e5baa808c94409bb765ac1eeb41268.jpg",
+    "query": "Sepeda Motor HONDE BEAT",
+    "via": "google-images"
   },
   "sepeda-motor-honda-beat": {
     "name": "Sepeda Motor",
@@ -353,8 +356,9 @@
   "kursi-besi-metal-ichico-bahan-oscar": {
     "name": "Kursi Besi/Metal",
     "brand": "Ichico bahan oscar",
-    "source": "https://en.wikipedia.org/wiki/Office_chair",
-    "query": "kursi kerja kantor bahan oscar"
+    "source": "https://www.oscarliving.co.id/cdn/shop/files/kursi-direktur-kursi-kantor-ichiko-corona-i-s-hdt-leather-ichiko-shopname-6209935.jpg?v=1760841049&width=800",
+    "query": "Kursi Besi Metal Ichico bahan oscar",
+    "via": "google-images"
   },
   "kursi-besi-metal-stainless": {
     "name": "Kursi Besi/Metal",
@@ -399,67 +403,86 @@
   "meja-komputer-expo": {
     "name": "Meja Komputer",
     "brand": "EXPO",
-    "source": "icon"
+    "source": "https://b1584663.smushcdn.com/1584663/wp-content/uploads/2018/10/MTC-8060-01.jpg?lossy=2&strip=1&avif=1",
+    "query": "Meja Komputer EXPO",
+    "via": "google-images"
   },
   "kasur-spring-bed-busa-informa": {
     "name": "Kasur/Spring Bed",
     "brand": "Busa (informa)",
-    "source": "https://en.wikipedia.org/wiki/Mattress",
-    "query": "kasur busa spring bed informa"
+    "source": "https://cdn.ruparupa.io/fit-in/400x400/filters:format(webp)/filters:quality(90)/ruparupa-com/image/upload/Products/10434041_2.jpg",
+    "query": "Kasur Spring Bed Busa (informa)",
+    "via": "google-images"
   },
   "sketsel-rotan-kayu": {
     "name": "Sketsel",
     "brand": "rotan/kayu",
-    "source": "https://en.wikipedia.org/wiki/Folding_screen",
-    "query": "sketsel penyekat ruangan rotan"
+    "source": "https://uwitan.id/wp-content/uploads/2019/10/Furniture-aksesoris-harumi-rattan-sketsel.jpg",
+    "query": "Sketsel rotan/kayu",
+    "via": "google-images"
   },
   "sketsel-kayu-lokal-pinus": {
     "name": "Sketsel",
     "brand": "Kayu Lokal (Pinus)",
-    "source": "https://sp-ao.shortpixel.ai/client/to_webp,q_glossy,ret_img,w_850,h_450/https://www.lantai-kayu.co.id/wp-content/uploads/2023/04/harga-partisi-kayu.jpg"
+    "source": "https://uwitan.id/wp-content/uploads/2023/01/DSC02855-scaled.jpg",
+    "query": "Sketsel Kayu Lokal (Pinus)",
+    "via": "google-images"
   },
   "publik-astari-pembatas-antrian-stainless-steel": {
     "name": "Publik Astari (Pembatas Antrian)",
     "brand": "Stainless Steel",
-    "source": "https://en.wikipedia.org/wiki/Crowd_control_barrier",
-    "query": "tiang antrian stainless steel"
+    "source": "https://www.static-src.com/wcsstore/Indraprastha/images/catalog/full//114/MTA-91962699/tidak_ada_merk_tiang_pembatas_antrian_stainless_tiang_antrian_mall_2m_tinggi_87cm_full01_dhpuwr62.jpg",
+    "query": "Publik Astari Stainless Steel",
+    "via": "google-images"
   },
   "sofa-lokal": {
     "name": "Sofa",
     "brand": "Lokal",
-    "source": "https://indiannest.in/cdn/shop/files/IMG-20231018-WA0003.jpg?v=1697653683&width=1445"
+    "source": "https://down-id.img.susercontent.com/file/id-11134207-7r98u-lqr3rtv7v5puf6",
+    "query": "Sofa Lokal",
+    "via": "google-images"
   },
   "sofa-lokal-satuan": {
     "name": "Sofa",
     "brand": "lokal/satuan",
-    "source": "https://images.sofology.co.uk/dpr_auto/f_auto,c_limit,w_3840,q_auto/ProductMedia/LifeStyle/SKU001311465.jpg"
+    "source": "https://lovisesofa.com/wp-content/uploads/2021/04/Lovise-Sofa-Mahalona-Sudut-Terry-08_web-satuan_-4-1110x1110.webp",
+    "query": "Sofa lokal/satuan",
+    "via": "google-images"
   },
   "jam-elektronik-seiko": {
     "name": "Jam Elektronik",
     "brand": "SEIKO",
-    "source": "https://en.wikipedia.org/wiki/Digital_clock",
-    "query": "jam dinding digital Seiko"
+    "source": "https://p16-oec-sg.ibyteimg.com/tos-alisg-i-aphluv4xwc-sg/9104dad9871341c0b38fde74fdeff15d~tplv-aphluv4xwc-resize-jpeg:700:0.jpeg",
+    "query": "Jam Elektronik SEIKO",
+    "via": "google-images"
   },
   "mesin-pemotong-rumput-stihl-fr-3001": {
     "name": "Mesin Pemotong Rumput",
     "brand": "STIHL FR 3001",
-    "source": "https://en.wikipedia.org/wiki/String_trimmer",
-    "query": "STIHL FR 3001 brushcutter"
+    "source": "https://indokita.co.id/wp-content/uploads/2022/08/FR-3001-backpack-thumb.jpg",
+    "query": "Mesin Pemotong Rumput STIHL FR 3001",
+    "via": "google-images"
   },
   "lemari-es-sharp": {
     "name": "Lemari Es",
     "brand": "Sharp",
-    "source": "https://3.bp.blogspot.com/-g-2JwhGen6E/VTqhKfY2SgI/AAAAAAAABpk/r-e-vGLCp9U/s1600/kulkas2%2Bpintu.jpg"
+    "source": "https://cdn.ruparupa.io/fit-in/400x400/filters:format(webp)/filters:quality(90)/ruparupa-com/image/upload/Products/10457201_1.jpg",
+    "query": "Lemari Es Sharp",
+    "via": "google-images"
   },
   "lemari-es-panasonic": {
     "name": "Lemari Es",
     "brand": "Panasonic",
-    "source": "https://lh7-us.googleusercontent.com/THwJwMthOkt2RWQBS4NfUY_l7oOcjd78jG2AwCt5zD9NOsh8_5S6TmJLsueCigPnwa8fQl4xpcsiMiS0zh34xHF3TZ68bfSDFnA6jqXevbQcw_NE2Uanyvg_uvZEMBBTLkjb1IsSvpLM9I7tXc8rQYM"
+    "source": "https://www.static-src.com/wcsstore/Indraprastha/images/catalog/full//catalog-image/112/MTA-137987446/panasonic_kulkas-panasonic-nrbb200vh-lemari-es-2-pintu-196l_full01.jpg",
+    "query": "Lemari Es Panasonic",
+    "via": "google-images"
   },
   "lemari-es-lg": {
     "name": "Lemari Es",
     "brand": "LG",
-    "source": "https://lh7-us.googleusercontent.com/pc5wAcXrctUlPTaaWlV2CyCGmgx7j_VCTPdyBAWyoPt2VhLcFflxXBcJQGLbo7d1KvGV4c04Rd-fLzqW4eiLAP4b-0K2A5k_McPvCZRd5FSEJ9llGG8AtAfMMLD-axywJfdZPJB-q5D9Qozlb794UFI"
+    "source": "https://wahanasuperstore.com/asset/img/product/Kulkas/Two%20Door/LG%20Kulkas%20Two%20Door%20444%20L%20-%20GC%20A432HLHU.jpg",
+    "query": "Lemari Es LG",
+    "via": "google-images"
   },
   "a-c-sentral-daikin": {
     "name": "A.C. Sentral",
@@ -699,8 +722,9 @@
   "micro-meter-krisbow": {
     "name": "Micro Meter",
     "brand": "krisbow",
-    "source": "https://en.wikipedia.org/wiki/Micrometer_(device)",
-    "query": "micrometer Krisbow"
+    "source": "https://cdn.ruparupa.io/fit-in/400x400/filters:format(webp)/filters:quality(90)/ruparupa-com/image/upload/Products/KW0600079_1.jpg",
+    "query": "Micro Meter krisbow",
+    "via": "google-images"
   },
   "centrifuge-alat-laboratorium-umum-heraues": {
     "name": "Centrifuge (Alat Laboratorium Umum)",
@@ -780,8 +804,9 @@
   "refractometer-alat-laboratorium-umum-sperscientific": {
     "name": "Refractometer (Alat Laboratorium Umum)",
     "brand": "Sperscientific",
-    "source": "https://en.wikipedia.org/wiki/Refractometer",
-    "query": "handheld refractometer"
+    "source": "https://link-gulf.com/wp-content/uploads/2023/09/Clinical-Sper-300036.jpg",
+    "query": "Refractometer Sperscientific",
+    "via": "google-images"
   },
   "bacteriological-colony-counter-stuart": {
     "name": "Bacteriological Colony Counter",
@@ -1011,7 +1036,9 @@
   "refrigerator-freezer-gea-expo-800": {
     "name": "Refrigerator/Freezer",
     "brand": "GEA Expo 800",
-    "source": "icon"
+    "source": "https://images.duniamasak.com/images/14261/kulkas-showcase-gea-expo-800ahcn-24918_521.jpeg",
+    "query": "Refrigerator Freezer GEA Expo 800",
+    "via": "google-images"
   },
   "p-c-unit-hp-pavillion-s5-1420": {
     "name": "P.C Unit",
@@ -1161,8 +1188,9 @@
   "baju-pengaman-lainnya-atunas": {
     "name": "Baju Pengaman Lainnya",
     "brand": "ATUNAS",
-    "source": "https://en.wikipedia.org/wiki/Wetsuit",
-    "query": "Atunas wetsuit diving"
+    "source": "https://p16-oec-sg.ibyteimg.com/tos-alisg-i-aphluv4xwc-sg/img/VqbcmM/2021/12/8/49fa15dd-a210-45e4-9e80-28641dd2ece0.jpg~tplv-aphluv4xwc-resize-jpeg:700:0.jpg",
+    "query": "Baju Pengaman Lainnya ATUNAS",
+    "via": "google-images"
   },
   "alat-selam-seet-mares": {
     "name": "Alat Selam Seet",
