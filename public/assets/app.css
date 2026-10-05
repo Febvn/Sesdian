@@ -2400,3 +2400,49 @@ html[data-textsize="large"] { font-size: 18px; }
     width: 100% !important;
   }
 }
+
+/* ===== MOBILE: Data Aset — center & symmetric ===== */
+@media (max-width: 768px) {
+  /* Header row: stack vertically, center */
+  [data-page="dataaset"] .sesd-dataset-header {
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  /* Title + subtitle block: centered text */
+  [data-page="dataaset"] .sesd-dataset-title-block {
+    width: 100% !important;
+    text-align: center !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+  }
+
+  /* Admin bar (Tambah Aset + Import Excel): full width, centered */
+  [data-page="dataaset"] .sesd-admin-bar {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+
+  /* Filter segmented control (Semua / BMN / Non-BMN): centered */
+  [data-page="dataaset"] .sesd-dataset-filter-wrap {
+    display: flex !important;
+    justify-content: center !important;
+  }
+
+  /* Stat cards grid: symmetric */
+  [data-page="dataaset"] .sesd-stat-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* Search + status filter row: stack & center */
+  [data-page="dataaset"] .animate-fade-up.delay-3 {
+    flex-direction: column !important;
+    align-items: center !important;
+  }
+  [data-page="dataaset"] .animate-fade-up.delay-3 > div {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+}
