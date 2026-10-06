@@ -38,6 +38,73 @@
     return asset.qr_code ? (origin + 'aset-detail.html?qr=' + encodeURIComponent(asset.qr_code)) : (origin + 'aset-detail.html?id=' + asset.id);
   }
 
+  // Parse the combined code field back into Kode Barang and NUP.
+  // Kode barang is typically 10 digits, NUP is the remainder.
+  function parseKodeNUP(code) {
+    if (!code) return { kodeBarang: '', nup: '' };
+    var s = String(code).trim();
+    // If the code is all digits and longer than 10, split at 10
+    if (/^\d+$/.test(s) && s.length > 10) {
+      return { kodeBarang: s.substring(0, 10), nup: s.substring(10) };
+    }
+    return { kodeBarang: s, nup: '' };
+  }
+
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+
+  // Build the Kementerian-style label HTML for print
+  function buildLabelHtml(asset, dataUrl) {
+    var code = asset.qr_code || ('id' + asset.id);
+    var parsed = parseKodeNUP(asset.code);
+    var logoLeft = window.LOGO_LEFT || '';
+    var logoRight = window.LOGO_RIGHT || '';
+    var categoryText = asset.category ? ' (' + esc(asset.category) + ')' : '';
+
+    return '<html><head><title>Label ' + esc(asset.code || code) + '</title>' +
+      '<style>' +
+        '* { margin: 0; padding: 0; box-sizing: border-box; }' +
+        'body { font-family: Arial, Helvetica, sans-serif; }' +
+        '.label { width: 340px; border: 2px solid #222; background: #fff; }' +
+        '.header { display: flex; align-items: center; border-bottom: 2px solid #222; padding: 6px 8px; gap: 6px; }' +
+        '.header-logo { width: 48px; height: 48px; object-fit: contain; flex-shrink: 0; }' +
+        '.header-text { flex: 1; text-align: center; }' +
+        '.header-title { font-size: 11px; font-weight: 700; line-height: 1.3; }' +
+        '.header-code { font-size: 8px; font-weight: 400; margin-top: 2px; }' +
+        '.info { padding: 5px 8px; border-bottom: 1px solid #bbb; }' +
+        '.info-row1 { display: flex; gap: 16px; font-size: 10px; font-weight: 700; }' +
+        '.info-name { font-size: 10px; font-weight: 700; margin-top: 2px; }' +
+        '.bottom { display: flex; align-items: flex-end; padding: 4px 8px 6px; }' +
+        '.bottom-left { flex: 1; }' +
+        '.bottom-code { font-size: 10px; font-weight: 700; }' +
+        '.qr-img { width: 80px; height: 80px; image-rendering: pixelated; }' +
+        '@media print { body { margin: 0; } }' +
+      '</style></head>' +
+      '<body onload="window.print()">' +
+      '<div class="label">' +
+        '<div class="header">' +
+          (logoLeft ? '<img class="header-logo" src="' + logoLeft + '">' : '') +
+          '<div class="header-text">' +
+            '<div class="header-title">KEMENTERIAN KELAUTAN DAN<br>PERIKANAN</div>' +
+          '</div>' +
+          (logoRight ? '<img class="header-logo" src="' + logoRight + '">' : '') +
+        '</div>' +
+        '<div class="info">' +
+          '<div class="info-row1">' +
+            '<span>' + esc(parsed.kodeBarang) + '</span>' +
+            (parsed.nup ? '<span>NUP: ' + esc(parsed.nup) + '</span>' : '') +
+          '</div>' +
+          '<div class="info-name">' + esc(asset.name || '') + categoryText + '</div>' +
+        '</div>' +
+        '<div class="bottom">' +
+          '<div class="bottom-left">' +
+            '<div class="bottom-code">' + esc(code) + '</div>' +
+          '</div>' +
+          '<img class="qr-img" src="' + dataUrl + '">' +
+        '</div>' +
+      '</div>' +
+      '</body></html>';
+  }
+
   // Show one asset's QR in a modal, with a print button (prints just this QR).
   async function showFor(asset) {
     if ($('.sesd-overlay')) return; // never stack modals
@@ -64,14 +131,9 @@
 
     printBtn.addEventListener('click', function () {
       if (!dataUrl) return;
-      var w = window.open('', '_blank', 'width=420,height=520');
+      var w = window.open('', '_blank', 'width=500,height=400');
       if (!w) return;
-      w.document.write('<html><head><title>QR ' + (asset.code || code) + '</title></head>' +
-        '<body style="font-family:sans-serif;text-align:center;padding:24px" onload="window.print()">' +
-        '<img src="' + dataUrl + '" style="width:240px;height:240px;image-rendering:pixelated">' +
-        '<div style="font-weight:700;margin-top:10px;font-size:15px">' + (asset.name || '') + '</div>' +
-        '<div style="font-family:monospace;font-size:12px;color:#555;margin-top:2px">' + (asset.code || '') + ' &middot; ' + code + '</div>' +
-        '</body></html>');
+      w.document.write(buildLabelHtml(asset, dataUrl));
       w.document.close();
     });
   }
