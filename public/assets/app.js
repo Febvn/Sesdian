@@ -851,11 +851,24 @@
     ov.addEventListener('click', function (e) { if (e.target === ov) ov.remove(); });
   }
 
+  function openImagePopup(imgSrc) {
+    if (!imgSrc || imgSrc === PLACEHOLDER) return;
+    var ov = el('div', { style: 'position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:99999;display:flex;align-items:center;justify-content:center;cursor:pointer' });
+    var img = el('img', { src: imgSrc, style: 'max-width:90vw;max-height:90vh;object-fit:contain;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,.5)' });
+    ov.addEventListener('click', function () { ov.remove(); });
+    ov.appendChild(img);
+    document.body.appendChild(ov);
+    // ESC to close
+    var onKey = function (e) { if (e.key === 'Escape') { ov.remove(); document.removeEventListener('keydown', onKey); } };
+    document.addEventListener('keydown', onKey);
+  }
+
   function openAssetDetail(r) {
     if (modalOpen()) return;
     var ov = overlay(), m = el('div', { class: 'sesd-modal', style: 'width:520px' });
-    var dImg = el('img', { src: r.image || PLACEHOLDER, style: 'width:100%;height:180px;object-fit:cover;border-radius:12px;background:linear-gradient(135deg,#eef4fb,#e3f0fb)' });
+    var dImg = el('img', { src: r.image || PLACEHOLDER, style: 'width:100%;height:180px;object-fit:cover;border-radius:12px;background:linear-gradient(135deg,#eef4fb,#e3f0fb);cursor:pointer' });
     dImg.onerror = function () { this.onerror = null; this.src = PLACEHOLDER; };
+    dImg.addEventListener('click', function () { openImagePopup(r.image || PLACEHOLDER); });
     m.appendChild(dImg);
     m.appendChild(el('div', { style: 'font-family:"JetBrains Mono",monospace;font-size:.72rem;color:var(--text-muted);margin-top:.75rem' }, r.code || ''));
     m.appendChild(el('h3', { style: 'font-size:1.3rem;font-weight:800;margin:2px 0' }, r.name || ''));
@@ -943,8 +956,9 @@
     if (IS_ADMIN) {
       // one image per jenis: change it here for ALL units at once (not per unit)
       var imgRow = el('div', { style: 'display:flex;align-items:center;gap:10px;margin-bottom:12px;padding:8px;border:1px solid var(--border);border-radius:12px;background:var(--bg)' });
-      var thumb = el('img', { src: g.image || PLACEHOLDER, alt: '', style: 'width:76px;height:50px;object-fit:cover;border-radius:8px;flex-shrink:0;background:var(--bg-mid)' });
+      var thumb = el('img', { src: g.image || PLACEHOLDER, alt: '', style: 'width:76px;height:50px;object-fit:cover;border-radius:8px;flex-shrink:0;background:var(--bg-mid);cursor:pointer' });
       thumb.onerror = function () { this.onerror = null; this.src = PLACEHOLDER; };
+      thumb.addEventListener('click', function () { openImagePopup(g.image || PLACEHOLDER); });
       var imgInfo = el('div', { style: 'flex:1;min-width:0' });
       imgInfo.appendChild(el('div', { style: 'font-size:.8rem;font-weight:700' }, 'Gambar jenis ini'));
       imgInfo.appendChild(el('div', { style: 'font-size:.7rem;color:var(--text-muted)' }, 'Satu gambar untuk semua ' + g.units.length + ' unit'));
