@@ -288,26 +288,12 @@
     var pts = buckets.map(function (b, i) {
       return { x: padL + band * i + band / 2, y: baseY - plotH * (b.n / top) };
     });
-    // smooth monotone curve (harmonic-mean tangents): rounded like a spline but
-    // never overshoots past the data values, so the curve stays honest
-    function smoothPath(p) {
-      if (p.length < 3) return p.map(function (q, i) { return (i ? 'L' : 'M') + q.x.toFixed(1) + ',' + q.y.toFixed(1); }).join(' ');
-      var n = p.length, s = [], m, i;
-      for (i = 0; i < n - 1; i++) s.push((p[i + 1].y - p[i].y) / (p[i + 1].x - p[i].x));
-      m = [s[0]];
-      for (i = 1; i < n - 1; i++) m.push(s[i - 1] * s[i] <= 0 ? 0 : 2 * s[i - 1] * s[i] / (s[i - 1] + s[i]));
-      m.push(s[n - 2]);
-      var d = 'M' + p[0].x.toFixed(1) + ',' + p[0].y.toFixed(1);
-      for (i = 0; i < n - 1; i++) {
-        var dx3 = (p[i + 1].x - p[i].x) / 3;
-        d += ' C' + (p[i].x + dx3).toFixed(1) + ',' + (p[i].y + m[i] * dx3).toFixed(1) +
-             ' ' + (p[i + 1].x - dx3).toFixed(1) + ',' + (p[i + 1].y - m[i + 1] * dx3).toFixed(1) +
-             ' ' + p[i + 1].x.toFixed(1) + ',' + p[i + 1].y.toFixed(1);
-      }
-      return d;
+    // straight line path between points (runcing)
+    function straightPath(p) {
+      return p.map(function (q, i) { return (i ? 'L' : 'M') + q.x.toFixed(1) + ',' + q.y.toFixed(1); }).join(' ');
     }
     // area wash under the curve (series hue at ~10%), then the 2px curve itself
-    var lineD = smoothPath(pts);
+    var lineD = straightPath(pts);
     svg.appendChild(sEl('path', { d: lineD + ' L' + pts[pts.length - 1].x.toFixed(1) + ',' + baseY + ' L' + pts[0].x.toFixed(1) + ',' + baseY + ' Z', fill: 'var(--chart-1)', 'fill-opacity': '0.1', stroke: 'none' }));
     svg.appendChild(sEl('path', { d: lineD, fill: 'none', stroke: 'var(--chart-1)', 'stroke-width': '2', 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }));
     // crosshair (hidden until hover) — readers aim at a period, not at a 2px line
