@@ -260,108 +260,103 @@
     }
     return buckets;
   }
-  function drawTrendSvg(host, buckets, tipEl) {
-    var W = 720, H = 250, padL = 34, padR = 14, padT = 20, padB = 24;
-    var plotW = W - padL - padR, plotH = H - padT - padB;
-    var maxN = Math.max(1, Math.max.apply(null, buckets.map(function (b) { return b.n; })));
-    var step = Math.max(1, Math.ceil(maxN / 4));
-    var top = step * 4;
-    var band = plotW / buckets.length;
-    var baseY = padT + plotH;
-    var maxIdx = -1; buckets.forEach(function (b, i) { if (b.n > 0 && (maxIdx === -1 || b.n > buckets[maxIdx].n)) maxIdx = i; });
-    var svgNS = 'http://www.w3.org/2000/svg';
-    var svg = document.createElementNS(svgNS, 'svg');
-    svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
-    svg.setAttribute('role', 'img');
-    svg.setAttribute('aria-label', 'Grafik garis jumlah peminjaman per periode');
-    svg.style.cssText = 'width:100%;height:auto;display:block';
-    function sEl(tag, attrs) { var e = document.createElementNS(svgNS, tag); for (var k in attrs) e.setAttribute(k, attrs[k]); return e; }
-    // recessive grid + y labels
-    for (var g = 0; g <= 4; g++) {
-      var y = baseY - (plotH * g / 4);
-      svg.appendChild(sEl('line', { x1: padL, y1: y, x2: W - padR, y2: y, stroke: 'var(--border)', 'stroke-width': g === 0 ? 1.4 : 1 }));
-      var yl = sEl('text', { x: padL - 7, y: y + 3.5, 'text-anchor': 'end', 'font-size': '10', fill: 'var(--text-muted)' });
-      yl.textContent = String(step * g); svg.appendChild(yl);
-    }
-    // point coordinates: one per bucket, centered in its band (zeros included —
-    // a line is a continuous series, gaps would misstate the data)
-    var pts = buckets.map(function (b, i) {
-      return { x: padL + band * i + band / 2, y: baseY - plotH * (b.n / top) };
-    });
-    // straight line path between points (runcing)
-    function straightPath(p) {
-      return p.map(function (q, i) { return (i ? 'L' : 'M') + q.x.toFixed(1) + ',' + q.y.toFixed(1); }).join(' ');
-    }
-    // area wash under the curve (series hue at ~10%), then the 2px curve itself
-    var lineD = straightPath(pts);
-    svg.appendChild(sEl('path', { d: lineD + ' L' + pts[pts.length - 1].x.toFixed(1) + ',' + baseY + ' L' + pts[0].x.toFixed(1) + ',' + baseY + ' Z', fill: 'var(--chart-1)', 'fill-opacity': '0.1', stroke: 'none' }));
-    svg.appendChild(sEl('path', { d: lineD, fill: 'none', stroke: 'var(--chart-1)', 'stroke-width': '2', 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }));
-    // crosshair (hidden until hover) — readers aim at a period, not at a 2px line
-    var cross = sEl('line', { x1: 0, y1: padT, x2: 0, y2: baseY, stroke: 'var(--text-muted)', 'stroke-width': '1', opacity: '0' });
-    svg.appendChild(cross);
-    // dot markers with a 2px surface ring so they stay legible on the line
-    var dots = pts.map(function (p, i) {
-      var c = sEl('circle', { cx: p.x, cy: p.y, r: 4, fill: 'var(--chart-1)', stroke: 'var(--bg-card)', 'stroke-width': '2', 'data-dot': i });
-      svg.appendChild(c); return c;
-    });
-    var labelEvery = buckets.length > 12 ? 2 : 1;
-    buckets.forEach(function (b, i) {
-      if (i === maxIdx) {   // selective direct label: max only (text token, not series color)
-        var vl = sEl('text', { x: pts[i].x, y: pts[i].y - 10, 'text-anchor': 'middle', 'font-size': '10.5', 'font-weight': '700', fill: 'var(--text)' });
-        vl.textContent = String(b.n); svg.appendChild(vl);
-      }
-      if (i % labelEvery === 0) {
-        var xl = sEl('text', { x: pts[i].x, y: H - 8, 'text-anchor': 'middle', 'font-size': '10', fill: 'var(--text-muted)' });
-        xl.textContent = b.label; svg.appendChild(xl);
-      }
-    });
-    // one hover layer over the whole plot; the crosshair snaps to the nearest point
-    var active = -1;
-    function setActive(i) {
-      if (i === active) return;
-      if (active >= 0) dots[active].setAttribute('r', 4);
-      active = i;
-      if (i < 0) { cross.setAttribute('opacity', '0'); tipEl.style.display = 'none'; return; }
-      dots[i].setAttribute('r', 5.5);
-      cross.setAttribute('x1', pts[i].x); cross.setAttribute('x2', pts[i].x);
-      cross.setAttribute('opacity', '0.4');
-      tipEl.textContent = buckets[i].full + ' · ' + buckets[i].n + ' peminjaman';
-      tipEl.style.display = 'block';
-    }
-    var hover = sEl('rect', { x: padL, y: padT, width: plotW, height: plotH, fill: 'transparent' });
-    hover.style.cursor = 'default';
-    hover.addEventListener('mousemove', function (e) {
-      var svgR = svg.getBoundingClientRect();
-      var xu = (e.clientX - svgR.left) * (W / svgR.width);          // px -> viewBox units
-      var i = Math.max(0, Math.min(buckets.length - 1, Math.floor((xu - padL) / band)));
-      setActive(i);
-      var hostR = host.getBoundingClientRect();
-      tipEl.style.left = Math.min(hostR.width - tipEl.offsetWidth - 6, Math.max(6, e.clientX - hostR.left + 12)) + 'px';
-      tipEl.style.top = (e.clientY - hostR.top - 34) + 'px';
-    });
-    hover.addEventListener('mouseleave', function () { setActive(-1); });
-    svg.appendChild(hover);
-    host.innerHTML = ''; host.appendChild(svg);
-  }
   function buildTrendCard() {
     var card = $('[data-trend-card]'); if (!card) return;
     var trendRows = null, mode = 'daily';
+    var trendChartInstance = null;
     card.appendChild(el('div', { style: 'font-size:0.95rem;font-weight:800' }, 'Grafik Peminjaman'));
     var sub = el('div', { style: 'font-size:0.75rem;color:var(--text-muted);margin:2px 0 12px' }, 'Jumlah pengajuan peminjaman per periode');
     card.appendChild(sub);
     var seg = el('div', { class: 'sesd-segfilter', role: 'tablist', 'aria-label': 'Periode grafik', style: 'margin-bottom:12px' });
-    var chartHost = el('div');
-    var tip = el('div', { style: 'display:none;position:absolute;z-index:5;background:var(--text);color:var(--bg-card);font-size:0.72rem;font-weight:700;padding:0.3rem 0.6rem;border-radius:8px;pointer-events:none;white-space:nowrap' });
-    card.appendChild(seg); card.appendChild(chartHost); card.appendChild(tip);
+    var chartHost = el('div', { style: 'position:relative; height:260px; width:100%' });
+    var canvas = el('canvas');
+    card.appendChild(seg); card.appendChild(chartHost);
+
     function draw() {
       var b = trendBuckets(mode, trendRows || []);
       var now = new Date();
       sub.textContent = mode === 'daily' ? 'Pengajuan per hari · 14 hari terakhir'
         : mode === 'monthly' ? 'Pengajuan per bulan · tahun ' + now.getFullYear()
         : 'Pengajuan per tahun · 5 tahun terakhir';
-      if (!b.some(function (x) { return x.n > 0; })) { chartHost.innerHTML = '<div style="padding:2.2rem;text-align:center;color:var(--text-muted);font-size:0.85rem">Belum ada data pada periode ini.</div>'; return; }
-      drawTrendSvg(chartHost, b, tip);
+      
+      if (!b.some(function (x) { return x.n > 0; })) { 
+        chartHost.innerHTML = '<div style="padding:2.2rem;text-align:center;color:var(--text-muted);font-size:0.85rem">Belum ada data pada periode ini.</div>'; 
+        if (trendChartInstance) { trendChartInstance.destroy(); trendChartInstance = null; }
+        return; 
+      }
+      
+      if (!chartHost.contains(canvas)) { chartHost.innerHTML = ''; chartHost.appendChild(canvas); }
+      
+      var labels = b.map(function(x) { return x.label; });
+      var data = b.map(function(x) { return x.n; });
+      var fullLabels = b.map(function(x) { return x.full; });
+      var maxN = Math.max(1, Math.max.apply(null, data));
+      
+      if (trendChartInstance) trendChartInstance.destroy();
+      
+      if (window.Chart) {
+        var ctx = canvas.getContext('2d');
+        var gradient = ctx.createLinearGradient(0, 0, 0, 260);
+        gradient.addColorStop(0, 'rgba(99, 102, 241, 0.4)'); // indigo-500
+        gradient.addColorStop(1, 'rgba(99, 102, 241, 0.0)');
+        
+        Chart.defaults.font.family = "'Inter', sans-serif";
+        Chart.defaults.color = '#64748b'; // slate-500
+        
+        trendChartInstance = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: labels,
+            datasets: [{
+              label: 'Peminjaman',
+              data: data,
+              borderColor: '#6366f1',
+              backgroundColor: gradient,
+              borderWidth: 2.5,
+              pointBackgroundColor: '#ffffff',
+              pointBorderColor: '#6366f1',
+              pointBorderWidth: 2,
+              pointRadius: 4,
+              pointHoverRadius: 6,
+              fill: true,
+              tension: 0 // Runcing (straight lines) as requested previously
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                backgroundColor: '#0f172a',
+                titleFont: { size: 13, weight: 'bold' },
+                bodyFont: { size: 12 },
+                padding: 10,
+                cornerRadius: 8,
+                displayColors: false,
+                callbacks: {
+                  title: function(context) { return fullLabels[context[0].dataIndex]; },
+                  label: function(context) { return context.parsed.y + ' pengajuan peminjaman'; }
+                }
+              }
+            },
+            scales: {
+              x: { grid: { display: false, drawBorder: false } },
+              y: {
+                beginAtZero: true,
+                border: { display: false },
+                grid: { color: '#e2e8f0', drawTicks: false },
+                ticks: { padding: 10, stepSize: Math.max(1, Math.ceil(maxN/4)) }
+              }
+            }
+          }
+        });
+      } else {
+        chartHost.innerHTML = '<div style="padding:2rem;text-align:center;color:var(--text-muted);font-size:0.85rem">Gagal memuat library grafik.</div>';
+      }
     }
+
     [['daily', 'Harian'], ['monthly', 'Bulanan'], ['yearly', 'Tahunan']].forEach(function (o) {
       var btn = el('button', { type: 'button' });
       btn.appendChild(el('span', {}, o[1]));
@@ -374,6 +369,7 @@
       });
       seg.appendChild(btn);
     });
+    
     chartHost.innerHTML = '<div style="padding:2rem;text-align:center;color:var(--text-muted);font-size:0.85rem">Memuat grafik...</div>';
     DB.borrowings().then(function (rows) { trendRows = rows; draw(); })
       .catch(function () { chartHost.innerHTML = '<div style="padding:2rem;text-align:center;color:var(--text-muted);font-size:0.85rem">Gagal memuat data grafik.</div>'; });
