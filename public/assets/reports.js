@@ -319,6 +319,32 @@
             }]
           },
           options: {
+            animation: {
+              x: {
+                type: 'number',
+                easing: 'linear',
+                duration: Math.max(20, 1000 / Math.max(1, data.length)),
+                from: NaN,
+                delay: function(ctx) {
+                  if (ctx.type !== 'data' || ctx.xStarted) return 0;
+                  ctx.xStarted = true;
+                  return ctx.index * Math.max(20, 1000 / Math.max(1, data.length));
+                }
+              },
+              y: {
+                type: 'number',
+                easing: 'linear',
+                duration: Math.max(20, 1000 / Math.max(1, data.length)),
+                from: function(ctx) {
+                  return ctx.index === 0 ? ctx.chart.scales.y.getPixelForValue(0) : ctx.chart.getDatasetMeta(ctx.datasetIndex).data[ctx.index - 1].getProps(['y'], true).y;
+                },
+                delay: function(ctx) {
+                  if (ctx.type !== 'data' || ctx.yStarted) return 0;
+                  ctx.yStarted = true;
+                  return ctx.index * Math.max(20, 1000 / Math.max(1, data.length));
+                }
+              }
+            },
             responsive: true,
             maintainAspectRatio: false,
             interaction: { mode: 'index', intersect: false },
