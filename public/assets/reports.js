@@ -296,9 +296,6 @@
       
       if (window.Chart) {
         var ctx = canvas.getContext('2d');
-        var gradient = ctx.createLinearGradient(0, 0, 0, 260);
-        gradient.addColorStop(0, 'rgba(99, 102, 241, 0.4)'); // indigo-500
-        gradient.addColorStop(1, 'rgba(99, 102, 241, 0.0)');
         
         Chart.defaults.font.family = "'Inter', sans-serif";
         Chart.defaults.color = '#64748b'; // slate-500
@@ -311,14 +308,13 @@
               label: 'Peminjaman',
               data: data,
               borderColor: '#6366f1',
-              backgroundColor: gradient,
               borderWidth: 2.5,
               pointBackgroundColor: '#ffffff',
               pointBorderColor: '#6366f1',
               pointBorderWidth: 2,
               pointRadius: 4,
               pointHoverRadius: 6,
-              fill: true,
+              fill: false,
               tension: 0 // Runcing (straight lines) as requested previously
             }]
           },
