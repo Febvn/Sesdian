@@ -14,6 +14,25 @@
     <script>(function(){try{var d=document.documentElement;if(localStorage.getItem('sesdian_theme')==='dark')d.setAttribute('data-theme','dark');var ts=localStorage.getItem('sesdian_textsize');if(ts==='small'||ts==='large')d.setAttribute('data-textsize',ts);if(localStorage.getItem('sesdian_rail')==='1')d.classList.add('sesd-rail-pref');}catch(e){}})();</script>
     <link rel="stylesheet" href="assets/app.css?v=53" />
     <link rel="stylesheet" href="assets/preloader.css?v=53" />
+    <style>
+      .laporan-table-wrapper { -webkit-overflow-scrolling: touch; }
+      @media (max-width: 768px) {
+        .laporan-content { padding: 1rem !important; }
+        .laporan-header-area { flex-direction: column; align-items: flex-start !important; }
+        .laporan-header-actions { margin-top: 0.5rem; width: 100%; }
+        .laporan-summary-grid { grid-template-columns: 1fr !important; }
+        .laporan-table-wrapper { 
+          margin-left: -1rem; 
+          margin-right: -1rem; 
+          border-radius: 0 !important; 
+          border-left: none; 
+          border-right: none; 
+          box-shadow: none !important;
+          border-top: 1px solid var(--border);
+          border-bottom: 1px solid var(--border);
+        }
+      }
+    </style>
   </head>
   <body
     data-page="laporan"
@@ -53,7 +72,7 @@
               box-shadow: rgba(0, 0, 0, 0.04) 0 1px 0;
             "
           ></div>
-          <div style="padding: 1.75rem">
+          <div style="padding: 1.75rem" class="laporan-content">
             <div
               style="
                 display: flex;
@@ -63,6 +82,7 @@
                 gap: 12px;
                 margin-bottom: 1.25rem;
               "
+              class="laporan-header-area"
             >
               <div>
                 <h1 style="font-size: 1.5rem; font-weight: 800; margin-bottom: 4px">
@@ -72,7 +92,7 @@
                   Rekap peminjaman per periode.
                 </p>
               </div>
-              <div style="display: flex; gap: 8px; flex-wrap: wrap">
+              <div style="display: flex; gap: 8px; flex-wrap: wrap" class="laporan-header-actions">
                 <button data-export class="sesd-btn sesd-btn-lg sesd-btn-success"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="1em" height="1em" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg></span> Export CSV</button>
                 <button data-print class="sesd-btn sesd-btn-lg sesd-btn-danger"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="1em" height="1em" aria-hidden="true"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg></span> Cetak PDF</button>
               </div>
@@ -103,7 +123,7 @@
             </div>
 
             <!-- summary -->
-            <div style="display: grid; grid-template-columns: 220px 1fr; gap: 1rem; margin-bottom: 1.25rem">
+            <div style="display: grid; grid-template-columns: 220px 1fr; gap: 1rem; margin-bottom: 1.25rem" class="laporan-summary-grid">
               <div class="sesd-report-total" style="background: linear-gradient(135deg, rgb(99, 102, 241), rgb(139, 92, 246)); color: #fff; border-radius: 16px; padding: 1.25rem; box-shadow: var(--shadow-lg)">
                 <div style="font-size: 0.8rem; font-weight: 600; display: flex; align-items: center; gap: 6px"><span class="ic" style="opacity:0.85"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="1em" height="1em" aria-hidden="true"><rect x="8" y="3" width="8" height="4" rx="1"/><path d="M8 5H6v16h12V5h-2"/><path d="M9 12h6M9 16h6"/></svg></span> Total Peminjaman</div>
                 <div data-total style="font-size: 2.6rem; font-weight: 800; line-height: 1.1; margin-top: 6px">0</div>
@@ -119,7 +139,7 @@
             <div data-report-filter style="margin-bottom: 1rem"></div>
 
             <!-- detail table -->
-            <div style="background: #fff; border-radius: 16px; box-shadow: var(--shadow); overflow: auto">
+            <div style="background: #fff; border-radius: 16px; box-shadow: var(--shadow); overflow: auto" class="laporan-table-wrapper">
               <table style="width: 100%; border-collapse: collapse; min-width: 920px">
                 <thead style="background: rgb(248, 250, 255)">
                   <tr>
