@@ -21,6 +21,30 @@
         .laporan-header-area { flex-direction: column; align-items: flex-start !important; }
         .laporan-header-actions { margin-top: 0.5rem; width: 100%; }
         .laporan-summary-grid { grid-template-columns: 1fr !important; }
+        .laporan-filter-wrapper {
+          flex-wrap: nowrap !important;
+          padding: 0.75rem !important;
+          gap: 8px !important;
+        }
+        .laporan-filter-left, .laporan-filter-wrapper [data-period-select] {
+          flex: 1;
+          min-width: 0;
+        }
+        .sesd-period-toggle {
+          width: 100%;
+          display: flex !important;
+        }
+        .sesd-period-toggle button {
+          flex: 1;
+          padding: 0.5rem 0 !important;
+          text-align: center;
+        }
+        .laporan-filter-wrapper [data-period-select] input {
+          min-width: 0 !important;
+          width: 100%;
+          padding-left: 0.25rem !important;
+          padding-right: 0.25rem !important;
+        }
         .laporan-table-wrapper { 
           margin-left: -1rem; 
           margin-right: -1rem; 
@@ -141,8 +165,9 @@
                 flex-wrap: wrap;
                 align-items: flex-end;
               "
+              class="laporan-filter-wrapper"
             >
-              <div>
+              <div class="laporan-filter-left">
                 <label style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; display: block; margin-bottom: 5px">Periode</label>
                 <div class="sesd-period-toggle" style="display: inline-flex; border-radius: 12px; padding: 4px; gap: 2px">
                   <button data-period="daily" style="padding: 0.5rem 1rem; border-radius: 9px; border: none; cursor: pointer; font-weight: 700; font-size: 0.8rem; background: transparent; color: var(--text-muted)">Harian</button>
