@@ -268,7 +268,7 @@
     var sub = el('div', { style: 'font-size:0.75rem;color:var(--text-muted);margin:2px 0 12px' }, 'Jumlah pengajuan peminjaman per periode');
     card.appendChild(sub);
     var seg = el('div', { class: 'sesd-segfilter', role: 'tablist', 'aria-label': 'Periode grafik', style: 'margin-bottom:12px' });
-    var chartHost = el('div', { style: 'position:relative; height:260px; width:100%' });
+    var chartHost = el('div', { style: 'position:relative; height:260px; width:100%; min-width:0' });
     var canvas = el('canvas');
     card.appendChild(seg); card.appendChild(chartHost);
 
