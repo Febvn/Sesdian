@@ -172,14 +172,14 @@
     var td = 'padding:0.6rem 0.8rem;font-size:0.83rem;border-top:1px solid var(--border)';
     d.rows.forEach(function (r, i) {
       var tr = el('tr', { 'data-status': r.status || '' });
-      tr.appendChild(el('td', { style: td }, String(i + 1)));
-      tr.appendChild(el('td', { style: td + ';font-weight:600' }, r.borrower_name || '-'));
-      tr.appendChild(el('td', { style: td }, (r.asset_name || '-') + (r.asset_code ? ' (' + r.asset_code + ')' : '')));
-      tr.appendChild(el('td', { style: td }, fmtDate(r.created_at)));
-      tr.appendChild(el('td', { style: td }, r.due_date ? fmtDate(r.due_date) : '-'));
-      tr.appendChild(el('td', { style: td }, r.returned_at ? fmtDate(r.returned_at) : '-'));
-      tr.appendChild(el('td', { style: td }, r.admin_name || '-'));
-      tr.appendChild(el('td', { style: td }, r.verifikator_name || '-'));
+      tr.appendChild(el('td', { style: td, 'data-label': 'No' }, String(i + 1)));
+      tr.appendChild(el('td', { style: td + ';font-weight:600', 'data-label': 'Nama Peminjam' }, r.borrower_name || '-'));
+      tr.appendChild(el('td', { style: td, 'data-label': 'Nama Barang' }, (r.asset_name || '-') + (r.asset_code ? ' (' + r.asset_code + ')' : '')));
+      tr.appendChild(el('td', { style: td, 'data-label': 'Tgl Pinjam' }, fmtDate(r.created_at)));
+      tr.appendChild(el('td', { style: td, 'data-label': 'Tgl Kembali' }, r.due_date ? fmtDate(r.due_date) : '-'));
+      tr.appendChild(el('td', { style: td, 'data-label': 'Tgl Pengembalian' }, r.returned_at ? fmtDate(r.returned_at) : '-'));
+      tr.appendChild(el('td', { style: td, 'data-label': 'Admin' }, r.admin_name || '-'));
+      tr.appendChild(el('td', { style: td, 'data-label': 'Verifikator' }, r.verifikator_name || '-'));
       tbody.appendChild(tr);
     });
     applyReportFilter();               // honour the active status segment
