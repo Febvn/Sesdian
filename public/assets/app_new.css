@@ -1993,15 +1993,17 @@ html[data-textsize="large"] { font-size: 18px; }
   .sesd-prof-logout { margin-left: 0; width: 100%; }
 }
 
-/* ── #7 — Dashboard greeting hero (all actors), theme-adaptive flat ── */
+/* ── #7 — Dashboard greeting hero (all actors), neumorphism ── */
 .sesd-greet {
   position: relative; overflow: hidden;
-  border-radius: var(--radius-lg);
+  border-radius: 24px;
   padding: 2rem 2.4rem;
   margin-bottom: 1.5rem;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  box-shadow: var(--card-shadow);
+  background: rgb(240, 244, 255);
+  border: none;
+  box-shadow:
+    8px 8px 16px rgba(163, 177, 198, 0.5),
+    -8px -8px 16px rgba(255, 255, 255, 0.8);
 }
 .sesd-greet::before,
 .sesd-greet::after { display: none; }
