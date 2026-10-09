@@ -2304,11 +2304,11 @@ html[data-textsize="large"] { font-size: 18px; }
   border-radius: 24px;
   padding: 2rem 2.4rem;
   margin-bottom: 1.5rem;
-  background: rgb(240, 244, 255);
+  background: #ffffff;
   border: none;
   box-shadow:
-    8px 8px 16px rgba(163, 177, 198, 0.5),
-    -8px -8px 16px rgba(255, 255, 255, 0.8);
+    8px 8px 16px rgba(163, 177, 198, 0.45),
+    -8px -8px 16px rgba(255, 255, 255, 1);
 }
 .sesd-greet::before,
 .sesd-greet::after { display: none; }
