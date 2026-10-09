@@ -14,6 +14,17 @@
     <script>(function(){try{var d=document.documentElement;if(localStorage.getItem('sesdian_theme')==='dark')d.setAttribute('data-theme','dark');var ts=localStorage.getItem('sesdian_textsize');if(ts==='small'||ts==='large')d.setAttribute('data-textsize',ts);if(localStorage.getItem('sesdian_rail')==='1')d.classList.add('sesd-rail-pref');}catch(e){}})();</script>
     <link rel="stylesheet" href="assets/app.css?v=53" />
     <link rel="stylesheet" href="assets/preloader.css?v=53" />
+    <style>
+      @media (max-width: 640px) {
+        .sesd-pinjam-header {
+          flex-direction: column !important;
+          align-items: center !important;
+          text-align: center;
+        }
+        .sesd-pinjam-header > div { text-align: center; }
+        .sesd-pinjam-header > .sesd-btn { width: 100%; }
+      }
+    </style>
   </head>
   <body data-page="daftarpinjam" data-auth="required">
     <div id="root">
@@ -728,7 +739,7 @@
           <div style="padding: 1.75rem">
             <div>
               <div
-                class="animate-fade-up"
+                class="animate-fade-up sesd-pinjam-header"
                 style="
                   display: flex;
                   justify-content: space-between;
