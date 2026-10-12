@@ -1492,7 +1492,7 @@
     info.appendChild(pfField('Nama Lengkap', nameInput));
     info.appendChild(pfField('NIP', nipInput, 'NIP tidak dapat diubah.'));
     info.appendChild(pfField('Nomor WhatsApp', phoneInput));
-    var saveInfo = el('button', { class: 'sesd-btn sesd-btn-primary', style: 'margin-top:6px', html: ic('check') + ' Simpan Perubahan' });
+    var saveInfo = el('button', { class: 'sesd-btn sesd-btn-primary', style: 'margin-top:auto', html: ic('check') + ' Simpan Perubahan' });
     saveInfo.addEventListener('click', function () {
       withLoading(saveInfo, async function () {
         if (!nameInput.value.trim()) { toast('Nama tidak boleh kosong', 'error'); return; }
@@ -1515,7 +1515,7 @@
     sec.appendChild(pfField('Password Saat Ini', curPw));
     sec.appendChild(pfField('Password Baru', newPw));
     sec.appendChild(pfField('Konfirmasi Password Baru', confPw));
-    var savePw = el('button', { class: 'sesd-btn sesd-btn-primary', style: 'margin-top:6px', html: ic('lock') + ' Perbarui Password' });
+    var savePw = el('button', { class: 'sesd-btn sesd-btn-primary', style: 'margin-top:auto', html: ic('lock') + ' Perbarui Password' });
     savePw.addEventListener('click', function () {
       withLoading(savePw, async function () {
         if (!newPw.value || newPw.value.length < 8) { toast('Password baru minimal 8 karakter', 'error'); return; }
@@ -1538,7 +1538,7 @@
       var waStatus = el('div', { style: 'font-size:0.72rem;color:var(--text-muted);margin-top:12px;text-align:center' });
       function waNote(s) { waStatus.textContent = s.wa_auto ? 'Auto-kirim via gateway aktif.' : (s.wa_number ? 'Notifikasi dikirim lewat tautan WhatsApp saat user mengajukan.' : 'Belum ada nomor admin.'); }
       DB.getSettings().then(function (s) { waInput.value = s.wa_number || ''; waNote(s); }).catch(function () {});
-      var waSave = el('button', { class: 'sesd-btn sesd-btn-primary', style: 'margin-top:6px;width:100%', html: ic('check') + ' Simpan Nomor' });
+      var waSave = el('button', { class: 'sesd-btn sesd-btn-primary', style: 'margin-top:auto;width:100%', html: ic('check') + ' Simpan Nomor' });
       waSave.addEventListener('click', function () {
         withLoading(waSave, async function () {
           try { var r = await DB.setWaNumber(waInput.value); waInput.value = r.wa_number || ''; waNote(r); toast('Nomor WhatsApp disimpan', 'success'); }
