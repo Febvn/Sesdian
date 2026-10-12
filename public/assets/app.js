@@ -1535,17 +1535,20 @@
       var wa = pfCard('Notifikasi WhatsApp', 'Nomor admin yang menerima pemberitahuan saat ada pengajuan peminjaman.');
       var waInput = el('input', { type: 'tel', placeholder: '08xxxxxxxxxx' });
       wa.appendChild(pfField('Nomor WhatsApp Admin', waInput));
-      var waStatus = el('div', { style: 'font-size:0.72rem;color:var(--text-muted);margin-top:12px;text-align:center' });
+      var waStatus = el('div', { style: 'font-size:0.72rem;color:var(--text-muted);margin-bottom:8px;text-align:center' });
       function waNote(s) { waStatus.textContent = s.wa_auto ? 'Auto-kirim via gateway aktif.' : (s.wa_number ? 'Notifikasi dikirim lewat tautan WhatsApp saat user mengajukan.' : 'Belum ada nomor admin.'); }
       DB.getSettings().then(function (s) { waInput.value = s.wa_number || ''; waNote(s); }).catch(function () {});
-      var waSave = el('button', { class: 'sesd-btn sesd-btn-primary', style: 'margin-top:auto;width:100%', html: ic('check') + ' Simpan Nomor' });
+      var waSave = el('button', { class: 'sesd-btn sesd-btn-primary', style: 'width:100%', html: ic('check') + ' Simpan Nomor' });
       waSave.addEventListener('click', function () {
         withLoading(waSave, async function () {
           try { var r = await DB.setWaNumber(waInput.value); waInput.value = r.wa_number || ''; waNote(r); toast('Nomor WhatsApp disimpan', 'success'); }
           catch (e) { toast((e && e.message) || 'Gagal menyimpan', 'error'); }
         });
       });
-      wa.appendChild(waSave); wa.appendChild(waStatus);
+      var waBottomWrap = el('div', { style: 'margin-top:auto' });
+      waBottomWrap.appendChild(waStatus);
+      waBottomWrap.appendChild(waSave);
+      wa.appendChild(waBottomWrap);
       grid.appendChild(wa);
     }
 
