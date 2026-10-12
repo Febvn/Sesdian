@@ -1978,7 +1978,7 @@ html[data-textsize="large"] { font-size: 18px; }
 .sesd-prof-av-edit .ic svg { width: 14px; height: 14px; }
 .sesd-prof-name { font-size: 1.3rem; font-weight: 800; letter-spacing: -0.02em; color: var(--text); line-height: 1.15; }
 .sesd-prof-logout { margin-left: auto; flex-shrink: 0; }
-.sesd-prof-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.1rem; }
+.sesd-prof-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.1rem; }
 .sesd-prof-card {
   background: var(--bg-card);
   border: 1px solid var(--border);
