@@ -30,6 +30,20 @@
   // same single three-dots loader used on the authed pages (see app.css)
   function showDots(container) { container.innerHTML = '<div class="sesd-page-loader"><span></span><span></span><span></span></div>'; }
 
+  // Lightbox gambar aset — sama seperti di app.js (klik = lihat ukuran penuh).
+  function openImagePopup(imgSrc, caption) {
+    if (!imgSrc || imgSrc === PLACEHOLDER || $('.sesd-lightbox')) return;
+    var ov = el('div', { class: 'sesd-lightbox', role: 'dialog', 'aria-label': 'Pratinjau gambar' });
+    var img = el('img', { src: imgSrc, alt: caption || 'Gambar aset' });
+    img.onerror = function () { ov.remove(); };
+    ov.appendChild(img);
+    if (caption) ov.appendChild(el('div', { class: 'sesd-lightbox-cap' }, caption));
+    var onKey = function (e) { if (e.key === 'Escape') { ov.remove(); document.removeEventListener('keydown', onKey); } };
+    ov.addEventListener('click', function () { ov.remove(); document.removeEventListener('keydown', onKey); });
+    document.addEventListener('keydown', onKey);
+    document.body.appendChild(ov);
+  }
+
   // group identical items (same name+category) into one tidy card; each unit
   // still exists individually in the DB (and keeps its own QR/detail page).
   function groupCatalog(list) {
@@ -62,9 +76,15 @@
     var card = el('div', { class: 'sesd-aset-card' });
     card.addEventListener('click', function () { location.href = 'aset-detail.html?' + (g.qr_code ? ('qr=' + encodeURIComponent(g.qr_code)) : ('id=' + g.repId)); });
     var band = el('div', { class: 'sesd-aset-img' });
-    var img = el('img', { src: g.image || PLACEHOLDER, alt: '', loading: 'lazy', decoding: 'async' });
+    var img = el('img', { src: g.image || PLACEHOLDER, alt: g.name || '', loading: 'lazy', decoding: 'async' });
     img.onerror = function () { this.onerror = null; this.src = PLACEHOLDER; };
     band.appendChild(img);
+    if (g.image) {
+      // klik gambar = lihat ukuran penuh; klik bagian kartu lain tetap buka detail
+      band.classList.add('sesd-img-zoom');
+      band.title = 'Klik untuk melihat gambar penuh';
+      band.addEventListener('click', function (ev) { ev.stopPropagation(); openImagePopup(img.src, (g.name || '') + (g.brand ? ' · ' + g.brand : '')); });
+    }
     card.appendChild(band);
     var body = el('div', { class: 'sesd-aset-body' });
     var top = el('div', { class: 'sesd-aset-top' });
@@ -158,8 +178,9 @@
     catch (e) { root.innerHTML = '<div class="sesd-empty">Aset tidak ditemukan.</div>'; return; }
     var a = res.asset, authed = res.authed;
     root.innerHTML = '';
-    var dImg = el('img', { src: a.image || PLACEHOLDER, style: 'width:100%;height:240px;object-fit:cover;border-radius:16px;background:linear-gradient(135deg,#eef2ff,#e0e7ff)' });
+    var dImg = el('img', { src: a.image || PLACEHOLDER, alt: a.name || '', class: 'sesd-img-zoom', title: 'Klik untuk melihat gambar penuh', style: 'width:100%;height:240px;object-fit:cover;border-radius:16px;background:linear-gradient(135deg,#eef2ff,#e0e7ff)' });
     dImg.onerror = function () { this.onerror = null; this.src = PLACEHOLDER; };
+    dImg.addEventListener('click', function () { openImagePopup(dImg.src, (a.name || '') + (a.brand ? ' · ' + a.brand : '')); });
     root.appendChild(dImg);
     root.appendChild(el('div', { style: 'font-family:"JetBrains Mono",monospace;font-size:0.75rem;color:var(--text-muted);margin-top:1rem' }, a.code || ''));
     root.appendChild(el('h1', { style: 'font-size:1.6rem;font-weight:800;margin:2px 0' }, a.name || ''));

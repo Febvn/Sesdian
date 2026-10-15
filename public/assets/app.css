@@ -913,6 +913,26 @@ body[data-page="register"] input:focus {
 }
 [data-theme="dark"] .sesd-overlay { background: rgba(4,7,20,0.7); }
 
+/* Lightbox gambar aset: klik gambar pada kartu/detail membuka versi penuhnya.
+   Di atas modal (1200 > 1000) supaya bisa dibuka dari dalam modal detail jenis. */
+.sesd-lightbox {
+  position: fixed; inset: 0; z-index: 1200;
+  background: rgba(10, 12, 18, 0.85);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 12px; padding: 3vh 3vw; cursor: zoom-out;
+  animation: 0.18s var(--ease-smooth) both fadeIn;
+}
+.sesd-lightbox img {
+  max-width: 94vw; max-height: 86vh;
+  border-radius: 12px; background: var(--bg-card);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
+}
+.sesd-lightbox-cap {
+  color: #fff; font-size: 0.88rem; font-weight: 700; text-align: center;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.7); max-width: 90vw;
+}
+.sesd-img-zoom { cursor: zoom-in; }
+
 .sesd-modal {
   background: var(--bg-surface);
   backdrop-filter: blur(32px) saturate(180%);
@@ -1053,6 +1073,11 @@ body[data-page="register"] input:focus {
 /* ══════════════════════════════════════════════════════════
    LOADERS
    ══════════════════════════════════════════════════════════ */
+/* Template seed di dalam HTML hanyalah sumber clone untuk renderList; jangan
+   pernah terlihat sebelum data DB tiba (mencegah flash baris/kartu placeholder
+   berdesain lama). renderList menghapus atribut ini dari hasil clone, jadi
+   item yang dirender tidak ikut tersembunyi. */
+[data-template], [data-monitor-template], [data-recent-template], [data-asset-template] { display: none !important; }
 .sesd-page-loader { display: flex; align-items: center; justify-content: center; gap: 12px; min-height: 55vh; }
 .sesd-page-loader span {
   width: 12px; height: 12px; border-radius: 50%;

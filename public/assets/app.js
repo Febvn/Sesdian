@@ -851,16 +851,18 @@
     ov.addEventListener('click', function (e) { if (e.target === ov) ov.remove(); });
   }
 
-  function openImagePopup(imgSrc) {
-    if (!imgSrc || imgSrc === PLACEHOLDER) return;
-    var ov = el('div', { style: 'position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:99999;display:flex;align-items:center;justify-content:center;cursor:pointer' });
-    var img = el('img', { src: imgSrc, style: 'max-width:90vw;max-height:90vh;object-fit:contain;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,.5)' });
-    ov.addEventListener('click', function () { ov.remove(); });
+  // Lightbox gambar aset (klik gambar = lihat ukuran penuh, Esc/klik = tutup).
+  function openImagePopup(imgSrc, caption) {
+    if (!imgSrc || imgSrc === PLACEHOLDER || $('.sesd-lightbox')) return;
+    var ov = el('div', { class: 'sesd-lightbox', role: 'dialog', 'aria-label': 'Pratinjau gambar' });
+    var img = el('img', { src: imgSrc, alt: caption || 'Gambar aset' });
+    img.onerror = function () { ov.remove(); };
     ov.appendChild(img);
-    document.body.appendChild(ov);
-    // ESC to close
+    if (caption) ov.appendChild(el('div', { class: 'sesd-lightbox-cap' }, caption));
     var onKey = function (e) { if (e.key === 'Escape') { ov.remove(); document.removeEventListener('keydown', onKey); } };
+    ov.addEventListener('click', function () { ov.remove(); document.removeEventListener('keydown', onKey); });
     document.addEventListener('keydown', onKey);
+    document.body.appendChild(ov);
   }
 
   function openAssetDetail(r) {
@@ -868,7 +870,7 @@
     var ov = overlay(), m = el('div', { class: 'sesd-modal', style: 'width:520px' });
     var dImg = el('img', { src: r.image || PLACEHOLDER, style: 'width:100%;height:180px;object-fit:cover;border-radius:12px;background:linear-gradient(135deg,#eef4fb,#e3f0fb);cursor:pointer' });
     dImg.onerror = function () { this.onerror = null; this.src = PLACEHOLDER; };
-    dImg.addEventListener('click', function () { openImagePopup(r.image || PLACEHOLDER); });
+    dImg.addEventListener('click', function () { openImagePopup(dImg.src, (r.name || '') + (r.brand ? ' · ' + r.brand : '')); });
     m.appendChild(dImg);
     m.appendChild(el('div', { style: 'font-family:"JetBrains Mono",monospace;font-size:.72rem;color:var(--text-muted);margin-top:.75rem' }, r.code || ''));
     m.appendChild(el('h3', { style: 'font-size:1.3rem;font-weight:800;margin:2px 0' }, r.name || ''));
@@ -953,20 +955,22 @@
       sum.appendChild(b);
     });
     m.appendChild(sum);
+    // one image per jenis — semua role bisa melihatnya (klik = ukuran penuh);
+    // hanya admin yang mendapat tombol Ganti Gambar
+    var imgRow = el('div', { style: 'display:flex;align-items:center;gap:10px;margin-bottom:12px;padding:8px;border:1px solid var(--border);border-radius:12px;background:var(--bg)' });
+    var thumb = el('img', { src: g.image || PLACEHOLDER, alt: g.name || '', class: 'sesd-img-zoom', title: 'Klik untuk melihat gambar penuh', style: 'width:76px;height:50px;object-fit:cover;border-radius:8px;flex-shrink:0;background:var(--bg-mid)' });
+    thumb.onerror = function () { this.onerror = null; this.src = PLACEHOLDER; };
+    thumb.addEventListener('click', function () { openImagePopup(thumb.src, (g.name || '') + (g.brand ? ' · ' + g.brand : '')); });
+    var imgInfo = el('div', { style: 'flex:1;min-width:0' });
+    imgInfo.appendChild(el('div', { style: 'font-size:.8rem;font-weight:700' }, 'Gambar jenis ini'));
+    imgInfo.appendChild(el('div', { style: 'font-size:.7rem;color:var(--text-muted)' }, IS_ADMIN ? ('Satu gambar untuk semua ' + g.units.length + ' unit') : 'Klik gambar untuk melihat ukuran penuh'));
+    imgRow.appendChild(thumb); imgRow.appendChild(imgInfo);
     if (IS_ADMIN) {
-      // one image per jenis: change it here for ALL units at once (not per unit)
-      var imgRow = el('div', { style: 'display:flex;align-items:center;gap:10px;margin-bottom:12px;padding:8px;border:1px solid var(--border);border-radius:12px;background:var(--bg)' });
-      var thumb = el('img', { src: g.image || PLACEHOLDER, alt: '', style: 'width:76px;height:50px;object-fit:cover;border-radius:8px;flex-shrink:0;background:var(--bg-mid);cursor:pointer' });
-      thumb.onerror = function () { this.onerror = null; this.src = PLACEHOLDER; };
-      thumb.addEventListener('click', function () { openImagePopup(g.image || PLACEHOLDER); });
-      var imgInfo = el('div', { style: 'flex:1;min-width:0' });
-      imgInfo.appendChild(el('div', { style: 'font-size:.8rem;font-weight:700' }, 'Gambar jenis ini'));
-      imgInfo.appendChild(el('div', { style: 'font-size:.7rem;color:var(--text-muted)' }, 'Satu gambar untuk semua ' + g.units.length + ' unit'));
       var gbtn = el('button', { class: 'sesd-btn sesd-btn-sm sesd-btn-primary', html: ic('pencil') + ' Ganti Gambar' });
       gbtn.addEventListener('click', function () { openGroupImageModal(g, function (url) { thumb.src = url; }); });
-      imgRow.appendChild(thumb); imgRow.appendChild(imgInfo); imgRow.appendChild(gbtn);
-      m.appendChild(imgRow);
+      imgRow.appendChild(gbtn);
     }
+    m.appendChild(imgRow);
     m.appendChild(el('div', { style: 'font-size:.72rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px' }, 'Pilih unit untuk dipinjam (' + g.units.length + ' terdaftar)'));
     var selected = {};
     var ajukan = el('button', { class: 'sesd-btn sesd-btn-success', style: 'flex:1' });
@@ -1891,10 +1895,12 @@
       });
       card.addEventListener('click', function (ev) { if (ev.target.closest('.sesd-admin-actions')) return; openGroupDetail(g); });
       if (g.image) {
-        var band = el('div', { class: 'sesd-aset-img' });
-        var gImg = el('img', { src: g.image, alt: '', loading: 'lazy', decoding: 'async' });
+        var band = el('div', { class: 'sesd-aset-img sesd-img-zoom', title: 'Klik untuk melihat gambar penuh' });
+        var gImg = el('img', { src: g.image, alt: g.name || '', loading: 'lazy', decoding: 'async' });
         gImg.onerror = function () { band.remove(); };   // no generated file for this name: card falls back to text-only
         band.appendChild(gImg);
+        // klik gambar = lihat ukuran penuh; klik bagian kartu lain tetap buka detail
+        band.addEventListener('click', function (ev) { ev.stopPropagation(); openImagePopup(g.image, (g.name || '') + (g.brand ? ' · ' + g.brand : '')); });
         card.appendChild(band);
       }
       var body = el('div', { class: 'sesd-aset-body' });
@@ -2117,15 +2123,12 @@
   }
 
   function setupDates() {
+    // Elemen tanggal ditandai data-now di HTML (placeholder netral, bukan teks
+    // tanggal basi yang bisa flash sebelum JS jalan).
     var now = new Date();
     var shortDate = now.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
     var longDate = now.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).toUpperCase();
-    $$('span, div').forEach(function(e) {
-      if (e.children.length === 0) {
-        if (/18 Jun 2026/i.test(e.textContent)) e.textContent = shortDate;
-        else if (/KAMIS, 18 JUNI 2026/i.test(e.textContent)) e.textContent = longDate;
-      }
-    });
+    $$('[data-now]').forEach(function (e) { e.textContent = e.getAttribute('data-now') === 'long' ? longDate : shortDate; });
   }
 
   function translateBreadcrumbs() {
