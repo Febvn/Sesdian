@@ -12,8 +12,8 @@
       rel="stylesheet"
     />
     <script>(function(){try{var d=document.documentElement;if(localStorage.getItem('sesdian_theme')==='dark')d.setAttribute('data-theme','dark');var ts=localStorage.getItem('sesdian_textsize');if(ts==='small'||ts==='large')d.setAttribute('data-textsize',ts);if(localStorage.getItem('sesdian_rail')==='1')d.classList.add('sesd-rail-pref');}catch(e){}})();</script>
-    <link rel="stylesheet" href="assets/app.css?v=55" />
-    <link rel="stylesheet" href="assets/preloader.css?v=55" />
+    <link rel="stylesheet" href="assets/app.css?v=56" />
+    <link rel="stylesheet" href="assets/preloader.css?v=56" />
   </head>
   <body data-page="users" data-auth="required" data-admin="required">
     <div id="root">
@@ -737,68 +737,10 @@
                   Kelola User
                 </h1>
                 <p style="color: var(--text-muted); font-size: 0.875rem">
-                  <span data-users-count>0</span> akun terdaftar
+                  <span data-users-count><span class="sesd-loading-inline"></span></span> akun terdaftar
                 </p>
               </div>
-              <div
-                class="animate-fade-up delay-1"
-                style="
-                  background: rgb(255, 255, 255);
-                  border-radius: 16px;
-                  box-shadow: var(--shadow);
-                  padding: 1.25rem 1.5rem;
-                  margin-bottom: 1.25rem;
-                "
-              >
-                <h2
-                  style="font-size: 1rem; font-weight: 800; margin-bottom: 4px"
-                >
-                  Notifikasi WhatsApp
-                </h2>
-                <p
-                  style="
-                    color: var(--text-muted);
-                    font-size: 0.8rem;
-                    margin-bottom: 0.75rem;
-                  "
-                >
-                  Nomor admin yang menerima pemberitahuan ketika ada pengajuan
-                  peminjaman.
-                </p>
-                <div
-                  style="
-                    display: flex;
-                    gap: 8px;
-                    flex-wrap: wrap;
-                    align-items: center;
-                  "
-                >
-                  <input
-                    data-wa-input
-                    type="tel"
-                    placeholder="08xxxxxxxxxx"
-                    style="
-                      flex: 1;
-                      min-width: 200px;
-                      padding: 0.6rem 0.8rem;
-                      border: 1.5px solid var(--border);
-                      border-radius: 10px;
-                      font-size: 0.875rem;
-                      outline: none;
-                    "
-                  /><button data-wa-save class="sesd-btn sesd-btn-primary">
-                    Simpan Nomor
-                  </button>
-                </div>
-                <p
-                  data-wa-status
-                  style="
-                    font-size: 0.75rem;
-                    color: var(--text-muted);
-                    margin-top: 0.6rem;
-                  "
-                ></p>
-              </div>
+              
               <div
                 class="animate-fade-up delay-2"
                 style="
@@ -879,11 +821,11 @@
         </main>
       </div>
     </div>
-    <script defer src="assets/config.js?v=55"></script>
-    <script defer src="assets/db.js?v=55"></script>
-    <script defer src="assets/icons.js?v=55"></script>
-    <script defer src="assets/preloader.js?v=55"></script>
-    <script defer src="assets/app.js?v=55"></script>
-      <script defer src="assets/theme.js?v=55"></script>
+    <script defer src="assets/config.js?v=56"></script>
+    <script defer src="assets/db.js?v=56"></script>
+    <script defer src="assets/icons.js?v=56"></script>
+    <script defer src="assets/preloader.js?v=56"></script>
+    <script defer src="assets/app.js?v=56"></script>
+      <script defer src="assets/theme.js?v=56"></script>
   </body>
 </html>

@@ -16,13 +16,19 @@ export default async function handler(req, res) {
       const page = parseInt(req.query?.page || 1, 10);
       const limit = Math.min(parseInt(req.query?.limit || 1000, 10), 1000);
       const offset = (page - 1) * limit;
-      const rows = await sql`select id, nip, name, coalesce(phone,'') as phone, role, created_at from users order by role desc, id limit ${limit} offset ${offset}`;
+      // claimed = false berarti akun baru berisi NIP; pemiliknya belum mengatur
+      // nama dan password sendiri lewat halaman login.
+      const rows = await sql`select id, nip, name, coalesce(phone,'') as phone, role, created_at,
+        (password_hash is not null and password_hash <> '') as claimed
+        from users order by role desc, id limit ${limit} offset ${offset}`;
       const [{ count }] = await sql`select count(*) from users`;
       return send(res, 200, { users: rows, total: parseInt(count, 10), page, limit });
     } catch (e) { return send(res, 500, { error: e.message }); }
   }
 
-  // ---- admin creates a new account (replaces self-registration) ----
+  // ---- admin creates a new account ----
+  // Cukup NIP saja: nama dan password boleh kosong, pemilik NIP mengaturnya
+  // sendiri saat pertama kali masuk (lihat alur claim di /api/login).
   if (req.method === 'POST') {
     try {
       const b = await readJson(req);
@@ -31,17 +37,20 @@ export default async function handler(req, res) {
       const password = String(b.password || '');
       const role = ROLES.indexOf(b.role) !== -1 ? b.role : 'user';
       const phone = String(b.phone || '').replace(/\D/g, '').replace(/^0/, '62');
-      if (!nip || !name || !password) return send(res, 400, { error: 'Lengkapi nama, NIP, dan password' });
+      if (!nip) return send(res, 400, { error: 'NIP wajib diisi' });
       if (!/^\d{18}$/.test(nip)) return send(res, 400, { error: 'NIP harus 18 digit angka, tidak boleh lebih atau kurang' });
-      if (password.length < 8) return send(res, 400, { error: 'Password minimal 8 karakter' });
+      if (password) {
+        if (!name) return send(res, 400, { error: 'Isi nama jika mengatur password' });
+        if (password.length < 8) return send(res, 400, { error: 'Password minimal 8 karakter' });
+      }
 
       const exists = await sql`select id from users where nip = ${nip}`;
       if (exists.length) return send(res, 409, { error: 'NIP sudah terdaftar' });
 
       const rows = await sql`
         insert into users (nip, name, phone, role, password_hash)
-        values (${nip}, ${name}, ${phone || null}, ${role}, ${hashPassword(password)})
-        returning id, nip, name, role`;
+        values (${nip}, ${name}, ${phone || null}, ${role}, ${password ? hashPassword(password) : ''})
+        returning id, nip, name, role, (password_hash <> '') as claimed`;
       return send(res, 200, { user: rows[0] });
     } catch (e) { return send(res, 500, { error: e.message }); }
   }

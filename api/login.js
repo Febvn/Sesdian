@@ -1,27 +1,48 @@
 import { getSql } from './_db.js';
-import { verifyPassword, signToken, send, readJson } from './_auth.js';
+import { verifyPassword, hashPassword, signToken, send, readJson } from './_auth.js';
 
 export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return send(res, 204, {});
   if (req.method !== 'POST') return send(res, 405, { error: 'Method not allowed' });
   try {
-    const { nip, password } = await readJson(req);
-    if (!nip || !password) return send(res, 400, { error: 'Masukkan NIP dan password' });
+    const body = await readJson(req);
+    const nip = String(body.nip || '').trim();
+    const password = String(body.password || '');
+    if (!nip) return send(res, 400, { error: 'Masukkan NIP' });
 
     const sql = getSql();
-    const rows = await sql`select id, nip, name, role, password_hash from users where nip = ${String(nip).trim()}`;
-    
+    const rows = await sql`select id, nip, name, role, password_hash from users where nip = ${nip}`;
+
     if (!rows.length) {
       await new Promise(r => setTimeout(r, 1000));
       return send(res, 401, { error: 'NIP atau password salah' });
     }
+    const u = rows[0];
 
-    if (!verifyPassword(password, rows[0].password_hash)) {
-      await new Promise(r => setTimeout(r, 1500));
-      return send(res, 401, { error: 'NIP atau password salah' });
+    // Akun berisi NIP saja (dibuat admin): pemiliknya mengatur nama dan
+    // password sendiri lewat alur claim, lalu langsung masuk.
+    const unclaimed = !u.password_hash;
+    if (unclaimed) {
+      if (!body.claim) return send(res, 200, { claim_required: true });
+      const newName = String(body.name || '').trim();
+      if (!newName) return send(res, 400, { error: 'Masukkan nama lengkap' });
+      if (password.length < 8) return send(res, 400, { error: 'Password minimal 8 karakter' });
+      // klausa where menjaga dari balapan: kalau akun keburu diklaim orang
+      // lain, update ini tidak mengenai baris apa pun.
+      const updated = await sql`
+        update users set name = ${newName}, password_hash = ${hashPassword(password)}
+        where id = ${u.id} and (password_hash is null or password_hash = '')
+        returning id, nip, name, role`;
+      if (!updated.length) return send(res, 409, { error: 'Akun sudah diaktifkan, silakan masuk dengan password Anda' });
+      u.name = updated[0].name;
+    } else {
+      if (!password) return send(res, 400, { error: 'Masukkan NIP dan password' });
+      if (!verifyPassword(password, u.password_hash)) {
+        await new Promise(r => setTimeout(r, 1500));
+        return send(res, 401, { error: 'NIP atau password salah' });
+      }
     }
 
-    const u = rows[0];
     let role = u.role;
     // bootstrap: if the system has no admin yet, the first account to log in is promoted
     if (role !== 'admin') {

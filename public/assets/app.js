@@ -92,15 +92,44 @@
     var nip = (val('nip') || ($('input[placeholder*="NIP" i]') || {}).value || '').trim();
     var pwd = val('password') || ($('input[type="password"]') || {}).value || '';
     if (!nip) { toast('Masukkan NIP Anda', 'error'); return; }
-    if (!pwd) { toast('Masukkan password Anda', 'error'); return; }
     if (REAL) {
-      try { await DB.auth.signIn({ nip: nip, password: pwd }); toast('Berhasil masuk', 'success'); setTimeout(go('dashboard.html'), 350); }
+      // password boleh kosong: NIP yang belum diklaim tidak punya password,
+      // server menjawab claim_required dan user diminta mengatur akunnya.
+      try {
+        var d = await DB.auth.signIn({ nip: nip, password: pwd });
+        if (d && d.claim_required) { openClaimForm(nip); return; }
+        toast('Berhasil masuk', 'success'); setTimeout(go('dashboard.html'), 350);
+      }
       catch (e) { toast((e && e.message) || 'Gagal masuk', 'error'); }
       return;
     }
+    if (!pwd) { toast('Masukkan password Anda', 'error'); return; }
     var name = nip === '123456789012345678' ? 'Adi Septriansyah' : 'Pengguna SESDIAN';
     localStorage.setItem(KEY, JSON.stringify({ nip: nip, name: name, initials: initials(name), role: 'admin' })); // demo = admin so all features are previewable
     toast('Berhasil masuk (mode demo: admin)', 'success'); setTimeout(go('dashboard.html'), 350);
+  }
+
+  // NIP terdaftar tapi belum punya nama/password (ditambahkan admin sebagai
+  // NIP saja): pemiliknya mengatur nama + password sendiri lalu langsung masuk.
+  function openClaimForm(nip) {
+    overlayForm({
+      title: 'Aktifkan Akun',
+      desc: 'NIP ' + nip + ' sudah didaftarkan oleh admin. Atur nama dan password Anda untuk mulai menggunakan akun ini.',
+      submitLabel: 'Simpan & Masuk',
+      fields: [
+        { name: 'name', label: 'Nama Lengkap', placeholder: 'Nama sesuai identitas' },
+        { name: 'password', label: 'Password baru (min. 8 karakter)', type: 'password' },
+        { name: 'confirm', label: 'Ulangi password', type: 'password' },
+      ],
+      onSave: async function (v) {
+        if (!v.name) throw new Error('Masukkan nama lengkap');
+        if (!v.password || v.password.length < 8) throw new Error('Password minimal 8 karakter');
+        if (v.password !== v.confirm) throw new Error('Konfirmasi password tidak cocok');
+        await DB.auth.claimAccount({ nip: nip, name: v.name, password: v.password });
+        toast('Akun aktif. Selamat datang!', 'success');
+        setTimeout(go('dashboard.html'), 500);
+      },
+    });
   }
 
   async function doRegister() {
@@ -300,9 +329,12 @@
         Object.keys(aStats).forEach(function (k) { var e = $('[data-stat="' + k + '"]'); if (e) e.textContent = aStats[k]; });
         var sub = $('[data-asset-subtitle]'); if (sub) sub.textContent = groups.length + ' jenis · ' + assets.length + ' unit · ' + aStats.total_stock + ' total stok';
       } else if (p === 'kategoriaset') {
-        renderList('[data-template]', await DB.categories(), function (n, r) { n.setAttribute('data-id', r.id); if (IS_ADMIN) enhanceSimpleCard(n, r, 'category'); });
+        var cats = await DB.categories();
+        var catSub = $('[data-cat-subtitle]'); if (catSub) catSub.textContent = cats.length + ' kategori';
+        renderList('[data-template]', cats, function (n, r) { n.setAttribute('data-id', r.id); if (IS_ADMIN) enhanceSimpleCard(n, r, 'category'); });
       } else if (p === 'ruangan') {
-        renderList('[data-template]', await DB.rooms(), function (n, r) {
+        var roomsSub = $('[data-room-subtitle]');
+        renderList('[data-template]', await DB.rooms().then(function (rs) { if (roomsSub) roomsSub.textContent = rs.length + ' ruangan terdaftar'; return rs; }), function (n, r) {
           n.setAttribute('data-id', r.id);
           n.style.cursor = 'pointer';
           n.addEventListener('click', function (e) { if (e.target.closest('.sesd-admin-actions')) return; openRoomDetail(r); });   // #9 — view/edit room contents
@@ -314,6 +346,7 @@
         // admin/verifikator see everyone's and can search by borrower name.
         var allbs = await DB.borrowings();
         var bs = allbs;
+        var bSub = $('[data-borrow-subtitle]'); if (bSub) bSub.textContent = allbs.length + ' total transaksi';
         ensureAksiHeader();
         renderList('[data-template]', bs, function (n, r) { n.setAttribute('data-status', r.status); enhanceBorrowingRow(n, r); });
         var counts = { all: allbs.length, pending: 0, approved: 0, rejected: 0, returned: 0 };
@@ -359,8 +392,6 @@
         buildAjukanList(groupAssets(await DB.assets()));
       } else if (p === 'users') {
         await renderUsers();
-        // WhatsApp notif setting moved to Detail Profil — drop its card here if present.
-        var waEl = $('[data-wa-input]'); if (waEl) { var waCard = waEl.closest('.animate-fade-up') || (waEl.parentNode && waEl.parentNode.parentNode); if (waCard && waCard.remove) waCard.remove(); }
       } else if (p === 'profil') {
         await renderProfile();
       }
@@ -402,6 +433,7 @@
     if (modalOpen()) return;
     var ov = overlay(), m = el('div', { class: 'sesd-modal' });
     m.appendChild(el('h3', {}, opts.title));
+    if (opts.desc) m.appendChild(el('p', { style: 'color:var(--text-muted);font-size:.83rem;margin:-6px 0 14px' }, opts.desc));
     var inputs = {};
     opts.fields.forEach(function (f) {
       var wrap = el('div', { class: 'sesd-field' });
@@ -1390,7 +1422,15 @@
     var td = 'padding:0.875rem 1rem;font-size:0.875rem;border-top:1px solid var(--border)';
     users.forEach(function (u) {
       var tr = el('tr');
-      tr.appendChild(el('td', { style: td + ';font-weight:600' }, u.name));
+      var nameTd = el('td', { style: td + ';font-weight:600' });
+      if (u.claimed === false) {
+        // akun berisi NIP saja: pemiliknya belum mengatur nama & password
+        nameTd.appendChild(el('span', { style: 'color:var(--text-muted);font-style:italic;font-weight:500' }, u.name || 'Belum diatur'));
+        nameTd.appendChild(el('span', { style: 'margin-left:8px;font-size:0.62rem;font-weight:800;letter-spacing:.4px;text-transform:uppercase;padding:0.14rem 0.5rem;border-radius:999px;background:rgba(221,91,0,0.12);color:var(--warning);white-space:nowrap', title: 'Pemilik NIP belum mengatur nama dan password' }, 'Belum aktif'));
+      } else {
+        nameTd.textContent = u.name;
+      }
+      tr.appendChild(nameTd);
       tr.appendChild(el('td', { style: td + ';color:var(--text-muted);font-family:"JetBrains Mono",monospace;font-size:0.8rem' }, u.nip));
       var roleTd = el('td', { style: td });
       roleTd.appendChild(roleBadge(u.role));
@@ -1401,7 +1441,7 @@
       ['user', 'verifikator', 'admin'].forEach(function (r) { var o = el('option', { value: r }, ROLE_META[r][0]); if (u.role === r) o.selected = true; sel.appendChild(o); });
       sel.addEventListener('change', async function () { sel.disabled = true; try { await DB.setUserRole(u.id, sel.value); toast('Role diperbarui', 'success'); renderUsers(); } catch (e) { toast((e && e.message) || 'Gagal', 'error'); renderUsers(); } });
       var del = el('button', { class: 'sesd-btn sesd-btn-sm sesd-btn-danger sesd-role-del', html: ic('trash') });
-      del.addEventListener('click', function () { confirmDelete('user "' + u.name + '"', async function () { await DB.deleteUser(u.id); toast('User dihapus', 'success'); renderUsers(); }); });
+      del.addEventListener('click', function () { confirmDelete('user "' + (u.name || ('NIP ' + u.nip)) + '"', async function () { await DB.deleteUser(u.id); toast('User dihapus', 'success'); renderUsers(); }); });
       wrap.appendChild(sel); wrap.appendChild(del);
       actTd.appendChild(wrap); tr.appendChild(actTd);
       list.appendChild(tr);
@@ -1560,10 +1600,12 @@
   }
 
   function openUserForm() {
+    // Cukup NIP saja: nama & password opsional — kalau dikosongkan, pemilik NIP
+    // mengaturnya sendiri saat pertama kali masuk (alur "Aktifkan Akun").
     overlayForm({
       title: 'Tambah User', submitLabel: 'Tambah',
+      desc: 'Cukup isi NIP. Pemilik NIP akan diminta mengatur nama dan password sendiri saat pertama kali masuk.',
       fields: [
-        { name: 'name', label: 'Nama Lengkap' },
         {
           name: 'nip', label: 'NIP (18 digit)', placeholder: '18 digit angka', maxlength: 18, inputmode: 'numeric',
           hint: function (v) {
@@ -1574,30 +1616,22 @@
             return { text: 'NIP valid (18 digit).', color: '#1aae39' };
           },
         },
-        { name: 'password', label: 'Password (min. 8 karakter)', type: 'password' },
         { name: 'role', label: 'Role', type: 'select', value: 'user', options: [{ value: 'user', label: 'User' }, { value: 'verifikator', label: 'Verifikator' }, { value: 'admin', label: 'Admin' }] },
+        { name: 'name', label: 'Nama Lengkap (opsional)', placeholder: 'Kosongkan agar diisi user sendiri' },
+        { name: 'password', label: 'Password (opsional, min. 8 karakter)', type: 'password' },
         { name: 'phone', label: 'No. HP / WhatsApp (opsional)' },
       ],
       onSave: async function (v) {
-        if (!v.name || !v.nip) throw new Error('Nama dan NIP wajib diisi');
+        if (!v.nip) throw new Error('NIP wajib diisi');
         if (!/^\d{18}$/.test(String(v.nip).trim())) throw new Error('NIP harus 18 digit angka, tidak boleh lebih atau kurang');
-        if (!v.password || v.password.length < 8) throw new Error('Password minimal 8 karakter');
+        if (v.password) {
+          if (v.password.length < 8) throw new Error('Password minimal 8 karakter');
+          if (!v.name) throw new Error('Isi nama jika mengatur password');
+        }
         await DB.createUser({ nip: v.nip, name: v.name, password: v.password, role: v.role, phone: v.phone });
-        toast('User ditambahkan', 'success'); reloadData();
+        toast(v.password ? 'User ditambahkan' : 'NIP terdaftar. Pemilik NIP mengatur nama & password saat pertama masuk.', 'success');
+        reloadData();
       },
-    });
-  }
-
-  async function wireWaSettings() {
-    var input = $('[data-wa-input]'), save = $('[data-wa-save]'), status = $('[data-wa-status]');
-    if (!input || !save) return;
-    function note(s) { if (!status) return; status.textContent = s.wa_auto ? 'Auto-kirim via gateway aktif.' : (s.wa_number ? 'Notifikasi dikirim lewat tautan WhatsApp saat user mengajukan.' : 'Belum ada nomor admin.'); }
-    try { var s = await DB.getSettings(); input.value = s.wa_number || ''; note(s); } catch (e) {}
-    save.addEventListener('click', async function () {
-      save.disabled = true;
-      try { var r = await DB.setWaNumber(input.value); toast('Nomor WhatsApp disimpan', 'success'); input.value = r.wa_number || ''; note(r); }
-      catch (e) { toast((e && e.message) || 'Gagal menyimpan', 'error'); }
-      save.disabled = false;
     });
   }
 
@@ -2369,12 +2403,15 @@
     setupGreeting();              // dashboard greeting (role-aware)
     normalizeChrome();            // brand logo + per-page sidebar/topbar icons (#1/#2/#5)
     if (IS_ADMIN) injectAdminBars();
-    await loadAndRender(page());
-    if (page() !== 'laporan') hidePageLoader();
+    // Kerangka halaman (chevron sidebar, tanggal, breadcrumb, layout mobile) tidak
+    // butuh data DB — pasang SEBELUM menunggu load supaya tampilan saat loading
+    // sudah sama persis dengan tampilan sesudah data masuk.
     setupMobileLayout();
     setupSidebarCollapse();
     setupDates();
     translateBreadcrumbs();
+    await loadAndRender(page());
+    if (page() !== 'laporan') hidePageLoader();
     document.body.classList.add('sesd-ready');   // reveal once DB data is rendered (no hardcoded flash)
     wireActions(); wireNav(); wireModal(); wireSearch(); wireFilters(); fallbacks(); setupNotice();
     reapplyFilters();

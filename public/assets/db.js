@@ -55,7 +55,18 @@
   /* ====================== auth ====================== */
   var auth = {
     async signUp(o) { var d = await req('register', { method: 'POST', body: { nip: o.nip, name: o.name, password: o.password, phone: o.phone } }); setToken(d.token); return d; },
-    async signIn(o) { var d = await req('login', { method: 'POST', body: { nip: o.nip, password: o.password } }); setToken(d.token); return d; },
+    async signIn(o) {
+      var d = await req('login', { method: 'POST', body: { nip: o.nip, password: o.password } });
+      // akun NIP-saja menjawab { claim_required: true } tanpa token
+      if (d.token) setToken(d.token);
+      return d;
+    },
+    // klaim akun NIP-saja: pemilik NIP mengatur nama + password lalu langsung masuk
+    async claimAccount(o) {
+      var d = await req('login', { method: 'POST', body: { nip: o.nip, claim: true, name: o.name, password: o.password } });
+      if (d.token) setToken(d.token);
+      return d;
+    },
     async signOut() { clearToken(); },
     currentUser() {
       var t = token(); if (!t) return null;
