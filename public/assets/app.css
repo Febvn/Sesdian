@@ -1134,14 +1134,15 @@ body[data-page="register"] input:focus {
   box-shadow: var(--card-hover-shadow) !important;
 }
 
-/* Stat cards — bouncy expand on hover */
+/* Stat cards — match standard stat-card hover and disable active click effect */
 .dashboard-stat-card:hover {
-  transform: scale(1.06) translateY(-6px) !important;
+  transform: translateY(-4px) !important;
+  box-shadow: var(--card-hover-shadow) !important;
+  background: var(--glass-hover) !important;
   z-index: 2;
 }
 .dashboard-stat-card:active {
-  transform: scale(0.98) !important;
-  transition-duration: 0.1s !important;
+  transform: translateY(-4px) !important;
 }
 
 /* ══════════════════════════════════════════════════════════
