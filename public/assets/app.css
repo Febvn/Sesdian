@@ -2348,10 +2348,12 @@ html[data-textsize="large"] { font-size: 18px; }
     8px 8px 16px rgba(163, 177, 198, 0.45),
     -8px -8px 16px rgba(255, 255, 255, 1);
 }
-/* dark mode: kartu ikut token tema, tanpa halo putih neumorphism */
+/* dark mode: neumorphism tetap ada, dengan warna shadow sesuai dark background */
 [data-theme="dark"] .sesd-greet {
-  border: 1px solid var(--border);
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.4);
+  border: none;
+  box-shadow:
+    8px 8px 16px rgba(0, 0, 0, 0.6),
+    -8px -8px 16px rgba(55, 65, 81, 0.25);
 }
 .sesd-greet::before,
 .sesd-greet::after { display: none; }
