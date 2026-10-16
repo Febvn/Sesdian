@@ -199,39 +199,91 @@
     document.body.appendChild(a); a.click(); a.remove();
   }
 
-  // Print to a clean DAFTAR PEMINJAMAN BARANG INVENTARIS form in a new window.
+  // Export PDF – directly downloads a PDF file (no print dialog, no popup).
   function printPdf() {
-    if (!lastData || !lastData.rows.length) { toast('Tidak ada data untuk dicetak', 'error'); return; }
-    var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]; }); };
-    var rows = lastData.rows.map(function (r, i) {
-      return '<tr>' +
-        '<td class="c">' + (i + 1) + '</td>' +
-        '<td>' + esc(r.borrower_name) + '</td>' +
-        '<td>' + esc(r.asset_name) + (r.asset_code ? ' (' + esc(r.asset_code) + ')' : '') + '</td>' +
-        '<td class="c">' + esc(fmtDate(r.created_at)) + '</td>' +
-        '<td class="c">' + esc(r.due_date ? fmtDate(r.due_date) : '') + '</td>' +
-        '<td class="c">' + esc(r.returned_at ? fmtDate(r.returned_at) : '') + '</td>' +
-        '<td>' + esc(r.admin_name) + '</td>' +
-        '<td>' + esc(r.verifikator_name) + '</td>' +
-        '</tr>';
-    }).join('');
-    var html = '<!doctype html><html><head><meta charset="utf-8"><title>Laporan Peminjaman</title><style>' +
-      'body{font-family:"Times New Roman",serif;color:#000;padding:28px}' +
-      'h2{text-align:center;margin:0;font-size:16px;letter-spacing:.5px}' +
-      'h3{text-align:center;margin:2px 0 18px;font-size:14px}' +
-      'table{width:100%;border-collapse:collapse;font-size:11px}' +
-      'th,td{border:1px solid #000;padding:5px 7px;vertical-align:top}' +
-      'th{text-align:center;font-weight:bold}td.c{text-align:center}' +
-      '@media print{body{padding:0}}' +
-      '</style></head><body onload="window.print()">' +
-      '<h2>DAFTAR PEMINJAMAN BARANG INVENTARIS</h2>' +
-      '<h3>Periode ' + esc(fmtDate(lastData.start)) + ' s/d ' + esc(fmtDate(lastData.end)) + '</h3>' +
-      '<table><thead><tr>' +
-      '<th>No</th><th>Nama Peminjam</th><th>Nama Barang</th><th>Tgl Pinjam</th><th>Tgl Kembali</th><th>Tgl Pengembalian</th><th>Nama Admin</th><th>Nama Verifikator</th>' +
-      '</tr></thead><tbody>' + rows + '</tbody></table></body></html>';
-    var w = window.open('', '_blank');
-    if (!w) { toast('Izinkan popup untuk mencetak', 'error'); return; }
-    w.document.write(html); w.document.close();
+    if (!lastData || !lastData.rows.length) { toast('Tidak ada data untuk diexport', 'error'); return; }
+    if (typeof window.jspdf === 'undefined') { toast('Library PDF belum dimuat, coba refresh halaman', 'error'); return; }
+
+    var jsPDF = window.jspdf.jsPDF;
+    var doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+
+    // Title
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(14);
+    doc.text('DAFTAR PEMINJAMAN BARANG INVENTARIS', doc.internal.pageSize.getWidth() / 2, 18, { align: 'center' });
+
+    // Subtitle (period)
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(11);
+    doc.text('Periode ' + fmtDate(lastData.start) + ' s/d ' + fmtDate(lastData.end), doc.internal.pageSize.getWidth() / 2, 25, { align: 'center' });
+
+    // Table headers
+    var head = [['No', 'Nama Peminjam', 'Nama Barang', 'Tgl Pinjam', 'Tgl Kembali', 'Tgl Pengembalian', 'Nama Admin', 'Nama Verifikator']];
+
+    // Table body – respect the active status filter
+    var body = [];
+    var visibleIdx = 0;
+    lastData.rows.forEach(function (r) {
+      var matchesFilter = state.status === 'all' || r.status === state.status;
+      if (!matchesFilter) return;
+      visibleIdx++;
+      body.push([
+        visibleIdx,
+        r.borrower_name || '-',
+        (r.asset_name || '-') + (r.asset_code ? ' (' + r.asset_code + ')' : ''),
+        fmtDate(r.created_at),
+        r.due_date ? fmtDate(r.due_date) : '-',
+        r.returned_at ? fmtDate(r.returned_at) : '-',
+        r.admin_name || '-',
+        r.verifikator_name || '-'
+      ]);
+    });
+
+    if (!body.length) { toast('Tidak ada data yang sesuai filter untuk diexport', 'error'); return; }
+
+    doc.autoTable({
+      head: head,
+      body: body,
+      startY: 30,
+      theme: 'grid',
+      styles: {
+        font: 'helvetica',
+        fontSize: 9,
+        cellPadding: 3,
+        lineColor: [0, 0, 0],
+        lineWidth: 0.3,
+        textColor: [0, 0, 0],
+        valign: 'middle'
+      },
+      headStyles: {
+        fillColor: [41, 50, 65],
+        textColor: [255, 255, 255],
+        fontStyle: 'bold',
+        halign: 'center',
+        fontSize: 9
+      },
+      columnStyles: {
+        0: { halign: 'center', cellWidth: 12 },
+        3: { halign: 'center' },
+        4: { halign: 'center' },
+        5: { halign: 'center' }
+      },
+      alternateRowStyles: {
+        fillColor: [245, 247, 250]
+      },
+      margin: { left: 10, right: 10 },
+      didDrawPage: function (data) {
+        // Footer with page number
+        var pageCount = doc.internal.getNumberOfPages();
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'normal');
+        doc.text('Halaman ' + data.pageNumber + ' dari ' + pageCount, doc.internal.pageSize.getWidth() / 2, doc.internal.pageSize.getHeight() - 8, { align: 'center' });
+      }
+    });
+
+    // Direct download
+    doc.save('laporan-peminjaman-' + lastData.start + '_' + lastData.end + '.pdf');
+    toast('PDF berhasil diunduh', 'success');
   }
 
   /* ============ Grafik tren peminjaman (Harian / Bulanan / Tahunan) ============
