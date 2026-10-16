@@ -520,6 +520,19 @@
     yes.addEventListener('click', async function () { yes.disabled = true; try { await onYes(); close(); } catch (e) { toast((e && e.message) || 'Gagal', 'error'); yes.disabled = false; } });
   }
 
+  // Dialog informasi satu tombol; boleh tampil di atas/tepat setelah modal lain.
+  function infoDialog(title, message) {
+    var ov = overlay(); ov.classList.add('sesd-confirm-overlay'); ov.style.zIndex = '10001';
+    var m = el('div', { class: 'sesd-modal', style: 'width:430px' });
+    m.appendChild(el('h3', {}, title));
+    m.appendChild(el('p', { style: 'color:var(--text-muted);font-size:.9rem;line-height:1.6;margin-bottom:1.15rem' }, message));
+    var ok = el('button', { class: 'sesd-btn sesd-btn-primary', style: 'width:100%' }, 'Mengerti');
+    m.appendChild(ok); ov.appendChild(m); document.body.appendChild(ov);
+    function close() { ov.remove(); }
+    ok.addEventListener('click', close);
+    ov.addEventListener('click', function (e) { if (e.target === ov) close(); });
+  }
+
   var DD_CARET = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>';
   // Custom styled dropdown (consistent font/style) with optional inline add + per-option delete.
   function buildDropdown(opts) {
@@ -1600,11 +1613,12 @@
   }
 
   function openUserForm() {
-    // Cukup NIP saja: nama & password opsional — kalau dikosongkan, pemilik NIP
-    // mengaturnya sendiri saat pertama kali masuk (alur "Aktifkan Akun").
+    // Admin hanya mendaftarkan NIP (plus role dan HP). Nama dan password TIDAK
+    // bisa diisi admin: pemilik NIP mengaturnya sendiri saat pertama kali masuk
+    // (alur "Aktifkan Akun" di halaman login).
     overlayForm({
-      title: 'Tambah User', submitLabel: 'Tambah',
-      desc: 'Cukup isi NIP. Pemilik NIP akan diminta mengatur nama dan password sendiri saat pertama kali masuk.',
+      title: 'Tambah User', submitLabel: 'Daftarkan NIP',
+      desc: 'Admin hanya mendaftarkan NIP. Nama dan password diatur sendiri oleh pemilik NIP saat pertama kali masuk.',
       fields: [
         {
           name: 'nip', label: 'NIP (18 digit)', placeholder: '18 digit angka', maxlength: 18, inputmode: 'numeric',
@@ -1617,20 +1631,14 @@
           },
         },
         { name: 'role', label: 'Role', type: 'select', value: 'user', options: [{ value: 'user', label: 'User' }, { value: 'verifikator', label: 'Verifikator' }, { value: 'admin', label: 'Admin' }] },
-        { name: 'name', label: 'Nama Lengkap (opsional)', placeholder: 'Kosongkan agar diisi user sendiri' },
-        { name: 'password', label: 'Password (opsional, min. 8 karakter)', type: 'password' },
         { name: 'phone', label: 'No. HP / WhatsApp (opsional)' },
       ],
       onSave: async function (v) {
         if (!v.nip) throw new Error('NIP wajib diisi');
         if (!/^\d{18}$/.test(String(v.nip).trim())) throw new Error('NIP harus 18 digit angka, tidak boleh lebih atau kurang');
-        if (v.password) {
-          if (v.password.length < 8) throw new Error('Password minimal 8 karakter');
-          if (!v.name) throw new Error('Isi nama jika mengatur password');
-        }
-        await DB.createUser({ nip: v.nip, name: v.name, password: v.password, role: v.role, phone: v.phone });
-        toast(v.password ? 'User ditambahkan' : 'NIP terdaftar. Pemilik NIP mengatur nama & password saat pertama masuk.', 'success');
+        await DB.createUser({ nip: v.nip, role: v.role, phone: v.phone });
         reloadData();
+        infoDialog('NIP terdaftar', 'Beritahu pemilik NIP ' + v.nip + ': buka halaman login, masukkan NIP saja lalu klik Masuk, kemudian atur nama dan password sendiri. Akun berstatus "Belum aktif" sampai itu dilakukan.');
       },
     });
   }

@@ -1,5 +1,5 @@
 import { getSql } from './_db.js';
-import { requireAdmin, hashPassword, send, readJson } from './_auth.js';
+import { requireAdmin, send, readJson } from './_auth.js';
 import { ensureSchema } from './_schema.js';
 
 const ROLES = ['user', 'admin', 'verifikator'];
@@ -27,30 +27,26 @@ export default async function handler(req, res) {
   }
 
   // ---- admin creates a new account ----
-  // Cukup NIP saja: nama dan password boleh kosong, pemilik NIP mengaturnya
-  // sendiri saat pertama kali masuk (lihat alur claim di /api/login).
+  // Admin hanya mendaftarkan NIP (plus role dan nomor HP). Nama dan password
+  // sengaja TIDAK diterima di sini: pemilik NIP mengaturnya sendiri saat
+  // pertama kali masuk (lihat alur claim di /api/login).
   if (req.method === 'POST') {
     try {
       const b = await readJson(req);
       const nip = String(b.nip || '').trim();
-      const name = String(b.name || '').trim();
-      const password = String(b.password || '');
       const role = ROLES.indexOf(b.role) !== -1 ? b.role : 'user';
       const phone = String(b.phone || '').replace(/\D/g, '').replace(/^0/, '62');
       if (!nip) return send(res, 400, { error: 'NIP wajib diisi' });
       if (!/^\d{18}$/.test(nip)) return send(res, 400, { error: 'NIP harus 18 digit angka, tidak boleh lebih atau kurang' });
-      if (password) {
-        if (!name) return send(res, 400, { error: 'Isi nama jika mengatur password' });
-        if (password.length < 8) return send(res, 400, { error: 'Password minimal 8 karakter' });
-      }
+      if (b.name || b.password) return send(res, 400, { error: 'Nama dan password diatur sendiri oleh pemilik NIP saat pertama masuk' });
 
       const exists = await sql`select id from users where nip = ${nip}`;
       if (exists.length) return send(res, 409, { error: 'NIP sudah terdaftar' });
 
       const rows = await sql`
         insert into users (nip, name, phone, role, password_hash)
-        values (${nip}, ${name}, ${phone || null}, ${role}, ${password ? hashPassword(password) : ''})
-        returning id, nip, name, role, (password_hash <> '') as claimed`;
+        values (${nip}, '', ${phone || null}, ${role}, '')
+        returning id, nip, name, role, false as claimed`;
       return send(res, 200, { user: rows[0] });
     } catch (e) { return send(res, 500, { error: e.message }); }
   }

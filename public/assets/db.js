@@ -229,8 +229,9 @@
     return (await req('users', { method: 'PATCH', body: { id: id, role: role } })).user;
   }
   async function createUser(d) {
-    if (demo) { var u = { id: ++DEMO.seq, nip: d.nip, name: d.name, role: d.role || 'user' }; DEMO.users.push(u); return P(u); }
-    return (await req('users', { method: 'POST', body: d })).user;
+    // hanya NIP + role + HP; nama & password diatur pemilik NIP saat klaim
+    if (demo) { var u = { id: ++DEMO.seq, nip: d.nip, name: '', role: d.role || 'user', claimed: false }; DEMO.users.push(u); return P(u); }
+    return (await req('users', { method: 'POST', body: { nip: d.nip, role: d.role, phone: d.phone } })).user;
   }
   async function deleteUser(id) {
     if (demo) { DEMO.users = DEMO.users.filter(function (x) { return x.id != id; }); return P({ ok: true }); }
