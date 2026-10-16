@@ -316,6 +316,35 @@
     var card = $('[data-trend-card]'); if (!card) return;
     var trendRows = null, mode = 'daily';
     var trendChartInstance = null;
+
+    // Listen to theme changes to dynamically update the chart styling
+    var themeObserver = new MutationObserver(function (mutations) {
+      mutations.forEach(function (mutation) {
+        if (mutation.attributeName === 'data-theme' && trendChartInstance) {
+          var style = getComputedStyle(document.documentElement);
+          var primaryColor = style.getPropertyValue('--chart-1').trim() || '#0075de';
+          var gridColor = style.getPropertyValue('--border').trim() || '#e6e6e6';
+          var textColor = style.getPropertyValue('--text-muted').trim() || '#64748b';
+          var cardBg = style.getPropertyValue('--bg-card').trim() || '#ffffff';
+          
+          trendChartInstance.data.datasets[0].borderColor = primaryColor;
+          trendChartInstance.data.datasets[0].pointBorderColor = primaryColor;
+          trendChartInstance.data.datasets[0].pointBackgroundColor = cardBg;
+          
+          if (trendChartInstance.options.scales.x) {
+            trendChartInstance.options.scales.x.ticks.color = textColor;
+          }
+          if (trendChartInstance.options.scales.y) {
+            trendChartInstance.options.scales.y.grid.color = gridColor;
+            trendChartInstance.options.scales.y.ticks.color = textColor;
+          }
+          
+          trendChartInstance.update();
+        }
+      });
+    });
+    themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
     card.appendChild(el('div', { style: 'font-size:0.95rem;font-weight:800' }, 'Grafik Peminjaman'));
     var sub = el('div', { style: 'font-size:0.75rem;color:var(--text-muted);margin:2px 0 12px' }, 'Jumlah pengajuan peminjaman per periode');
     card.appendChild(sub);
@@ -350,7 +379,14 @@
         var ctx = canvas.getContext('2d');
         
         Chart.defaults.font.family = "'Inter', sans-serif";
-        Chart.defaults.color = '#64748b'; // slate-500
+        
+        var style = getComputedStyle(document.documentElement);
+        var primaryColor = style.getPropertyValue('--chart-1').trim() || '#0075de';
+        var gridColor = style.getPropertyValue('--border').trim() || '#e6e6e6';
+        var textColor = style.getPropertyValue('--text-muted').trim() || '#64748b';
+        var cardBg = style.getPropertyValue('--bg-card').trim() || '#ffffff';
+        
+        Chart.defaults.color = textColor;
         
         trendChartInstance = new Chart(ctx, {
           type: 'line',
@@ -359,10 +395,10 @@
             datasets: [{
               label: 'Peminjaman',
               data: data,
-              borderColor: '#6366f1',
+              borderColor: primaryColor,
               borderWidth: 2.5,
-              pointBackgroundColor: '#ffffff',
-              pointBorderColor: '#6366f1',
+              pointBackgroundColor: cardBg,
+              pointBorderColor: primaryColor,
               pointBorderWidth: 2,
               pointRadius: 4,
               pointHoverRadius: 6,
@@ -416,12 +452,15 @@
               }
             },
             scales: {
-              x: { grid: { display: false, drawBorder: false } },
+              x: { 
+                grid: { display: false, drawBorder: false },
+                ticks: { color: textColor }
+              },
               y: {
                 beginAtZero: true,
                 border: { display: false },
-                grid: { color: '#e2e8f0', drawTicks: false },
-                ticks: { padding: 10, stepSize: Math.max(1, Math.ceil(maxN/4)) }
+                grid: { color: gridColor, drawTicks: false },
+                ticks: { padding: 10, stepSize: Math.max(1, Math.ceil(maxN/4)), color: textColor }
               }
             }
           }
