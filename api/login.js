@@ -10,6 +10,17 @@ export default async function handler(req, res) {
     const password = String(body.password || '');
     if (!nip) return send(res, 400, { error: 'Masukkan NIP' });
 
+    // Step 1: check whether NIP exists and has a password (no auth required)
+    if (body.action === 'check') {
+      const sql = getSql();
+      const rows = await sql`select id, password_hash from users where nip = ${nip}`;
+      if (!rows.length) {
+        await new Promise(r => setTimeout(r, 500));
+        return send(res, 200, { exists: false });
+      }
+      return send(res, 200, { exists: true, has_password: !!rows[0].password_hash });
+    }
+
     const sql = getSql();
     const rows = await sql`select id, nip, name, role, password_hash from users where nip = ${nip}`;
 

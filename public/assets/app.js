@@ -88,13 +88,69 @@
   function field(n) { return $('[data-field="' + n + '"]'); }
   function val(n) { var e = field(n); return e ? (e.value || '').trim() : ''; }
 
-  async function doLogin() {
-    var nip = (val('nip') || ($('input[placeholder*="NIP" i]') || {}).value || '').trim();
-    var pwd = val('password') || ($('input[type="password"]') || {}).value || '';
+  /* ---------- multi-step login helpers ---------- */
+  var _loginNip = ''; // NIP entered in step 1, carried through steps 2/3
+
+  function showStep(id) {
+    $$('.sesd-login__step').forEach(function (s) { s.classList.remove('active'); });
+    var target = document.getElementById(id);
+    if (target) target.classList.add('active');
+    // auto-focus first visible input in the step
+    var inp = target ? target.querySelector('input:not([type="hidden"])') : null;
+    if (inp) setTimeout(function () { inp.focus(); }, 80);
+  }
+
+  function goBackToNip() {
+    _loginNip = '';
+    showStep('step-nip');
+    var nipInput = document.getElementById('input-nip');
+    if (nipInput) { nipInput.value = ''; setTimeout(function () { nipInput.focus(); }, 80); }
+  }
+
+  async function doCheckNip() {
+    var nipInput = document.getElementById('input-nip');
+    var nip = nipInput ? nipInput.value.trim() : '';
     if (!nip) { toast('Masukkan NIP Anda', 'error'); return; }
+    _loginNip = nip;
+
     if (REAL) {
-      // password boleh kosong: NIP yang belum diklaim tidak punya password,
-      // server menjawab claim_required dan user diminta mengatur akunnya.
+      try {
+        var d = await DB.auth.checkNip(nip);
+        if (!d.exists) { toast('NIP tidak ditemukan', 'error'); return; }
+        if (d.has_password) {
+          // NIP sudah punya password → tampilkan form password
+          var pw = document.getElementById('nip-display-pw');
+          if (pw) pw.textContent = nip;
+          var pwInput = document.getElementById('input-password');
+          if (pwInput) pwInput.value = '';
+          showStep('step-password');
+        } else {
+          // NIP belum punya password → tampilkan form claim (nama + password)
+          var cl = document.getElementById('nip-display-claim');
+          if (cl) cl.textContent = nip;
+          var nameInput = document.getElementById('input-claim-name');
+          var claimPw = document.getElementById('input-claim-password');
+          var claimConf = document.getElementById('input-claim-confirm');
+          if (nameInput) nameInput.value = '';
+          if (claimPw) claimPw.value = '';
+          if (claimConf) claimConf.value = '';
+          showStep('step-claim');
+        }
+      } catch (e) { toast((e && e.message) || 'Gagal memeriksa NIP', 'error'); }
+      return;
+    }
+    // demo mode: just show password step
+    var pw2 = document.getElementById('nip-display-pw');
+    if (pw2) pw2.textContent = nip;
+    showStep('step-password');
+  }
+
+  async function doLogin() {
+    var nip = _loginNip;
+    var pwd = val('password') || ($('input[type="password"]') || {}).value || '';
+    if (!nip) { toast('NIP tidak ditemukan, ulangi dari awal', 'error'); goBackToNip(); return; }
+    if (!pwd) { toast('Masukkan password Anda', 'error'); return; }
+    if (REAL) {
       try {
         var d = await DB.auth.signIn({ nip: nip, password: pwd });
         if (d && d.claim_required) { openClaimForm(nip); return; }
@@ -103,33 +159,42 @@
       catch (e) { toast((e && e.message) || 'Gagal masuk', 'error'); }
       return;
     }
-    if (!pwd) { toast('Masukkan password Anda', 'error'); return; }
     var name = nip === '123456789012345678' ? 'Adi Septriansyah' : 'Pengguna SESDIAN';
     localStorage.setItem(KEY, JSON.stringify({ nip: nip, name: name, initials: initials(name), role: 'admin' })); // demo = admin so all features are previewable
     toast('Berhasil masuk (mode demo: admin)', 'success'); setTimeout(go('dashboard.html'), 350);
   }
 
-  // NIP terdaftar tapi belum punya nama/password (ditambahkan admin sebagai
-  // NIP saja): pemiliknya mengatur nama + password sendiri lalu langsung masuk.
-  function openClaimForm(nip) {
-    overlayForm({
-      title: 'Aktifkan Akun',
-      desc: 'NIP ' + nip + ' sudah didaftarkan oleh admin. Atur nama dan password Anda untuk mulai menggunakan akun ini.',
-      submitLabel: 'Simpan & Masuk',
-      fields: [
-        { name: 'name', label: 'Nama Lengkap', placeholder: 'Nama sesuai identitas' },
-        { name: 'password', label: 'Password baru (min. 8 karakter)', type: 'password' },
-        { name: 'confirm', label: 'Ulangi password', type: 'password' },
-      ],
-      onSave: async function (v) {
-        if (!v.name) throw new Error('Masukkan nama lengkap');
-        if (!v.password || v.password.length < 8) throw new Error('Password minimal 8 karakter');
-        if (v.password !== v.confirm) throw new Error('Konfirmasi password tidak cocok');
-        await DB.auth.claimAccount({ nip: nip, name: v.name, password: v.password });
+  async function doClaimSubmit() {
+    var nip = _loginNip;
+    if (!nip) { toast('NIP tidak ditemukan, ulangi dari awal', 'error'); goBackToNip(); return; }
+    var nameInput = document.getElementById('input-claim-name');
+    var pwInput = document.getElementById('input-claim-password');
+    var confInput = document.getElementById('input-claim-confirm');
+    var name = nameInput ? nameInput.value.trim() : '';
+    var pw = pwInput ? pwInput.value : '';
+    var confirm = confInput ? confInput.value : '';
+    if (!name) { toast('Masukkan nama lengkap', 'error'); return; }
+    if (!pw || pw.length < 8) { toast('Password minimal 8 karakter', 'error'); return; }
+    if (pw !== confirm) { toast('Konfirmasi password tidak cocok', 'error'); return; }
+    if (REAL) {
+      try {
+        await DB.auth.claimAccount({ nip: nip, name: name, password: pw });
         toast('Akun aktif. Selamat datang!', 'success');
         setTimeout(go('dashboard.html'), 500);
-      },
-    });
+      } catch (e) { toast((e && e.message) || 'Gagal mengaktifkan akun', 'error'); }
+      return;
+    }
+    localStorage.setItem(KEY, JSON.stringify({ nip: nip, name: name, initials: initials(name), role: 'admin' }));
+    toast('Akun berhasil dibuat (demo)', 'success'); setTimeout(go('dashboard.html'), 500);
+  }
+
+  // fallback: if server somehow returns claim_required on a signIn (edge case),
+  // navigate to the inline claim step instead of overlay
+  function openClaimForm(nip) {
+    _loginNip = nip;
+    var cl = document.getElementById('nip-display-claim');
+    if (cl) cl.textContent = nip;
+    showStep('step-claim');
   }
 
   async function doRegister() {
@@ -2062,14 +2127,44 @@
         else if (act === 'submit-pinjam') withLoading(e, submitPinjam);
       });
     });
-    if (page() === 'login' || page() === 'register') {
-      $$('input').forEach(function (input) { input.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); var b = $('[data-action="' + page() + '"]') || byText(page() === 'login' ? /^Masuk/ : /^Daftar/)[0]; if (b) b.click(); else page() === 'login' ? doLogin() : doRegister(); } }); });
+
+    // Multi-step login wiring
+    if (page() === 'login') {
+      var btnCheckNip = document.getElementById('btn-check-nip');
+      if (btnCheckNip) btnCheckNip.addEventListener('click', function (ev) { ev.preventDefault(); withLoading(btnCheckNip, doCheckNip); });
+
+      var btnBackPw = document.getElementById('btn-back-password');
+      if (btnBackPw) btnBackPw.addEventListener('click', function (ev) { ev.preventDefault(); goBackToNip(); });
+
+      var btnBackClaim = document.getElementById('btn-back-claim');
+      if (btnBackClaim) btnBackClaim.addEventListener('click', function (ev) { ev.preventDefault(); goBackToNip(); });
+
+      var btnClaimSubmit = document.getElementById('btn-claim-submit');
+      if (btnClaimSubmit) btnClaimSubmit.addEventListener('click', function (ev) { ev.preventDefault(); withLoading(btnClaimSubmit, doClaimSubmit); });
+
+      // Enter key per step
+      var nipInput = document.getElementById('input-nip');
+      if (nipInput) nipInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); if (btnCheckNip) btnCheckNip.click(); } });
+
+      var pwInput = document.getElementById('input-password');
+      if (pwInput) pwInput.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') { e.preventDefault(); var loginBtn = $('#step-password [data-action="login"]'); if (loginBtn) loginBtn.click(); }
+      });
+
+      // Enter in claim fields → submit claim
+      ['input-claim-name', 'input-claim-password', 'input-claim-confirm'].forEach(function (id) {
+        var inp = document.getElementById(id);
+        if (inp) inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); if (btnClaimSubmit) btnClaimSubmit.click(); } });
+      });
+    }
+
+    if (page() === 'register') {
+      $$('input').forEach(function (input) { input.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); var b = $('[data-action="register"]') || byText(/^Daftar/)[0]; if (b) b.click(); else doRegister(); } }); });
     }
   }
 
   function fallbacks() {
     if (!$('[data-action="logout"]')) byText(/^(Keluar|Logout|Log out)$/i).forEach(function (b) { b.addEventListener('click', function (e) { e.preventDefault(); withLoading(b, doLogout); }); });
-    if (page() === 'login' && !$('[data-action="login"]')) { byText(/^Masuk/).forEach(function (b) { b.addEventListener('click', function (e) { e.preventDefault(); withLoading(b, doLogin); }); }); byText(/👁/).forEach(function (b) { b.addEventListener('click', function (e) { e.preventDefault(); togglePassword(b); }); }); }
     if (page() === 'register' && !$('[data-action="register"]')) byText(/^Daftar/).forEach(function (b) { b.addEventListener('click', function (e) { e.preventDefault(); withLoading(b, doRegister); }); });
   }
 

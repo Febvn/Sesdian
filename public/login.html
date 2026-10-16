@@ -13,6 +13,29 @@
     />
     <script>(function(){try{var d=document.documentElement;if(localStorage.getItem('sesdian_theme')==='dark')d.setAttribute('data-theme','dark');var ts=localStorage.getItem('sesdian_textsize');if(ts==='small'||ts==='large')d.setAttribute('data-textsize',ts);if(localStorage.getItem('sesdian_rail')==='1')d.classList.add('sesd-rail-pref');}catch(e){}})();</script>
     <link rel="stylesheet" href="assets/app.css?v=57" />
+    <style>
+      /* Multi-step login transitions */
+      .sesd-login__step { display: none; }
+      .sesd-login__step.active { display: block; animation: stepFadeIn 0.35s ease-out; }
+      @keyframes stepFadeIn {
+        from { opacity: 0; transform: translateY(12px); }
+        to   { opacity: 1; transform: translateY(0); }
+      }
+      .sesd-login__back {
+        display: inline-flex; align-items: center; gap: 0.35rem;
+        background: none; border: none; color: var(--primary); cursor: pointer;
+        font-size: 0.85rem; font-weight: 600; padding: 0; margin-bottom: 1.1rem;
+        transition: opacity 0.2s;
+      }
+      .sesd-login__back:hover { opacity: 0.75; }
+      .sesd-login__back svg { width: 1em; height: 1em; }
+      .sesd-login__nip-display {
+        display: inline-block; padding: 0.4rem 0.85rem; margin-bottom: 1.25rem;
+        background: var(--primary-light); border-radius: 8px;
+        font-size: 0.82rem; font-weight: 600; color: var(--primary);
+        font-family: 'JetBrains Mono', monospace; letter-spacing: 0.5px;
+      }
+    </style>
   </head>
   <body data-page="login">
     <div id="root">
@@ -33,61 +56,147 @@
         </div>
         <div class="sesd-login__formpane">
           <div class="sesd-login__card animate-fade-up delay-2">
-            <h2>Masuk</h2>
-            <p class="sub">Gunakan NIP dan password Anda</p>
-            <div style="margin-bottom: 1rem">
-              <label class="sesd-login__label">NIP</label>
-              <input
-                class="sesd-login__input"
-                data-field="nip"
-                placeholder="18 digit NIP Anda"
-                value=""
-              />
-            </div>
-            <div style="margin-bottom: 1.5rem">
-              <label class="sesd-login__label">Password</label>
-              <div style="position: relative">
+
+            <!-- ===== STEP 1: NIP only ===== -->
+            <div class="sesd-login__step active" id="step-nip">
+              <h2>Masuk</h2>
+              <p class="sub">Masukkan NIP Anda untuk melanjutkan</p>
+              <div style="margin-bottom: 1.5rem">
+                <label class="sesd-login__label">NIP</label>
                 <input
                   class="sesd-login__input"
-                  data-field="password"
-                  placeholder="Password"
-                  type="password"
+                  id="input-nip"
+                  data-field="nip"
+                  placeholder="18 digit NIP Anda"
                   value=""
-                  style="padding-right: 3rem"
-                /><button
-                  class="sesd-login__eye"
-                  data-action="toggle-password"
-                  aria-label="Tampilkan password"
-                >
-                  <span class="ic"
-                    ><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="1em" height="1em" aria-hidden="true">
-                      <path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z" />
-                      <circle cx="12" cy="12" r="3" /></svg
-                  ></span>
-                </button>
+                  autocomplete="username"
+                />
               </div>
+              <button class="sesd-login__submit" id="btn-check-nip">Lanjutkan</button>
+              <p class="sesd-login__foot">
+                Akun dibuat oleh admin. Hanya ingin melihat aset?
+                <a href="katalog.html" style="color: var(--primary); font-weight: 600">Lihat katalog</a>
+              </p>
             </div>
-            <div
-              style="
-                margin: -0.6rem 0 1.1rem;
-                padding: 0.7rem 0.85rem;
-                background: var(--primary-light);
-                border-radius: 10px;
-                font-size: 0.78rem;
-                color: var(--text-muted);
-                line-height: 1.55;
-              "
-            >
-              Baru didaftarkan oleh admin dan belum pernah membuat password?
-              Masukkan <strong style="color: var(--primary)">NIP saja</strong>
-              lalu klik Masuk, Anda akan diminta mengatur nama dan password
-              sendiri.
+
+            <!-- ===== STEP 2: Password (NIP sudah punya password) ===== -->
+            <div class="sesd-login__step" id="step-password">
+              <button class="sesd-login__back" id="btn-back-password">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
+                Kembali
+              </button>
+              <h2>Masuk</h2>
+              <p class="sub">Masukkan password untuk NIP</p>
+              <div class="sesd-login__nip-display" id="nip-display-pw"></div>
+              <div style="margin-bottom: 1.5rem">
+                <label class="sesd-login__label">Password</label>
+                <div style="position: relative">
+                  <input
+                    class="sesd-login__input"
+                    id="input-password"
+                    data-field="password"
+                    placeholder="Password"
+                    type="password"
+                    value=""
+                    style="padding-right: 3rem"
+                    autocomplete="current-password"
+                  /><button
+                    class="sesd-login__eye"
+                    data-action="toggle-password"
+                    aria-label="Tampilkan password"
+                  >
+                    <span class="ic"
+                      ><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="1em" height="1em" aria-hidden="true">
+                        <path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z" />
+                        <circle cx="12" cy="12" r="3" /></svg
+                    ></span>
+                  </button>
+                </div>
+              </div>
+              <button class="sesd-login__submit" data-action="login">Masuk</button>
+              <p class="sesd-login__foot">
+                Akun dibuat oleh admin. Hanya ingin melihat aset?
+                <a href="katalog.html" style="color: var(--primary); font-weight: 600">Lihat katalog</a>
+              </p>
             </div>
-            <button class="sesd-login__submit" data-action="login">Masuk</button>
-            <p class="sesd-login__foot">
-              Akun dibuat oleh admin. Hanya ingin melihat aset?
-              <a href="katalog.html" style="color: var(--primary); font-weight: 600">Lihat katalog</a>
-            </p>
+
+            <!-- ===== STEP 3: Claim — nama + password (NIP belum punya password) ===== -->
+            <div class="sesd-login__step" id="step-claim">
+              <button class="sesd-login__back" id="btn-back-claim">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
+                Kembali
+              </button>
+              <h2>Aktifkan Akun</h2>
+              <p class="sub">NIP Anda sudah didaftarkan admin. Atur nama dan password Anda.</p>
+              <div class="sesd-login__nip-display" id="nip-display-claim"></div>
+              <div style="margin-bottom: 1rem">
+                <label class="sesd-login__label">Nama Lengkap</label>
+                <input
+                  class="sesd-login__input"
+                  id="input-claim-name"
+                  data-field="claim-name"
+                  placeholder="Nama sesuai identitas"
+                  value=""
+                  autocomplete="name"
+                />
+              </div>
+              <div style="margin-bottom: 1rem">
+                <label class="sesd-login__label">Password baru (min. 8 karakter)</label>
+                <div style="position: relative">
+                  <input
+                    class="sesd-login__input"
+                    id="input-claim-password"
+                    data-field="claim-password"
+                    placeholder="Buat password"
+                    type="password"
+                    value=""
+                    style="padding-right: 3rem"
+                    autocomplete="new-password"
+                  /><button
+                    class="sesd-login__eye"
+                    data-action="toggle-password"
+                    aria-label="Tampilkan password"
+                  >
+                    <span class="ic"
+                      ><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="1em" height="1em" aria-hidden="true">
+                        <path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z" />
+                        <circle cx="12" cy="12" r="3" /></svg
+                    ></span>
+                  </button>
+                </div>
+              </div>
+              <div style="margin-bottom: 1.5rem">
+                <label class="sesd-login__label">Ulangi password</label>
+                <div style="position: relative">
+                  <input
+                    class="sesd-login__input"
+                    id="input-claim-confirm"
+                    data-field="claim-confirm"
+                    placeholder="Ketik ulang password"
+                    type="password"
+                    value=""
+                    style="padding-right: 3rem"
+                    autocomplete="new-password"
+                  /><button
+                    class="sesd-login__eye"
+                    data-action="toggle-password"
+                    aria-label="Tampilkan password"
+                  >
+                    <span class="ic"
+                      ><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="1em" height="1em" aria-hidden="true">
+                        <path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z" />
+                        <circle cx="12" cy="12" r="3" /></svg
+                    ></span>
+                  </button>
+                </div>
+              </div>
+              <button class="sesd-login__submit" id="btn-claim-submit">Simpan & Masuk</button>
+              <p class="sesd-login__foot">
+                Akun dibuat oleh admin. Hanya ingin melihat aset?
+                <a href="katalog.html" style="color: var(--primary); font-weight: 600">Lihat katalog</a>
+              </p>
+            </div>
+
           </div>
         </div>
       </div>

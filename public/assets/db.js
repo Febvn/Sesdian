@@ -54,6 +54,8 @@
 
   /* ====================== auth ====================== */
   var auth = {
+    // check NIP existence and password status (step 1 of multi-step login)
+    async checkNip(nip) { return await req('login', { method: 'POST', body: { nip: nip, action: 'check' } }); },
     async signUp(o) { var d = await req('register', { method: 'POST', body: { nip: o.nip, name: o.name, password: o.password, phone: o.phone } }); setToken(d.token); return d; },
     async signIn(o) {
       var d = await req('login', { method: 'POST', body: { nip: o.nip, password: o.password } });
