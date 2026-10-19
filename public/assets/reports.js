@@ -21,6 +21,16 @@
     return_pending: ['Menunggu Verifikasi Kembali', '#c44a8a'],
     returned: ['Kembali', '#1aae39'], rejected: ['Ditolak', '#e03e3e'],
   };
+  function borrowerAvatar(name, photo, size) {
+    size = size || 30;
+    var box = el('span', { style: 'width:' + size + 'px;height:' + size + 'px;border-radius:50%;flex-shrink:0;overflow:hidden;display:inline-flex;align-items:center;justify-content:center;font-size:' + Math.round(size * 0.38) + 'px;font-weight:700;color:#fff;background:var(--primary)' });
+    if (photo) { box.style.background = 'var(--bg-mid)'; box.appendChild(el('img', { src: photo, alt: '', style: 'width:100%;height:100%;object-fit:cover' })); }
+    else {
+      var parts = String(name || '').trim().split(/\s+/).filter(Boolean);
+      box.textContent = parts.length ? ((parts[0][0] || '') + (parts[1] ? parts[1][0] : '')).toUpperCase() : '?';
+    }
+    return box;
+  }
   function toast(msg, type) {
     var wrap = $('.sesd-toast-wrap'); if (!wrap) { wrap = el('div', { class: 'sesd-toast-wrap' }); document.body.appendChild(wrap); }
     var t = el('div', { class: 'sesd-toast ' + (type || 'info') }, msg); wrap.appendChild(t);
@@ -173,7 +183,14 @@
     d.rows.forEach(function (r, i) {
       var tr = el('tr', { 'data-status': r.status || '' });
       tr.appendChild(el('td', { style: td, 'data-label': 'No' }, String(i + 1)));
-      tr.appendChild(el('td', { style: td + ';font-weight:600', 'data-label': 'Nama Peminjam' }, r.borrower_name || '-'));
+      
+      var nameCell = el('td', { style: td, 'data-label': 'Nama Peminjam' });
+      var wrap = el('div', { style: 'display:flex;align-items:center;gap:9px' });
+      wrap.appendChild(borrowerAvatar(r.borrower_name, r.borrower_avatar, 30));
+      wrap.appendChild(el('span', { style: 'font-weight:600;color:var(--text)' }, r.borrower_name || '-'));
+      nameCell.appendChild(wrap);
+      tr.appendChild(nameCell);
+
       tr.appendChild(el('td', { style: td, 'data-label': 'Nama Barang' }, (r.asset_name || '-') + (r.asset_code ? ' (' + r.asset_code + ')' : '')));
       tr.appendChild(el('td', { style: td, 'data-label': 'Tgl Pinjam' }, fmtDate(r.created_at)));
       tr.appendChild(el('td', { style: td, 'data-label': 'Tgl Kembali' }, r.due_date ? fmtDate(r.due_date) : '-'));

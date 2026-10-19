@@ -209,7 +209,31 @@
   /* ====================== reports (admin/verifikator) ====================== */
   async function reports(params) {
     params = params || {};
-    if (demo) { return P({ period: params.period || 'daily', start: '', end: '', total: 0, series: [], by_status: {}, top_assets: [], top_borrowers: [], rows: [] }); }
+    if (demo) {
+      var list = await borrowings();
+      var bs = {};
+      var total = list.length;
+      list.forEach(function (b) {
+        bs[b.status] = (bs[b.status] || 0) + 1;
+      });
+      var rows = list.map(function (b) {
+        return {
+          id: b.id,
+          borrower_name: b.borrower,
+          qty: b.qty,
+          status: b.status,
+          due_date: b.due_date,
+          created_at: b.created_at,
+          returned_at: b.returned_at || null,
+          asset_name: b.asset_name,
+          asset_code: b.asset_code,
+          admin_name: b.status === 'approved' || b.status === 'borrowed' || b.status === 'returned' ? 'Admin Demo' : '',
+          verifikator_name: b.status === 'borrowed' || b.status === 'returned' ? 'Verifikator Demo' : '',
+          borrower_avatar: b.borrower_avatar
+        };
+      });
+      return P({ period: params.period || 'daily', start: '2026-06-01', end: '2026-06-30', total: total, series: [], by_status: bs, top_assets: [], top_borrowers: [], rows: rows });
+    }
     var qs = Object.keys(params).filter(function (k) { return params[k]; }).map(function (k) { return k + '=' + encodeURIComponent(params[k]); }).join('&');
     return req('dashboard?view=reports' + (qs ? ('&' + qs) : ''));
   }

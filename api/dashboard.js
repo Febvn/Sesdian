@@ -22,15 +22,17 @@ export default async function handler(req, res) {
       const byStatus = await sql`
         select status, count(*)::int as count from borrowings
         where created_at >= ${start}::date and created_at < (${end}::date + 1) group by status`;
-      // full row detail incl. admin (approver) and verifikator names + return date
+      // full row detail incl. admin (approver) and verifikator names + return date + borrower avatar
       const rows = await sql`
         select b.id, b.borrower_name, b.qty, b.status, b.due_date, b.created_at, b.returned_at,
                coalesce(a.name,'-') as asset_name, coalesce(a.code,'') as asset_code,
-               coalesce(ua.name,'') as admin_name, coalesce(uv.name,'') as verifikator_name
+               coalesce(ua.name,'') as admin_name, coalesce(uv.name,'') as verifikator_name,
+               coalesce(u.avatar,'') as borrower_avatar
         from borrowings b
         left join assets a on a.id = b.asset_id
         left join users ua on ua.id = b.approved_by
         left join users uv on uv.id = b.verified_by
+        left join users u on u.id = b.user_id
         where b.created_at >= ${start}::date and b.created_at < (${end}::date + 1)
         order by b.created_at desc limit 5000`;
       const status = {};
