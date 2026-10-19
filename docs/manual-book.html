@@ -1,0 +1,504 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Manual Book SESDIAN</title>
+<style>
+  :root {
+    --blue: #0075de; --blue-dark: #005bab; --blue-light: #e7f1fc;
+    --ink: #1f1f1e; --muted: #615d59; --border: #e3e0dc;
+    --green: #1aae39; --orange: #dd5b00; --red: #e03e3e;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: "Segoe UI", Arial, sans-serif; color: var(--ink);
+    font-size: 11pt; line-height: 1.6; background: #f2f0ee;
+  }
+  .page {
+    background: #fff; max-width: 210mm; min-height: 285mm; margin: 12px auto;
+    padding: 22mm 20mm; box-shadow: 0 2px 14px rgba(0,0,0,0.12);
+    page-break-after: always; position: relative;
+  }
+  @media print {
+    body { background: #fff; }
+    .page { box-shadow: none; margin: 0; max-width: none; min-height: auto; padding: 14mm 16mm; }
+    .noprint { display: none; }
+    a { color: inherit; text-decoration: none; }
+  }
+  @page { size: A4; margin: 0; }
+
+  h1 { font-size: 17pt; color: var(--blue-dark); border-bottom: 3px solid var(--blue); padding-bottom: 6px; margin-bottom: 14px; }
+  h2 { font-size: 13pt; color: var(--blue-dark); margin: 18px 0 8px; }
+  h3 { font-size: 11.5pt; color: var(--ink); margin: 14px 0 6px; }
+  p { margin-bottom: 8px; text-align: justify; }
+  ul, ol { margin: 0 0 10px 22px; }
+  li { margin-bottom: 4px; }
+  strong { color: var(--ink); }
+
+  table { width: 100%; border-collapse: collapse; margin: 10px 0 14px; font-size: 10pt; }
+  th { background: var(--blue); color: #fff; text-align: left; padding: 7px 10px; }
+  td { border: 1px solid var(--border); padding: 6px 10px; vertical-align: top; }
+  tr:nth-child(even) td { background: #f8f7f6; }
+
+  .step { display: flex; margin-bottom: 8px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+  .step .no {
+    flex: 0 0 46px; background: var(--blue); color: #fff; display: flex;
+    align-items: center; justify-content: center; font-size: 16pt; font-weight: 700;
+  }
+  .step .isi { padding: 8px 12px; }
+  .step .isi b { display: block; margin-bottom: 2px; }
+
+  .callout { border: 1px solid var(--blue); border-radius: 8px; margin: 12px 0; overflow: hidden; }
+  .callout .judul { background: var(--blue); color: #fff; font-weight: 700; padding: 6px 12px; font-size: 10.5pt; }
+  .callout .badan { padding: 8px 12px; background: var(--blue-light); font-size: 10pt; }
+  .callout.hijau .judul { background: #187a2f; } .callout.hijau { border-color: #187a2f; } .callout.hijau .badan { background: #eaf7ee; }
+  .callout.oranye .judul { background: var(--orange); } .callout.oranye { border-color: var(--orange); } .callout.oranye .badan { background: #fdf0e6; }
+
+  figure { margin: 12px 0 16px; text-align: center; }
+  figure img { max-width: 100%; border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+  figcaption { font-size: 9pt; color: var(--muted); font-style: italic; margin-top: 5px; }
+
+  .badge { display: inline-block; padding: 1px 9px; border-radius: 99px; font-size: 9pt; font-weight: 700; white-space: nowrap; }
+
+  /* sampul */
+  .cover { display: flex; flex-direction: column; justify-content: center; text-align: left; }
+  .cover .brand { font-size: 26pt; font-weight: 800; letter-spacing: 1px; color: var(--blue); margin-bottom: 2px; }
+  .cover .brand span { color: #f5a623; }
+  .cover .tagline { color: var(--muted); margin-bottom: 40px; }
+  .cover h1.judul { border: none; font-size: 15pt; color: var(--ink); margin-bottom: 0; }
+  .cover .besar { font-size: 34pt; line-height: 1.15; font-weight: 800; color: var(--blue-dark); margin: 4px 0 18px; }
+  .cover .url { display: inline-block; background: var(--blue); color: #fff; border-radius: 99px; padding: 7px 18px; font-weight: 700; margin: 14px 0 46px; }
+  .cover .untuk { border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px; }
+  .cover .untuk h3 { margin-top: 0; color: var(--blue-dark); }
+
+  .toc td { border: none; border-bottom: 1px dotted var(--border); }
+  .toc .hal { text-align: right; color: var(--muted); width: 40px; }
+  .toc .sub { padding-left: 26px; }
+</style>
+</head>
+<body>
+
+<!-- ======================= SAMPUL ======================= -->
+<div class="page cover">
+  <div class="brand">SESDi<span>AN</span></div>
+  <div class="tagline">Sistem Digital Inventarisasi Aset Negara</div>
+  <h1 class="judul">BUKU PETUNJUK</h1>
+  <div class="besar">PENGGUNAAN<br />APLIKASI</div>
+  <p><strong>(MANUAL BOOK) — SESDIAN</strong></p>
+  <p>Situs Resmi Web Sistem:</p>
+  <span class="url">https://sesdian.vercel.app</span>
+  <div class="untuk">
+    <h3>Buku Panduan Ini Ditujukan Untuk:</h3>
+    <ol>
+      <li><strong>Pengguna Umum (Publik)</strong> — Melihat katalog aset dan memindai QR Code barang/ruangan tanpa login.</li>
+      <li><strong>User / Pegawai</strong> — Mengaktifkan akun, menelusuri aset, mengajukan peminjaman, dan mengembalikan barang.</li>
+      <li><strong>Verifikator</strong> — Melakukan verifikasi tingkat kedua atas peminjaman yang sudah disetujui admin.</li>
+      <li><strong>Administrator</strong> — Mengelola data aset, ruangan, kategori, pengguna, persetujuan peminjaman, dan laporan.</li>
+    </ol>
+  </div>
+</div>
+
+<!-- ======================= DAFTAR ISI ======================= -->
+<div class="page">
+  <h1>DAFTAR ISI</h1>
+  <table class="toc">
+    <tr><td>A. Latar Belakang Sistem SESDIAN</td><td class="hal">3</td></tr>
+    <tr><td>B. Alur Akses Utama dan Hak Akses Website</td><td class="hal">4</td></tr>
+    <tr><td>C. Panduan Pengguna Umum (Publik, Tanpa Login)</td><td class="hal">5</td></tr>
+    <tr><td class="sub">C.1 Katalog Publik</td><td class="hal">5</td></tr>
+    <tr><td class="sub">C.2 Halaman Detail Aset dan Scan QR Code</td><td class="hal">6</td></tr>
+    <tr><td class="sub">C.3 QR Code Ruangan</td><td class="hal">6</td></tr>
+    <tr><td class="sub">C.4 Tema Gelap/Terang dan Ukuran Teks</td><td class="hal">6</td></tr>
+    <tr><td>D. Panduan User / Pegawai</td><td class="hal">7</td></tr>
+    <tr><td class="sub">D.1 Aktivasi Akun Pertama Kali (NIP dari Admin)</td><td class="hal">7</td></tr>
+    <tr><td class="sub">D.2 Login dan Keamanan Sesi</td><td class="hal">8</td></tr>
+    <tr><td class="sub">D.3 Dashboard Pegawai</td><td class="hal">9</td></tr>
+    <tr><td class="sub">D.4 Menelusuri Data Aset</td><td class="hal">9</td></tr>
+    <tr><td class="sub">D.5 Mengajukan Peminjaman</td><td class="hal">11</td></tr>
+    <tr><td class="sub">D.6 Memantau Status di Daftar Pinjam</td><td class="hal">12</td></tr>
+    <tr><td class="sub">D.7 Mengembalikan Barang (Sedang Dipinjam)</td><td class="hal">12</td></tr>
+    <tr><td class="sub">D.8 Notifikasi (Lonceng dan WhatsApp)</td><td class="hal">13</td></tr>
+    <tr><td class="sub">D.9 Profil: Foto, Identitas, dan Ganti Password</td><td class="hal">13</td></tr>
+    <tr><td>E. Panduan Verifikator</td><td class="hal">14</td></tr>
+    <tr><td>F. Panduan Administrator</td><td class="hal">15</td></tr>
+    <tr><td class="sub">F.1 Dashboard Admin</td><td class="hal">15</td></tr>
+    <tr><td class="sub">F.2 Manajemen Data Aset (Tambah, Edit, Hapus, Gambar)</td><td class="hal">15</td></tr>
+    <tr><td class="sub">F.3 Import Data Aset dari Excel</td><td class="hal">17</td></tr>
+    <tr><td class="sub">F.4 QR Code Aset dan Ruangan</td><td class="hal">17</td></tr>
+    <tr><td class="sub">F.5 Kategori Aset dan Ruangan</td><td class="hal">17</td></tr>
+    <tr><td class="sub">F.6 Alur Persetujuan Peminjaman dan Pengembalian</td><td class="hal">18</td></tr>
+    <tr><td class="sub">F.7 Kelola User (Pendaftaran NIP)</td><td class="hal">19</td></tr>
+    <tr><td class="sub">F.8 Laporan, Ekspor, dan Grafik</td><td class="hal">20</td></tr>
+    <tr><td class="sub">F.9 Notifikasi WhatsApp</td><td class="hal">20</td></tr>
+    <tr><td>G. Pertanyaan Sering Diajukan (FAQ)</td><td class="hal">21</td></tr>
+    <tr><td>H. Penutup dan Penyelesaian Masalah</td><td class="hal">22</td></tr>
+  </table>
+</div>
+
+<!-- ======================= A. LATAR BELAKANG ======================= -->
+<div class="page">
+  <h1>A. LATAR BELAKANG SISTEM SESDIAN</h1>
+  <p>SESDIAN (Sistem Digital Inventarisasi Aset Negara) adalah aplikasi berbasis web yang dirancang untuk mempermudah, mentransparansikan, dan mempercepat tata kelola peminjaman serta inventarisasi aset kantor instansi. Setiap aset terpantau dari sisi jumlah stok, lokasi ruangan, kondisi fisik, foto, hingga riwayat peminjamannya.</p>
+  <p>Sistem ini menggantikan pencatatan manual berbasis kertas dengan alur digital: pegawai mengajukan peminjaman secara online, admin menyetujui, verifikator memeriksa ulang, dan pengembalian barang diverifikasi kembali sehingga stok selalu akurat.</p>
+
+  <h2>Tujuan Utama Implementasi</h2>
+  <ul>
+    <li>Pegawai dapat mengajukan izin pinjam pakai aset secara online tanpa formulir kertas.</li>
+    <li>Ketersediaan barang tampil apa adanya (real-time) sehingga tidak terjadi bentrok pemakaian.</li>
+    <li>Persetujuan dua tingkat (admin lalu verifikator) menjaga akuntabilitas setiap transaksi.</li>
+    <li>Pemberitahuan WhatsApp otomatis/semi-otomatis pada setiap tahapan penting peminjaman.</li>
+    <li>Laporan peminjaman siap ekspor CSV dan cetak PDF, dilengkapi grafik tren.</li>
+    <li>Transparansi publik melalui katalog terbuka dan label QR Code pada barang dan ruangan.</li>
+  </ul>
+
+  <div class="callout">
+    <div class="judul">Arsitektur Teknologi Sistem</div>
+    <div class="badan">
+      <p><strong>Antarmuka (Frontend):</strong> Halaman web statis HTML, CSS, dan JavaScript murni tanpa framework, di-host pada jaringan global Vercel.</p>
+      <p><strong>Server (Backend):</strong> Vercel Serverless Functions (Node.js) yang melayani REST API aplikasi.</p>
+      <p><strong>Basis Data:</strong> Neon Serverless PostgreSQL (cloud).</p>
+      <p><strong>Notifikasi:</strong> Tautan WhatsApp (wa.me) yang siap kirim, atau pengiriman otomatis melalui gateway Fonnte bila token dikonfigurasi.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ======================= B. HAK AKSES ======================= -->
+<div class="page">
+  <h1>B. ALUR AKSES UTAMA DAN HAK AKSES WEBSITE</h1>
+  <p>Buka peramban modern (Google Chrome, Mozilla Firefox, Microsoft Edge, atau Safari) pada komputer maupun smartphone, lalu akses tautan resmi:</p>
+  <p style="text-align:center"><strong style="color:var(--blue);font-size:13pt">https://sesdian.vercel.app/</strong></p>
+  <p>SESDIAN membagi hak akses ke dalam 4 peran:</p>
+  <table>
+    <tr><th style="width:26%">Kategori Akses</th><th>Cara Masuk dan Cakupan Hak</th></tr>
+    <tr><td><strong>Umum / Publik</strong></td><td>Tanpa login. Melihat katalog aset, detail aset, dan inventaris ruangan melalui halaman katalog atau pemindaian QR Code.</td></tr>
+    <tr><td><strong>User / Pegawai</strong></td><td>Login memakai NIP 18 digit dan password. Akun didaftarkan admin (cukup NIP), lalu pegawai mengaktifkannya sendiri saat pertama kali masuk. Dapat menelusuri aset, mengajukan peminjaman, dan mengembalikan barang.</td></tr>
+    <tr><td><strong>Verifikator</strong></td><td>Login sama seperti pegawai. Bertugas melakukan verifikasi tingkat kedua atas peminjaman yang sudah disetujui admin, serta verifikasi pengembalian.</td></tr>
+    <tr><td><strong>Administrator</strong></td><td>Login sama, dengan menu tambahan. Mengelola aset, ruangan, kategori, pengguna, menyetujui/menolak peminjaman, dan menyusun laporan.</td></tr>
+  </table>
+
+  <div class="callout oranye">
+    <div class="judul">Penting: Pendaftaran Akun</div>
+    <div class="badan">
+      Tidak ada pendaftaran mandiri. Seluruh akun didaftarkan oleh administrator cukup dengan <strong>NIP 18 digit</strong>.
+      Nama dan password <strong>tidak</strong> diisi admin, melainkan diatur sendiri oleh pemilik NIP saat pertama kali masuk
+      (lihat bagian D.1 Aktivasi Akun).
+    </div>
+  </div>
+
+  <h2>Peta Menu per Peran</h2>
+  <table>
+    <tr><th>Menu</th><th>User</th><th>Verifikator</th><th>Admin</th></tr>
+    <tr><td>Dashboard</td><td>✓</td><td>✓</td><td>✓</td></tr>
+    <tr><td>Data Aset</td><td>✓ (lihat &amp; pinjam)</td><td>✓</td><td>✓ (kelola penuh)</td></tr>
+    <tr><td>Ruangan</td><td>✓ (lihat)</td><td>✓</td><td>✓ (kelola)</td></tr>
+    <tr><td>Daftar Pinjam</td><td>✓ (milik sendiri)</td><td>✓ (semua)</td><td>✓ (semua + approval)</td></tr>
+    <tr><td>Sedang Dipinjam</td><td>✓</td><td>✓</td><td>✓</td></tr>
+    <tr><td>Ajukan Pinjam</td><td>✓</td><td>✓</td><td>✓</td></tr>
+    <tr><td>Verifikasi</td><td>—</td><td>✓</td><td>✓</td></tr>
+    <tr><td>Laporan</td><td>—</td><td>✓</td><td>✓</td></tr>
+    <tr><td>Kelola User</td><td>—</td><td>—</td><td>✓</td></tr>
+    <tr><td>Detail Profil</td><td>✓</td><td>✓</td><td>✓ (+ pengaturan WhatsApp)</td></tr>
+  </table>
+</div>
+
+<!-- ======================= C. PUBLIK ======================= -->
+<div class="page">
+  <h1>C. PANDUAN PENGGUNA UMUM (PUBLIK, TANPA LOGIN)</h1>
+  <p>Masyarakat umum, tamu, maupun pegawai yang belum memiliki akun dapat melihat transparansi inventaris tanpa login.</p>
+
+  <h2>C.1 Katalog Publik</h2>
+  <p>Buka <strong>https://sesdian.vercel.app/katalog</strong> (atau klik "Lihat katalog" pada halaman login). Halaman ini menampilkan:</p>
+  <ul>
+    <li><strong>Kartu statistik</strong>: total aset, total stok, stok tersedia, stok dipinjam, dan pengajuan pending.</li>
+    <li><strong>Kolom pencarian</strong> nama, kode, atau merek aset yang menyaring seketika saat diketik.</li>
+    <li><strong>Chip filter kategori</strong> (Elektronik, Furnitur, Kendaraan, dan seterusnya).</li>
+    <li><strong>Kartu aset per jenis</strong>: foto barang, badge BMN/Non-BMN, jumlah unit, nama aset, badge merek berwarna biru, chip kategori dan ruangan.</li>
+  </ul>
+  <div class="callout hijau">
+    <div class="judul">Tips: Melihat Gambar Ukuran Penuh</div>
+    <div class="badan">Klik langsung pada <strong>foto</strong> di kartu aset untuk membuka gambar ukuran penuh (lightbox). Tutup dengan mengklik di mana saja atau menekan tombol Esc. Klik bagian kartu lainnya untuk membuka halaman detail.</div>
+  </div>
+  <figure><img src="manual-img/katalog.webp" alt="Katalog publik" /><figcaption>Gambar C.1 — Halaman Katalog Publik</figcaption></figure>
+</div>
+
+<div class="page">
+  <h2>C.2 Halaman Detail Aset dan Scan QR Code</h2>
+  <p>Halaman detail dapat dibuka dengan dua cara:</p>
+  <div class="step"><div class="no">1</div><div class="isi"><b>Dari katalog</b>Klik salah satu kartu aset pada halaman katalog publik.</div></div>
+  <div class="step"><div class="no">2</div><div class="isi"><b>Dari stiker QR Code barang</b>Buka kamera smartphone, arahkan ke stiker QR pada bodi barang dari jarak 10–15 cm, lalu ketuk tautan yang muncul. Browser langsung membuka halaman detail aset tersebut.</div></div>
+  <p>Halaman detail menampilkan foto (klik untuk ukuran penuh), kode register, nama, merek, kategori, ruangan, tahun, kondisi, jenis BMN/Non-BMN, dan tipe aset. Jumlah stok dan tombol <em>Ajukan Pinjam</em> hanya aktif setelah login; pengunjung publik akan diarahkan ke halaman masuk.</p>
+  <figure><img src="manual-img/aset-detail.webp" alt="Detail aset" /><figcaption>Gambar C.2 — Halaman Detail Aset Publik dengan tombol "Kembali ke katalog"</figcaption></figure>
+
+  <h2>C.3 QR Code Ruangan</h2>
+  <p>Admin dapat menempel QR Code ruangan di dekat pintu masuk. Memindai QR tersebut membuka katalog yang otomatis tersaring hanya untuk barang-barang di ruangan itu (Daftar Inventaris Ruangan digital), lengkap dengan kondisi dan ketersediaan.</p>
+
+  <h2>C.4 Tema Gelap/Terang dan Ukuran Teks</h2>
+  <p>Di pojok kanan atas semua halaman terdapat <strong>sakelar tema</strong> (terang/gelap) dan tombol <strong>A A A</strong> untuk memilih ukuran teks kecil, normal, atau besar. Pilihan tersimpan di perangkat dan berlaku di seluruh halaman.</p>
+</div>
+
+<!-- ======================= D. USER ======================= -->
+<div class="page">
+  <h1>D. PANDUAN USER / PEGAWAI</h1>
+
+  <h2>D.1 Aktivasi Akun Pertama Kali (NIP dari Admin)</h2>
+  <p>Akun Anda dibuat oleh admin hanya berupa NIP. Saat pertama kali masuk, Anda diminta mengatur nama dan password sendiri:</p>
+  <div class="step"><div class="no">1</div><div class="isi"><b>Buka halaman login</b>Akses https://sesdian.vercel.app/login lalu masukkan <strong>NIP 18 digit</strong> Anda dan klik <strong>Lanjutkan</strong>.</div></div>
+  <div class="step"><div class="no">2</div><div class="isi"><b>Sistem memeriksa NIP</b>Bila NIP terdaftar tetapi belum punya password, layar berpindah ke langkah <strong>"Aktifkan Akun"</strong>.</div></div>
+  <div class="step"><div class="no">3</div><div class="isi"><b>Atur identitas Anda</b>Isi <strong>Nama Lengkap</strong> sesuai identitas, buat <strong>password baru minimal 8 karakter</strong>, lalu ulangi password yang sama.</div></div>
+  <div class="step"><div class="no">4</div><div class="isi"><b>Simpan dan langsung masuk</b>Klik tombol simpan. Akun langsung aktif dan Anda dibawa ke Dashboard tanpa perlu login ulang.</div></div>
+  <figure><img src="manual-img/aktivasi.webp" alt="Aktivasi akun" /><figcaption>Gambar D.1 — Langkah "Aktifkan Akun" bagi NIP yang belum punya password</figcaption></figure>
+  <div class="callout oranye">
+    <div class="judul">NIP Tidak Dikenali?</div>
+    <div class="badan">Bila sistem menyatakan NIP belum terdaftar, hubungi administrator agar NIP Anda didaftarkan terlebih dahulu di menu Kelola User.</div>
+  </div>
+</div>
+
+<div class="page">
+  <h2>D.2 Login dan Keamanan Sesi</h2>
+  <div class="step"><div class="no">1</div><div class="isi"><b>Masukkan NIP</b>Pada halaman login, ketik NIP 18 digit lalu klik <strong>Lanjutkan</strong>.</div></div>
+  <div class="step"><div class="no">2</div><div class="isi"><b>Masukkan password</b>Bila akun sudah aktif, kolom password muncul. Gunakan ikon mata untuk menampilkan ketikan dan menghindari salah ketik.</div></div>
+  <div class="step"><div class="no">3</div><div class="isi"><b>Klik Masuk</b>Bila kombinasi benar, Anda diarahkan ke Dashboard sesuai peran akun.</div></div>
+  <figure><img src="manual-img/login.webp" alt="Login" /><figcaption>Gambar D.2 — Halaman login: cukup NIP terlebih dahulu</figcaption></figure>
+  <div class="callout">
+    <div class="judul">Masa Berlaku Sesi</div>
+    <div class="badan">Sesi login tersimpan aman di perangkat dan berlaku hingga <strong>7 hari</strong>. Setelah kedaluwarsa (atau setelah klik "Keluar"), Anda diminta login kembali.</div>
+  </div>
+
+  <h2>D.3 Dashboard Pegawai</h2>
+  <p>Setelah masuk, Dashboard menampilkan:</p>
+  <ul>
+    <li><strong>Sapaan personal</strong> sesuai waktu (pagi/siang/sore/malam) beserta peran akun.</li>
+    <li><strong>Lima kartu statistik</strong>: Total Aset, Total Stok, Stok Tersedia, Stok Dipinjam, dan Pending.</li>
+    <li><strong>Tabel Peminjaman Terbaru</strong> dengan kolom aset, jumlah, peminjam, status, dan tempo, dilengkapi pencarian dan filter status di pojok tabel.</li>
+  </ul>
+  <figure><img src="manual-img/dashboard-user.webp" alt="Dashboard user" /><figcaption>Gambar D.3 — Dashboard pegawai</figcaption></figure>
+</div>
+
+<div class="page">
+  <h2>D.4 Menelusuri Data Aset</h2>
+  <p>Buka menu <strong>Data Aset</strong> di sidebar kiri. Unit-unit dengan nama dan merek yang sama otomatis dikelompokkan menjadi <strong>satu kartu jenis</strong> agar daftar tetap ringkas.</p>
+  <ul>
+    <li><strong>Kartu jenis</strong> memuat foto, badge BMN/Non-BMN, ketersediaan, kode/jumlah unit, nama aset, <strong>badge merek biru</strong> (pembeda utama antar jenis bernama sama), chip kategori dan ruangan, kondisi, serta bar stok tersedia/total.</li>
+    <li><strong>Pencarian</strong> nama atau kode, <strong>filter BMN/Non-BMN</strong>, dan <strong>filter status</strong> (Semua, Tersedia, Sedang Dipinjam, Maintenance).</li>
+    <li><strong>Klik foto</strong> untuk melihat gambar ukuran penuh; <strong>klik kartu</strong> untuk membuka detail jenis.</li>
+  </ul>
+  <figure><img src="manual-img/dataaset-user.webp" alt="Data aset" /><figcaption>Gambar D.4 — Halaman Data Aset (tampilan pegawai)</figcaption></figure>
+  <p>Jendela <strong>detail jenis</strong> menampilkan ringkasan Total/Tersedia/Dipinjam, gambar jenis (klik untuk ukuran penuh), dan daftar seluruh unit fisik beserta kode, kondisi, dan QR-nya. Centang unit yang tersedia, isi <strong>tanggal jatuh tempo kembali</strong> (wajib), lalu klik <strong>Ajukan Pinjam</strong>.</p>
+  <figure><img src="manual-img/modal-jenis.webp" alt="Detail jenis" /><figcaption>Gambar D.5 — Detail jenis: pilih unit lalu ajukan pinjam</figcaption></figure>
+</div>
+
+<div class="page">
+  <h2>D.5 Mengajukan Peminjaman</h2>
+  <p>Selain lewat detail jenis pada Data Aset, tersedia halaman khusus <strong>Ajukan Pinjam</strong> di sidebar:</p>
+  <div class="step"><div class="no">1</div><div class="isi"><b>Pilih aset</b>Klik kartu aset yang tersedia. Jendela detail terbuka; centang satu atau beberapa unit yang ingin dipinjam.</div></div>
+  <div class="step"><div class="no">2</div><div class="isi"><b>Isi tanggal jatuh tempo</b>Tentukan tanggal rencana pengembalian pada kolom tanggal (wajib diisi).</div></div>
+  <div class="step"><div class="no">3</div><div class="isi"><b>Kirim pengajuan</b>Klik <strong>Ajukan Pinjam</strong>. Status pengajuan menjadi <span class="badge" style="background:#fdf0e6;color:#b34a00">Pending</span> dan menunggu tinjauan admin.</div></div>
+  <div class="step"><div class="no">4</div><div class="isi"><b>Pemberitahuan WhatsApp</b>Sistem menyiapkan pesan WhatsApp berisi nota pengajuan kepada admin: terkirim otomatis bila gateway aktif, atau terbuka sebagai draf wa.me yang tinggal Anda kirim.</div></div>
+  <figure><img src="manual-img/ajukanpinjam.webp" alt="Ajukan pinjam" /><figcaption>Gambar D.6 — Halaman Ajukan Pinjam</figcaption></figure>
+
+  <h2>D.6 Memantau Status di Daftar Pinjam</h2>
+  <p>Menu <strong>Daftar Pinjam</strong> memuat seluruh riwayat pengajuan Anda dengan filter cepat: Semua, Pending, Disetujui, Ditolak, dan Sudah dikembalikan (angka pada tiap tab menunjukkan jumlahnya).</p>
+  <table>
+    <tr><th>Status</th><th>Arti</th></tr>
+    <tr><td><span class="badge" style="background:#fdf0e6;color:#b34a00">Pending</span></td><td>Menunggu persetujuan admin (verifikasi pertama).</td></tr>
+    <tr><td><span class="badge" style="background:#e7f1fc;color:#005bab">Disetujui Admin</span></td><td>Lolos verifikasi pertama; menunggu pemeriksaan verifikator.</td></tr>
+    <tr><td><span class="badge" style="background:#e0f2f1;color:#1f7d7a">Terverifikasi</span></td><td>Lolos verifikasi kedua; barang boleh diambil/dipakai.</td></tr>
+    <tr><td><span class="badge" style="background:#ede7f6;color:#5e35b1">Dipinjam</span></td><td>Barang sedang berada di tangan peminjam.</td></tr>
+    <tr><td><span class="badge" style="background:#fce4ef;color:#8e2f63">Menunggu Verifikasi Kembali</span></td><td>Peminjam sudah mengajukan pengembalian; menunggu konfirmasi petugas.</td></tr>
+    <tr><td><span class="badge" style="background:#eaf7ee;color:#187a2f">Kembali</span></td><td>Pengembalian dikonfirmasi; transaksi selesai dan stok pulih.</td></tr>
+    <tr><td><span class="badge" style="background:#fdecec;color:#b32222">Ditolak</span></td><td>Pengajuan ditolak admin.</td></tr>
+  </table>
+  <figure><img src="manual-img/daftarpinjam.webp" alt="Daftar pinjam" /><figcaption>Gambar D.7 — Daftar Pinjam dengan filter status</figcaption></figure>
+</div>
+
+<div class="page">
+  <h2>D.7 Mengembalikan Barang (Sedang Dipinjam)</h2>
+  <p>Menu <strong>Sedang Dipinjam</strong> berisi barang yang masih di tangan Anda:</p>
+  <div class="step"><div class="no">1</div><div class="isi"><b>Klik "Konfirmasi Pengembalian"</b>Pada barang yang akan dikembalikan, klik tombol konfirmasi lalu setujui dialognya. Status berubah menjadi <em>Menunggu Verifikasi Kembali</em>.</div></div>
+  <div class="step"><div class="no">2</div><div class="isi"><b>Serahkan barang fisik</b>Bawa barang ke petugas. Admin/verifikator akan menekan <em>Verifikasi Pengembalian</em>; status menjadi <em>Kembali</em> dan stok pulih otomatis.</div></div>
+
+  <h2>D.8 Notifikasi (Lonceng dan WhatsApp)</h2>
+  <ul>
+    <li><strong>Lonceng di pojok kanan atas</strong>: menampilkan kejadian terbaru yang relevan bagi Anda (pengajuan disetujui, ditolak, dikembalikan, dan sebagainya) beserta jumlah yang belum dibaca; diperbarui otomatis secara berkala.</li>
+    <li><strong>WhatsApp</strong>: admin menerima pesan setiap ada pengajuan atau permintaan pengembalian; peminjam menerima kabar keputusan. Terkirim otomatis bila gateway aktif, atau berupa draf wa.me siap kirim.</li>
+  </ul>
+
+  <h2>D.9 Profil: Foto, Identitas, dan Ganti Password</h2>
+  <p>Klik avatar di pojok kanan atas lalu pilih <strong>Detail Profil</strong>:</p>
+  <ul>
+    <li><strong>Foto profil</strong>: klik ikon pensil pada avatar, pilih gambar; foto otomatis dipotong persegi dan tersinkron ke semua perangkat.</li>
+    <li><strong>Informasi Akun</strong>: perbarui identitas akun Anda.</li>
+    <li><strong>Keamanan</strong>: ganti password secara berkala.</li>
+    <li>Khusus admin, ada kartu <strong>Notifikasi WhatsApp</strong> (lihat F.9).</li>
+    <li>Tombol <strong>Keluar</strong> untuk mengakhiri sesi.</li>
+  </ul>
+  <figure><img src="manual-img/profil.webp" alt="Profil" /><figcaption>Gambar D.8 — Halaman Detail Profil</figcaption></figure>
+</div>
+
+<!-- ======================= E. VERIFIKATOR ======================= -->
+<div class="page">
+  <h1>E. PANDUAN VERIFIKATOR</h1>
+  <p>Verifikator adalah pemeriksa tingkat kedua. Peminjaman yang sudah disetujui admin belum boleh dipakai sebelum diverifikasi ulang, sehingga setiap transaksi diperiksa dua pasang mata.</p>
+
+  <h2>E.1 Halaman Verifikasi</h2>
+  <ul>
+    <li>Antrian berisi pengajuan berstatus <strong>Disetujui Admin</strong> (menunggu verifikasi kedua) serta <strong>Menunggu Verifikasi Kembali</strong> (pengembalian barang).</li>
+    <li>Tiap baris menampilkan foto profil dan nama peminjam, aset, tanggal, dan status.</li>
+    <li>Tombol <strong>Setujui</strong> menandai transaksi <em>Terverifikasi</em>; tombol <strong>Tolak</strong> mengembalikannya dengan status ditolak. Setiap aksi meminta konfirmasi ulang agar tidak salah klik.</li>
+    <li>Untuk pengembalian, tombol <strong>Verifikasi Dikembalikan</strong> menutup transaksi dan memulihkan stok.</li>
+    <li>Panel <strong>donat distribusi status</strong> di samping tabel meringkas kondisi seluruh transaksi.</li>
+  </ul>
+  <figure><img src="manual-img/verifikasi.webp" alt="Verifikasi" /><figcaption>Gambar E.1 — Halaman Verifikasi (antrian verifikator)</figcaption></figure>
+  <p>Di luar tugas verifikasi, akun verifikator dapat menggunakan seluruh fitur pegawai biasa (menelusuri aset, meminjam, laporan, dan sebagainya).</p>
+</div>
+
+<!-- ======================= F. ADMIN ======================= -->
+<div class="page">
+  <h1>F. PANDUAN ADMINISTRATOR</h1>
+
+  <h2>F.1 Dashboard Admin</h2>
+  <p>Dashboard admin serupa dengan pegawai namun mencakup data seluruh organisasi: lima kartu statistik agregat dan tabel Peminjaman Terbaru semua pengguna, lengkap dengan pencarian dan filter status.</p>
+  <figure><img src="manual-img/dashboard-admin.webp" alt="Dashboard admin" /><figcaption>Gambar F.1 — Dashboard administrator</figcaption></figure>
+
+  <h2>F.2 Manajemen Data Aset</h2>
+  <p>Menu <strong>Data Aset</strong> bagi admin memiliki tombol <strong>Tambah Aset</strong> dan <strong>Import Excel</strong> di kanan atas.</p>
+  <figure><img src="manual-img/dataaset-admin.webp" alt="Data aset admin" /><figcaption>Gambar F.2 — Data Aset dengan aksi admin</figcaption></figure>
+  <h3>Menambah Aset Baru</h3>
+  <table>
+    <tr><th style="width:30%">Kolom</th><th>Ketentuan Pengisian</th></tr>
+    <tr><td>Kode Aset</td><td>Kode register unik unit (mis. gabungan Kode Barang + NUP).</td></tr>
+    <tr><td>Nama Barang</td><td>Nama resmi; dilengkapi saran otomatis dari nama yang sudah ada agar penulisan konsisten.</td></tr>
+    <tr><td>Kategori</td><td>Pilih dari dropdown; kategori baru dapat ditambah langsung dari dropdown yang sama.</td></tr>
+    <tr><td>Ruangan</td><td>Pilih lokasi penempatan barang.</td></tr>
+    <tr><td>Merek</td><td>Merek/pabrikan; menjadi badge pembeda dan penentu pengelompokan jenis.</td></tr>
+    <tr><td>Tahun, Kondisi, Jenis, Tipe</td><td>Tahun perolehan; kondisi (Baik/Rusak Ringan/Rusak Berat); jenis BMN/Non-BMN; tipe aset.</td></tr>
+    <tr><td>Stok</td><td>Jumlah stok unit.</td></tr>
+    <tr><td>Foto</td><td>Unggah gambar; tersedia editor potong dengan geser dan perbesar/perkecil (zoom) sebelum disimpan.</td></tr>
+  </table>
+  <h3>Satu Gambar per Jenis</h3>
+  <p>Unit dengan nama dan merek sama memakai <strong>satu gambar bersama</strong>. Buka detail jenis lalu klik <strong>Ganti Gambar</strong>: unggah file atau tempel URL, atur potongan pada editor, dan gambar berlaku untuk seluruh unit jenis tersebut. Jenis tanpa foto otomatis memakai ilustrasi bawaan sistem.</p>
+  <h3>Edit dan Hapus Unit</h3>
+  <p>Di dalam detail jenis, setiap unit memiliki tombol <strong>ubah</strong> (ikon pensil) untuk memperbarui data, tombol <strong>hapus</strong> (ikon tempat sampah, dengan konfirmasi), serta tombol <strong>QR</strong> untuk mencetak label.</p>
+</div>
+
+<div class="page">
+  <h2>F.3 Import Data Aset dari Excel</h2>
+  <div class="step"><div class="no">1</div><div class="isi"><b>Unduh template</b>Klik <strong>Import Excel</strong> lalu unduh template resmi agar susunan kolom (Kode Barang, NUP, Nama Barang, Merk, Jenis BMN, dan seterusnya) sudah benar.</div></div>
+  <div class="step"><div class="no">2</div><div class="isi"><b>Isi data</b>Lengkapi baris data pada template. Kode unit dibentuk dari Kode Barang + NUP.</div></div>
+  <div class="step"><div class="no">3</div><div class="isi"><b>Unggah dan validasi</b>Pilih file pada jendela import. Sistem memeriksa header dan isi; baris bermasalah dilaporkan sebelum data disimpan.</div></div>
+
+  <h2>F.4 QR Code Aset dan Ruangan</h2>
+  <ul>
+    <li><strong>QR unit aset</strong>: tombol QR pada tiap unit membuka halaman cetak label; gunakan Ctrl + P untuk mencetak stiker, lalu tempel pada bodi barang. Pemindaian mengarah ke halaman detail aset.</li>
+    <li><strong>QR ruangan</strong>: dari kartu ruangan, cetak QR yang mengarah ke katalog publik tersaring per ruangan (Daftar Inventaris Ruangan digital).</li>
+  </ul>
+
+  <h2>F.5 Kategori Aset dan Ruangan</h2>
+  <p><strong>Kategori Aset</strong>: menambah kategori baru beserta ikon, dan menghapus kategori yang tidak terpakai (aset lama menjadi tanpa kategori).</p>
+  <figure><img src="manual-img/kategoriaset.webp" alt="Kategori" /><figcaption>Gambar F.3 — Kelola Kategori Aset</figcaption></figure>
+  <p><strong>Ruangan</strong>: menambah ruangan (nama, kode, penanggung jawab), membuka detail isi ruangan untuk melihat dan memindahkan barang, serta mencetak QR ruangan.</p>
+  <figure><img src="manual-img/ruangan.webp" alt="Ruangan" /><figcaption>Gambar F.4 — Kelola Ruangan</figcaption></figure>
+</div>
+
+<div class="page">
+  <h2>F.6 Alur Persetujuan Peminjaman dan Pengembalian</h2>
+  <div class="step"><div class="no">1</div><div class="isi"><b>Pengajuan masuk</b>Pengajuan baru berstatus <em>Pending</em> tampil di Daftar Pinjam dan halaman Verifikasi admin; lonceng dan WhatsApp memberi tahu admin.</div></div>
+  <div class="step"><div class="no">2</div><div class="isi"><b>Verifikasi pertama (admin)</b>Klik <strong>Setujui (Verifikasi 1)</strong> atau <strong>Tolak</strong>. Setiap aksi meminta konfirmasi kedua. Peminjam menerima kabar keputusan.</div></div>
+  <div class="step"><div class="no">3</div><div class="isi"><b>Verifikasi kedua (verifikator)</b>Pengajuan yang disetujui menunggu verifikator menandainya <em>Terverifikasi</em>; setelah itu barang diserahkan dan stok terpotong.</div></div>
+  <div class="step"><div class="no">4</div><div class="isi"><b>Pengembalian</b>Peminjam menekan <em>Konfirmasi Pengembalian</em>; petugas menekan <strong>Verifikasi Dikembalikan</strong> saat barang fisik kembali. Status menjadi <em>Kembali</em> dan stok pulih.</div></div>
+  <div class="callout hijau">
+    <div class="judul">Stok Selalu Konsisten</div>
+    <div class="badan">Sistem menghitung ulang stok dari transaksi aktif (self-healing), sehingga angka tersedia/dipinjam selalu cocok dengan kenyataan meski terjadi perubahan data.</div>
+  </div>
+
+  <h2>F.7 Kelola User (Pendaftaran NIP)</h2>
+  <p>Menu <strong>Kelola User</strong> menampilkan seluruh akun beserta peran dan aksinya.</p>
+  <div class="step"><div class="no">1</div><div class="isi"><b>Klik "Tambah User"</b>Formulir hanya meminta <strong>NIP 18 digit</strong>, <strong>Role</strong> (User/Verifikator/Admin), dan No. HP opsional. Nama dan password sengaja tidak dapat diisi admin.</div></div>
+  <div class="step"><div class="no">2</div><div class="isi"><b>Klik "Daftarkan NIP"</b>Sistem menyimpan akun dan menampilkan dialog instruksi.</div></div>
+  <div class="step"><div class="no">3</div><div class="isi"><b>Beritahu pemilik NIP</b>Minta yang bersangkutan membuka halaman login, memasukkan NIP-nya, lalu mengatur nama dan password sendiri (lihat D.1). Sampai itu dilakukan, akun berbadge <span class="badge" style="background:#fdf0e6;color:#b34a00">BELUM AKTIF</span>.</div></div>
+  <figure><img src="manual-img/tambah-user.webp" alt="Tambah user" /><figcaption>Gambar F.5 — Form Tambah User (cukup NIP)</figcaption></figure>
+  <figure><img src="manual-img/users.webp" alt="Kelola user" /><figcaption>Gambar F.6 — Tabel user dengan badge "Belum aktif"</figcaption></figure>
+  <ul>
+    <li><strong>Ubah peran</strong> lewat dropdown pada kolom Aksi (akun sendiri tidak bisa diturunkan).</li>
+    <li><strong>Hapus akun</strong> dengan tombol merah; ditolak bila user masih punya peminjaman aktif.</li>
+  </ul>
+</div>
+
+<div class="page">
+  <h2>F.8 Laporan, Ekspor, dan Grafik</h2>
+  <ul>
+    <li><strong>Periode</strong>: pilih <em>Harian</em> (dengan pemilih tanggal) atau <em>Bulanan</em> (dengan pemilih bulan); ringkasan dan tabel mengikuti periode terpilih.</li>
+    <li><strong>Ringkasan</strong>: total peminjaman pada periode serta rincian per status.</li>
+    <li><strong>Tabel laporan</strong> memuat peminjam, barang, tanggal pinjam/kembali/pengembalian, admin, dan verifikator, dengan filter status di atas tabel.</li>
+    <li><strong>Export CSV</strong> mengunduh rekap tabular; <strong>Cetak PDF</strong> membuka formulir resmi "DAFTAR PEMINJAMAN BARANG INVENTARIS" siap tanda tangan.</li>
+    <li><strong>Grafik Peminjaman</strong>: kurva garis halus jumlah pengajuan per periode (Harian 14 hari, Bulanan setahun, Tahunan 5 tahun). Arahkan kursor untuk melihat angka tiap titik; klik gambar grafik tidak diperlukan karena nilai maksimum diberi label langsung.</li>
+  </ul>
+  <figure><img src="manual-img/laporan.webp" alt="Laporan" /><figcaption>Gambar F.7 — Halaman Laporan Peminjaman</figcaption></figure>
+  <figure><img src="manual-img/laporan-grafik.webp" alt="Grafik laporan" /><figcaption>Gambar F.8 — Grafik tren peminjaman (kurva garis)</figcaption></figure>
+
+  <h2>F.9 Notifikasi WhatsApp</h2>
+  <ul>
+    <li>Atur <strong>nomor WhatsApp admin</strong> pada Detail Profil (kartu Notifikasi WhatsApp). Nomor ini menerima nota setiap pengajuan dan permintaan pengembalian.</li>
+    <li>Tanpa gateway, sistem membuka <strong>tautan wa.me</strong> berisi pesan siap kirim (sekali klik kirim).</li>
+    <li>Bila token <strong>Fonnte</strong> dikonfigurasi pada server, pesan terkirim <strong>otomatis</strong> tanpa campur tangan, termasuk pemberitahuan keputusan kepada peminjam.</li>
+  </ul>
+</div>
+
+<!-- ======================= G. FAQ ======================= -->
+<div class="page">
+  <h1>G. PERTANYAAN SERING DIAJUKAN (FAQ)</h1>
+
+  <p><strong>1. Apakah masyarakat umum bisa meminjam barang lewat katalog atau scan QR?</strong><br/>
+  Tidak. Publik hanya dapat melihat informasi. Peminjaman memerlukan akun pegawai yang didaftarkan admin.</p>
+
+  <p><strong>2. NIP saya tidak dikenali saat login. Bagaimana?</strong><br/>
+  Hubungi administrator agar NIP Anda didaftarkan melalui menu Kelola User. Setelah itu ulangi login dan lakukan aktivasi akun (bagian D.1).</p>
+
+  <p><strong>3. Saya lupa password. Bagaimana solusinya?</strong><br/>
+  Hubungi administrator. Admin dapat menghapus akun lama Anda lalu mendaftarkan ulang NIP yang sama, sehingga Anda dapat mengulangi aktivasi dan membuat password baru. Penghapusan hanya bisa dilakukan bila tidak ada peminjaman aktif atas nama Anda.</p>
+
+  <p><strong>4. Mengapa beberapa unit barang tampil sebagai satu kartu saja?</strong><br/>
+  Unit dengan nama dan merek sama dikelompokkan menjadi satu jenis agar daftar ringkas. Jumlah unit tertera pada kartu, dan seluruh unit tetap tercatat satu per satu di dalam detail jenis (masing-masing dengan kode dan QR sendiri).</p>
+
+  <p><strong>5. Mengapa gambar aset sama untuk semua unit sejenis?</strong><br/>
+  Sistem memakai satu gambar per jenis (nama + merek). Admin dapat menggantinya kapan saja lewat tombol Ganti Gambar pada detail jenis.</p>
+
+  <p><strong>6. Pesan WhatsApp tidak terkirim otomatis. Kenapa?</strong><br/>
+  Tanpa token gateway Fonnte, sistem hanya menyiapkan draf wa.me yang harus dikirim manual dengan satu klik. Minta admin mengonfigurasi token Fonnte di server untuk pengiriman otomatis.</p>
+
+  <p><strong>7. Nomor WhatsApp saya berubah. Di mana menggantinya?</strong><br/>
+  Buka Detail Profil dan perbarui pada Informasi Akun, atau laporkan ke admin.</p>
+
+  <p><strong>8. Berapa lama sesi login bertahan?</strong><br/>
+  Tujuh hari sejak login terakhir. Setelah itu sistem meminta Anda masuk kembali.</p>
+
+  <p><strong>9. Data di layar terasa usang atau tidak berubah setelah pembaruan.</strong><br/>
+  Muat ulang halaman (F5). Bila masih sama, lakukan hard refresh (Ctrl + Shift + R) agar berkas terbaru terunduh.</p>
+</div>
+
+<!-- ======================= H. PENUTUP ======================= -->
+<div class="page">
+  <h1>H. PENUTUP DAN PENYELESAIAN MASALAH</h1>
+  <p>Buku petunjuk ini disusun mengikuti alur penggunaan nyata aplikasi SESDIAN, dari akses publik, aktivasi akun pegawai, peminjaman dan pengembalian, verifikasi berlapis, hingga administrasi aset dan pelaporan.</p>
+
+  <h2>Langkah Penyelesaian Masalah Umum</h2>
+  <table>
+    <tr><th style="width:38%">Gejala</th><th>Solusi</th></tr>
+    <tr><td>Halaman tidak memuat data / berputar terus</td><td>Periksa koneksi internet, lalu muat ulang halaman. Coba browser lain bila berlanjut.</td></tr>
+    <tr><td>Tampilan tidak berubah setelah ada pembaruan sistem</td><td>Hard refresh dengan Ctrl + Shift + R untuk mengambil berkas terbaru.</td></tr>
+    <tr><td>Tidak bisa login padahal password benar</td><td>Pastikan NIP tepat 18 digit tanpa spasi. Bila baru didaftarkan, selesaikan aktivasi akun terlebih dahulu.</td></tr>
+    <tr><td>Tombol admin tidak muncul</td><td>Peran akun Anda bukan admin; hubungi administrator untuk penyesuaian peran.</td></tr>
+    <tr><td>QR Code tidak terbaca</td><td>Bersihkan lensa kamera, tambah pencahayaan, dan jaga jarak pindai 10–15 cm.</td></tr>
+  </table>
+
+  <p style="margin-top:18px">Dengan digitalisasi tata kelola aset yang terintegrasi ini, diharapkan pemantauan inventaris dinas semakin akuntabel, transparan, dan tertata rapi.</p>
+
+  <div class="callout noprint" style="margin-top:26px">
+    <div class="judul">Menyimpan Manual Ini sebagai PDF</div>
+    <div class="badan">Buka berkas ini di browser, tekan <strong>Ctrl + P</strong>, pilih tujuan <strong>Save as PDF</strong>, ukuran kertas A4, margin None, dan centang <em>Background graphics</em>, lalu simpan.</div>
+  </div>
+</div>
+
+</body>
+</html>
