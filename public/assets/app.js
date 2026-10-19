@@ -45,6 +45,7 @@
     return_pending: { label: 'Menunggu Verifikasi Kembali', bg: '#fce4ef', fg: '#8e2f63' },
     returned: { label: 'Kembali', bg: '#e2f6e7', fg: '#127a2b' },
     rejected: { label: 'Ditolak', bg: '#fbe4e4', fg: '#a02020' },
+    cancelled: { label: 'Dibatalkan', bg: '#eceff3', fg: '#5b6472' },
   };
 
   /* ---------------- toast ---------------- */
@@ -1433,6 +1434,7 @@
     returned:       { title: 'Verifikasi Pengembalian',  message: 'Konfirmasi bahwa barang sudah benar-benar dikembalikan?',       variant: 'success', confirmLabel: 'Ya, sudah kembali' },
     return_pending: { title: 'Konfirmasi Pengembalian',  message: 'Ajukan pengembalian barang ini ke admin?',                     variant: 'primary', confirmLabel: 'Ya, kembalikan' },
     rejected:       { title: 'Tolak Permintaan',         message: 'Apakah Anda yakin menolak permintaan ini?',                    variant: 'danger',  confirmLabel: 'Ya, tolak' },
+    cancelled:      { title: 'Batalkan Pengajuan',       message: 'Batalkan pengajuan peminjaman ini? Stok akan dikembalikan dan pengajuan tidak dapat dilanjutkan.', variant: 'danger', confirmLabel: 'Ya, batalkan' },
   };
   // #8 — every status change asks for a second confirmation before it runs.
   function changeStatus(rec, status) {
@@ -1460,6 +1462,9 @@
       else if (rec.status === 'return_pending') { btns.push(['Verifikasi Pengembalian', 'success', function () { changeStatus(rec, 'returned'); }], ['Tolak', 'danger', function () { changeStatus(rec, 'borrowed'); }]); }
       else if (IS_ADMIN && rec.status === 'approved') { cell._note = 'Menunggu verifikator'; }
       if (isOverdue(rec) && (rec.status === 'borrowed' || rec.status === 'verified')) btns.unshift(['Ingatkan WA', 'warning', function () { return doNotify(rec, 'remind', 'Pengingat dikirim ke peminjam'); }]);
+    } else if (rec.status === 'pending') {
+      // peminjam bisa membatalkan sendiri selagi masih menunggu persetujuan admin (tanpa lewat admin)
+      btns.push(['Batalkan', 'danger', function () { changeStatus(rec, 'cancelled'); }]);
     } else if (rec.status === 'borrowed' || rec.status === 'verified') {
       btns.push(['Konfirmasi Pengembalian', 'primary', function () { changeStatus(rec, 'return_pending'); }]);
     } else if (rec.status === 'return_pending') {

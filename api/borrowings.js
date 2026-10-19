@@ -5,7 +5,7 @@ import { ensureSchema } from './_schema.js';
 
 // Stock is counted as "out" while a borrowing is in any of these states.
 const RESERVED = ['pending', 'approved', 'verified', 'borrowed', 'return_pending'];
-const STATUSES = ['pending', 'approved', 'verified', 'borrowed', 'return_pending', 'returned', 'rejected'];
+const STATUSES = ['pending', 'approved', 'verified', 'borrowed', 'return_pending', 'returned', 'rejected', 'cancelled'];
 const STAFF = ['admin', 'verifikator'];
 
 // Workflow (2 verifications, then the item is out — no separate "lend" step):
@@ -13,6 +13,7 @@ const STAFF = ['admin', 'verifikator'];
 //        --(verifikator verify = verif 2, serah terima)--> borrowed  (= sedang dipinjam)
 //        --(peminjam: konfirmasi kembali)--> return_pending
 //        --(admin verifikasi pengembalian)--> returned
+//   pending --(peminjam batalkan sendiri, tanpa admin)--> cancelled  (stok dikembalikan)
 //   'verified' is kept only for legacy data and treated like 'borrowed' (out).
 function transitionError(prevStatus, target, role, isOwner) {
   const staff = STAFF.indexOf(role) !== -1;
@@ -26,6 +27,8 @@ function transitionError(prevStatus, target, role, isOwner) {
   else if (target === 'return_pending') rule = { from: ['borrowed', 'verified'], ok: staff || isOwner, msg: 'Hanya peminjam atau admin yang dapat mengonfirmasi pengembalian.' };
   else if (target === 'returned') rule = { from: ['borrowed', 'verified', 'return_pending'], ok: staff, msg: 'Verifikasi pengembalian hanya oleh admin/verifikator.' };
   else if (target === 'rejected') rule = { from: ['pending', 'approved', 'verified'], ok: staff, msg: 'Peminjaman ini tidak bisa ditolak.' };
+  // Peminjam boleh membatalkan pengajuannya sendiri selama masih menunggu persetujuan admin.
+  else if (target === 'cancelled') rule = { from: ['pending'], ok: isOwner, msg: 'Hanya peminjam yang dapat membatalkan, dan hanya selagi menunggu persetujuan admin.' };
   else return 'Status tidak valid';
   if (!rule.ok) return rule.msg;
   if (rule.from.indexOf(prevStatus) === -1) return rule.msg;
