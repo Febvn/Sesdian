@@ -11,6 +11,7 @@
 :root {
   /* Brand — one structural accent only: Notion blue */
   --primary:         #0075de;
+  --chart-1:         #0075de;   /* chart series color (validated vs white surface) */
   --primary-dark:    #005bab;
   --primary-glow:    rgba(0,117,222,0.16);
   --primary-light:   #e7f1fc;
@@ -73,6 +74,7 @@
    ══════════════════════════════════════════════════════════ */
 [data-theme="dark"] {
   --primary:         #4a9eea;   /* lighter blue holds contrast on dark */
+  --chart-1:         #3987e5;   /* dark-mode series step (validated vs dark surface) */
   --primary-dark:    #2f86d6;
   --primary-glow:    rgba(74,158,234,0.22);
   --primary-light:   rgba(74,158,234,0.16);
@@ -737,16 +739,28 @@ body[data-page="register"] input:focus {
   justify-content: center;
   padding: 4rem;
   min-width: 0;
+  align-items: flex-start;
+  text-align: left;
 }
+/* #2 — clean transparent wordmark, framed via cover (zooms into the mark; the
+   source keeps its transparent padding, file untouched). Bigger on login. */
 .sesd-login__logo {
-  width: 100%;
-  max-width: 320px;
+  display: block;
+  width: auto;
+  max-width: min(100%, 520px);
+  max-height: 150px;
   height: auto;
-  aspect-ratio: 24 / 7;
-  object-fit: cover;
-  border-radius: 14px;
-  box-shadow: var(--card-shadow);
-  margin-bottom: 2rem;
+  object-fit: contain;
+  object-position: left center;
+  background: transparent;
+  margin-bottom: 1rem;
+}
+@media (min-width: 861px) {
+  .sesd-login__logo {
+    max-width: 620px;
+    max-height: 180px;
+    margin-left: 0;
+  }
 }
 .sesd-login__title {
   color: var(--text);
@@ -758,15 +772,6 @@ body[data-page="register"] input:focus {
 }
 .sesd-login__title span { color: var(--primary); }
 .sesd-login__lead { color: var(--text-muted); font-size: 1rem; line-height: 1.65; max-width: 460px; }
-.sesd-login__trust { display: flex; gap: 0.6rem; margin-top: 2rem; flex-wrap: wrap; }
-.sesd-login__chip {
-  display: inline-flex; align-items: center; gap: 6px;
-  background: var(--bg-card); border: 1px solid var(--border);
-  color: var(--text-muted); font-size: 0.8rem; font-weight: 600;
-  padding: 0.4rem 0.75rem; border-radius: var(--radius-pill);
-  box-shadow: var(--card-shadow);
-}
-.sesd-login__chip .ic svg { width: 0.95rem; height: 0.95rem; color: var(--primary); }
 .sesd-login__formpane {
   width: 480px; max-width: 100%;
   display: flex; align-items: center; justify-content: center;
@@ -818,13 +823,49 @@ body[data-page="register"] input:focus {
 }
 .sesd-login__foot { text-align: center; margin-top: 1.25rem; font-size: 0.85rem; color: var(--text-muted); }
 @media (max-width: 860px) {
-  .sesd-login { flex-direction: column; }
-  .sesd-login__brandpane { padding: 2.5rem 1.5rem 0.5rem; flex: 0 0 auto; align-items: flex-start; }
-  .sesd-login__logo { max-width: 220px; margin-bottom: 1.25rem; }
-  .sesd-login__title { font-size: 1.9rem; }
-  .sesd-login__lead { font-size: 0.9rem; }
-  .sesd-login__formpane { width: 100%; padding: 1.5rem; }
-  .sesd-login__card { padding: 1.75rem; }
+  .sesd-login {
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding-bottom: 2rem;
+  }
+  .sesd-login__brandpane {
+    width: 100%;
+    max-width: 420px;
+    padding: 2.5rem 1.5rem 0.75rem;
+    flex: 0 0 auto;
+    align-items: center;
+    text-align: center;
+  }
+  .sesd-login__logo {
+    display: block;
+    width: 100%;
+    max-width: 220px;
+    height: auto;
+    margin: 0 auto 1.25rem;
+  }
+  .sesd-login__title {
+    font-size: 1.9rem;
+    text-align: center;
+  }
+  .sesd-login__lead {
+    font-size: 0.9rem;
+    text-align: center;
+    margin: 0 auto;
+  }
+  .sesd-login__formpane {
+    width: 100%;
+    padding: 0.75rem 1.25rem 1rem;
+    justify-content: center;
+  }
+  .sesd-login__card {
+    max-width: 420px;
+    padding: 1.75rem;
+  }
+  .sesd-login__card h2,
+  .sesd-login__card .sub {
+    text-align: center;
+  }
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -871,6 +912,26 @@ body[data-page="register"] input:focus {
   animation: 0.2s var(--ease-smooth) both fadeIn;
 }
 [data-theme="dark"] .sesd-overlay { background: rgba(4,7,20,0.7); }
+
+/* Lightbox gambar aset: klik gambar pada kartu/detail membuka versi penuhnya.
+   Di atas modal (1200 > 1000) supaya bisa dibuka dari dalam modal detail jenis. */
+.sesd-lightbox {
+  position: fixed; inset: 0; z-index: 1200;
+  background: rgba(10, 12, 18, 0.85);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 12px; padding: 3vh 3vw; cursor: zoom-out;
+  animation: 0.18s var(--ease-smooth) both fadeIn;
+}
+.sesd-lightbox img {
+  max-width: 94vw; max-height: 86vh;
+  border-radius: 12px; background: var(--bg-card);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
+}
+.sesd-lightbox-cap {
+  color: #fff; font-size: 0.88rem; font-weight: 700; text-align: center;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.7); max-width: 90vw;
+}
+.sesd-img-zoom { cursor: zoom-in; }
 
 .sesd-modal {
   background: var(--bg-surface);
@@ -1012,6 +1073,11 @@ body[data-page="register"] input:focus {
 /* ══════════════════════════════════════════════════════════
    LOADERS
    ══════════════════════════════════════════════════════════ */
+/* Template seed di dalam HTML hanyalah sumber clone untuk renderList; jangan
+   pernah terlihat sebelum data DB tiba (mencegah flash baris/kartu placeholder
+   berdesain lama). renderList menghapus atribut ini dari hasil clone, jadi
+   item yang dirender tidak ikut tersembunyi. */
+[data-template], [data-monitor-template], [data-recent-template], [data-asset-template] { display: none !important; }
 .sesd-page-loader { display: flex; align-items: center; justify-content: center; gap: 12px; min-height: 55vh; }
 .sesd-page-loader span {
   width: 12px; height: 12px; border-radius: 50%;
@@ -1068,14 +1134,15 @@ body[data-page="register"] input:focus {
   box-shadow: var(--card-hover-shadow) !important;
 }
 
-/* Stat cards — bouncy expand on hover */
+/* Stat cards — match standard stat-card hover and disable active click effect */
 .dashboard-stat-card:hover {
-  transform: scale(1.06) translateY(-6px) !important;
+  transform: translateY(-4px) !important;
+  box-shadow: var(--card-hover-shadow) !important;
+  background: var(--glass-hover) !important;
   z-index: 2;
 }
 .dashboard-stat-card:active {
-  transform: scale(0.98) !important;
-  transition-duration: 0.1s !important;
+  transform: translateY(-4px) !important;
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -1122,17 +1189,24 @@ body[data-page="register"] input:focus {
    ══════════════════════════════════════════════════════════ */
 
 /* ── #1 — Brand logo in the sidebar header (replaces the text wordmark) ── */
+/* #6 — transparent glow logo presented on a dark plaque (reads cleanly in BOTH
+   light and dark mode; the glow render is designed for a dark backdrop). */
 .sesd-brand-logo {
   display: block;
-  width: 100%;
-  max-width: 168px;
-  height: 40px;
-  object-fit: cover;          /* crop into the SESDiAN text strip, trims the grey margins */
-  object-position: center;
-  border-radius: 8px;
+  width: auto;
+  max-width: 152px;
+  height: 32px;
+  object-fit: contain;      /* never crop the wordmark (cover clipped the S/N) */
+  object-position: left center;
+  background: transparent;
   flex-shrink: 1;
 }
 .sesd-brand-wordmark { display: none !important; }
+
+/* sidebar nav labels are bold for every role — overrides the inline
+   font-weight:500 baked into both the static and dynamic shells
+   (the sub-line description below each label stays regular) */
+aside a[href] > div > div:first-child { font-weight: 700 !important; }
 
 /* ── #3 — Make <main> a real scrollport so the sticky topbar actually sticks.
    The app shell already sets `overflow: auto` on <main>, which makes <main> the
@@ -1251,7 +1325,11 @@ main[style*="overflow: auto"] {
 }
 .sesd-aset-img { height: 128px; overflow: hidden; background: var(--bg-mid); }
 .sesd-aset-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.sesd-aset-body { padding: 0.85rem 1rem 1rem; display: flex; flex-direction: column; gap: 6px; }
+.sesd-aset-body { padding: 0.85rem 1rem 1rem; display: flex; flex-direction: column; gap: 6px; flex: 1 1 auto; }
+/* Image sits at the top; on cards WITHOUT an image the whole text block sinks to
+   the bottom so the top stays reserved (consistent image-top / text-bottom look). */
+.sesd-aset-card:not(:has(.sesd-aset-img)) .sesd-aset-top { margin-top: auto; }
+.sesd-aset-card:not(:has(.sesd-aset-img)) .sesd-aset-stock { margin-top: 8px; }
 .sesd-aset-top { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
 .sesd-aset-type {
   font-size: 0.62rem; font-weight: 800; letter-spacing: 0.3px;
@@ -1272,6 +1350,16 @@ main[style*="overflow: auto"] {
 [data-theme="dark"] .sesd-aset-avail.is-out { background: rgba(224,62,62,0.2); color: #f6a5a5; }
 .sesd-aset-code { font-family: "JetBrains Mono", monospace; font-size: 0.66rem; color: var(--text-muted); }
 .sesd-aset-name { font-weight: 700; font-size: 0.95rem; letter-spacing: -0.01em; line-height: 1.25; color: var(--text); }
+/* Merk berdiri sendiri sebagai badge di bawah nama — bukan bagian teks nama —
+   supaya jenis bernama sama langsung terbedakan lewat merknya. */
+.sesd-aset-merk {
+  display: inline-flex; align-items: center; align-self: flex-start; max-width: 100%;
+  padding: 0.16rem 0.55rem; border-radius: var(--radius-pill);
+  background: var(--primary-light); color: var(--primary);
+  box-shadow: inset 0 0 0 1px var(--primary-light);
+  font-size: 0.64rem; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase;
+  line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
 .sesd-aset-chips { display: flex; flex-wrap: wrap; gap: 4px; }
 .sesd-aset-chip {
   display: inline-flex; align-items: center; gap: 4px; max-width: 100%;
@@ -1280,7 +1368,7 @@ main[style*="overflow: auto"] {
 }
 .sesd-aset-chip > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sesd-aset-chip .ic svg { width: 0.78rem; height: 0.78rem; flex-shrink: 0; }
-.sesd-aset-stock { margin-top: 2px; }
+.sesd-aset-stock { margin-top: auto; padding-top: 8px; }   /* #1 — pin stock to the card's bottom edge, level across all cards */
 .sesd-aset-stock-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
 .sesd-aset-stock-label { font-size: 0.65rem; font-weight: 800; letter-spacing: 0.6px; color: var(--text-muted); }
 .sesd-aset-stock-num { font-size: 0.82rem; font-weight: 800; font-feature-settings: "tnum" 1; }
@@ -1299,24 +1387,39 @@ main[style*="overflow: auto"] {
 }
 [data-theme="dark"] .sesd-aset-cond { background: rgba(26,174,57,0.2); color: #6ee7a0; }
 
-/* ── #9 — Kelola User role <select>: rounded + height-matched to the action button ── */
-.sesd-role-select {
-  appearance: none; -webkit-appearance: none; -moz-appearance: none;
-  padding: 0.34rem 1.7rem 0.34rem 0.75rem !important;
-  border: 1px solid var(--border) !important;
-  border-radius: var(--radius-pill) !important;
-  background: var(--bg-card)
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23615d59' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")
-    no-repeat right 0.6rem center / 11px !important;
-  font-size: 0.78rem; font-weight: 600; font-family: inherit;
-  color: var(--text) !important; cursor: pointer; line-height: 1.45;
+/* ── #2 — Kelola User "Aksi" column: select + delete button form ONE cohesive
+   group with identical rounded corners and matched height. High-specificity +
+   !important so nothing in the global select/button rules can flatten them. ── */
+.sesd-role-actions { display: inline-flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.sesd-role-actions .sesd-role-select {
+  appearance: none !important; -webkit-appearance: none !important; -moz-appearance: none !important;
+  height: 34px;
+  margin: 0 !important;
+  padding: 0 1.9rem 0 0.8rem !important;
+  border: 1.5px solid var(--border) !important;
+  border-radius: 12px !important;
+  background-color: var(--bg-card) !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%230075de' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 0.62rem center !important;
+  background-size: 12px !important;
+  font-size: 0.8rem; font-weight: 700; font-family: inherit;
+  color: var(--text) !important; cursor: pointer; line-height: 34px;
+  transition: border-color var(--dur-fast) var(--ease-smooth), box-shadow var(--dur-fast) var(--ease-smooth);
 }
-.sesd-role-select:hover { border-color: var(--primary) !important; }
-.sesd-role-select:focus {
-  border-color: rgba(0,117,222,0.55) !important;
+.sesd-role-actions .sesd-role-select:hover { border-color: var(--primary) !important; }
+.sesd-role-actions .sesd-role-select:focus {
+  border-color: rgba(0,117,222,0.6) !important;
   box-shadow: 0 0 0 3px var(--primary-glow) !important;
   outline: none !important;
 }
+/* delete button: same 34px box + same rounding as the select (matched set) */
+.sesd-role-actions .sesd-role-del {
+  height: 34px; width: 34px; padding: 0 !important;
+  border-radius: 12px !important;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.sesd-role-actions .sesd-role-del .ic svg { width: 1rem; height: 1rem; }
 
 /* ── #11 — Mobile hardening: never let cards/buttons spill past the viewport.
    overflow-x is scoped to phones (and to main/#root, NOT html/body) so it never
@@ -1430,28 +1533,240 @@ main[style*="overflow: auto"] {
   /* Modal */
   .sesd-modal { padding: 1.5rem; border-radius: var(--radius-lg); width: calc(100vw - 1.5rem) !important; }
 
-  /* TABLE — wrap in scrollable container */
-  table {
-    min-width: 520px !important;
-    font-size: 0.78rem !important;
+/* ══════════════════════════════════════════════════════════
+   RESPONSIVE TABLES - Mobile-first, no horizontal scroll
+   ══════════════════════════════════════════════════════════ */
+
+/* Dashboard & page tables - fit to viewport on mobile */
+.sesd-responsive-table {
+  width: 100%;
+  font-size: 0.75rem;
+}
+.sesd-responsive-table th,
+.sesd-responsive-table td {
+  padding: 0.5rem 0.4rem !important;
+  font-size: 0.7rem !important;
+  line-height: 1.3;
+  vertical-align: middle;
+}
+.sesd-responsive-table th {
+  font-size: 0.6rem !important;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+.sesd-responsive-table td {
+  max-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* Allow wrapping for certain columns */
+.sesd-responsive-table .col-status {
+  white-space: nowrap;
+}
+.sesd-responsive-table .col-qty {
+  text-align: center;
+  width: 40px;
+  max-width: 40px;
+}
+
+/* Truncate long names like "Adi Septriansyah" → "Adi..." */
+[data-bind="borrower"],
+.sesd-truncate {
+  max-width: 80px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: inline-block;
+}
+
+/* Status badge compact on mobile */
+.sesd-responsive-table .sesd-status-badge {
+  font-size: 0.6rem !important;
+  padding: 0.15rem 0.4rem !important;
+}
+
+/* Date cells */
+.sesd-responsive-table .col-date {
+  font-family: "JetBrains Mono", monospace !important;
+  font-size: 0.65rem !important;
+}
+
+/* ══════════════════════════════════════════════════════════
+   #11 — MOBILE CARD TABLES (each row → a labelled card)
+   ══════════════════════════════════════════════════════════ */
+@media (max-width: 640px) {
+  main table.sesd-cardtable { min-width: 0 !important; width: 100% !important; table-layout: auto !important; font-size: 0.85rem !important; border-collapse: collapse; }
+  main table.sesd-cardtable thead { display: none !important; }
+  main table.sesd-cardtable tbody { display: block; }
+  main table.sesd-cardtable tbody tr {
+    display: block; background: var(--bg-card); border: 1px solid var(--border) !important;
+    border-radius: var(--radius); margin-bottom: 10px; padding: 2px 12px; box-shadow: var(--card-shadow);
   }
-  /* Make every table container scrollable */
+  main table.sesd-cardtable tbody td {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 9px 0 !important; border: 0 !important; border-top: 1px solid var(--border) !important;
+    font-size: 0.85rem !important; text-align: right; line-height: 1.35 !important;
+    white-space: normal !important; max-width: none !important; width: auto !important; overflow: visible !important; text-overflow: clip !important;
+  }
+  main table.sesd-cardtable tbody tr td:first-child { border-top: 0 !important; }
+  main table.sesd-cardtable tbody td::before {
+    content: attr(data-label); font-weight: 700; font-size: 0.68rem; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: 0.4px; text-align: left; white-space: nowrap; flex-shrink: 0;
+  }
+  main table.sesd-cardtable tbody td:empty { display: none; }
+  /* let truncated/sub content breathe inside cards */
+  main table.sesd-cardtable td [data-bind="asset_code"],
+  main table.sesd-cardtable td .sesd-truncate,
+  main table.sesd-cardtable td [data-bind="borrower"] { max-width: none !important; white-space: normal !important; display: inline-block; }
+  /* action cell: label left, buttons wrap on the right */
+  main table.sesd-cardtable tbody td:last-child { flex-wrap: wrap; }
+  main table.sesd-cardtable td .sesd-admin-actions { justify-content: flex-end; margin-top: 0; }
+}
+
+/* #12 — verifikasi: table beside % chart, stacked on narrow screens */
+@media (max-width: 900px) { .sesd-verif-grid { grid-template-columns: 1fr !important; } }
+
+/* #4 — minor mobile polish */
+@media (max-width: 640px) {
+  /* pop-ups never exceed the viewport width */
+  .sesd-notif-menu, .sesd-profile-menu, .sesd-table-filter-menu { max-width: calc(100vw - 20px) !important; }
+  /* table toolbar stays on one row and fits */
+  .sesd-table-tools { flex-shrink: 0; }
+  .sesd-table-search { width: 128px; }
+  /* the verifikasi donut breathes when the chart card goes full-width */
+  .sesd-verif-grid > div:last-child { order: -1; }   /* show the % summary above the list on phones */
+}
+
+/* ══════════════════════════════════════════════════════════
+   MOBILE RESPONSIVENESS - Enhanced table handling
+   ══════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  /* TABLE — fit to screen, no horizontal scroll */
+  table {
+    min-width: unset !important;
+    font-size: 0.6rem !important;
+    table-layout: fixed;
+  }
+
+  /* Remove overflow-x auto that forces scrolling */
   [style*="border-collapse"],
   [style*="box-shadow: var(--shadow)"] > table,
   [style*="border-radius: 16px"] > table {
-    display: block;
-    overflow-x: auto !important;
-    -webkit-overflow-scrolling: touch;
+    display: table !important;
+    overflow-x: visible !important;
+    width: 100% !important;
   }
-  /* force table parent to be scrollable if it contains a table */
-  *:has(> table) {
-    overflow-x: auto !important;
-    -webkit-overflow-scrolling: touch;
-  }
+
   th, td {
-    padding: 0.5rem 0.6rem !important;
-    white-space: nowrap !important;
+    padding: 0.25rem 0.15rem !important;
+    font-size: 0.55rem !important;
+    line-height: 1.2;
   }
+
+  /* Dashboard recent borrowings table */
+  [data-recent-list] table,
+  [data-list="borrowings"] table {
+    table-layout: fixed;
+    width: 100% !important;
+  }
+
+  /* Header row compact */
+  [data-recent-list] th,
+  [data-list="borrowings"] th {
+    font-size: 0.5rem !important;
+    padding: 0.25rem 0.1rem !important;
+    letter-spacing: 0.1px;
+  }
+
+  /* All data cells - truncate long text */
+  [data-recent-list] td,
+  [data-list="borrowings"] td {
+    max-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding: 0.3rem 0.1rem !important;
+    font-size: 0.55rem !important;
+  }
+
+  /* Asset name column */
+  [data-recent-list] td:first-child,
+  [data-list="borrowings"] td:first-child {
+    max-width: 50px;
+  }
+
+  /* Borrower name - truncate to very short */
+  [data-bind="borrower"] {
+    max-width: 40px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: block;
+  }
+
+  /* Status badge compact */
+  [data-recent-list] span[data-bind="status_badge"],
+  [data-list="borrowings"] span[data-bind="status_badge"] {
+    font-size: 0.45rem !important;
+    padding: 0.08rem 0.2rem !important;
+    white-space: nowrap;
+  }
+
+  /* Due date compact */
+  [data-bind="due_date"] {
+    font-size: 0.5rem !important;
+    font-family: "JetBrains Mono", monospace;
+  }
+
+  /* Qty column - fixed narrow */
+  [data-bind="qty"] {
+    width: 20px;
+    max-width: 20px;
+    text-align: center;
+    font-size: 0.55rem !important;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Ultra compact for small phones */
+  table {
+    font-size: 0.6rem !important;
+  }
+
+  th, td {
+    padding: 0.25rem 0.1rem !important;
+    font-size: 0.55rem !important;
+  }
+
+  /* Dashboard recent table */
+  [data-recent-list] td,
+  [data-list="borrowings"] td {
+    font-size: 0.58rem !important;
+    padding: 0.3rem 0.1rem !important;
+  }
+
+  [data-bind="borrower"] {
+    max-width: 40px;
+  }
+
+  [data-recent-list] th,
+  [data-list="borrowings"] th {
+    font-size: 0.5rem !important;
+    padding: 0.25rem 0.1rem !important;
+  }
+
+  /* Status badge smallest */
+  [data-recent-list] span[data-bind="status_badge"],
+  [data-list="borrowings"] span[data-bind="status_badge"] {
+    font-size: 0.45rem !important;
+    padding: 0.08rem 0.2rem !important;
+  }
+
+  [data-bind="due_date"] {
+    font-size: 0.5rem !important;
+  }
+}
 
   /* Header padding */
   header > div[style],
@@ -1470,6 +1785,55 @@ main[style*="overflow: auto"] {
   .dashboard-stat-card [style*="font-size: 2rem"] { font-size: 1.4rem !important; }
   .dashboard-stat-card [style*="font-size: 1.75rem"] { font-size: 1.25rem !important; }
   .dashboard-stat-card [style*="padding: 1.25rem"] { padding: 0.85rem !important; }
+  
+  /* Dashboard Stat Cards 2-2-1 Mobile Grid (Generic for all pages) */
+  .dashboard-stats-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.75rem !important;
+  }
+  
+  /* Make ALL cards use the column layout to look identical */
+  .dashboard-stats-grid > .stat-card {
+    flex-direction: column !important;
+  }
+  .dashboard-stats-grid > .stat-card .stat-icon-wrap {
+    width: 100% !important;
+    height: 44px !important;
+    min-height: 44px !important;
+  }
+  .dashboard-stats-grid > .stat-card .stat-info {
+    padding: 0.75rem 0.5rem !important;
+    text-align: center !important;
+    align-items: center !important;
+  }
+  .dashboard-stats-grid > .stat-card .stat-label {
+    font-size: 0.7rem !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    max-width: 100% !important;
+  }
+  .dashboard-stats-grid > .stat-card .stat-subtitle {
+    font-size: 0.65rem !important;
+  }
+
+  /* Grid order and placement (2 - 2 - 1) */
+  .dashboard-stats-grid > .stat-card:nth-child(2) { order: 1; } /* Total Stok */
+  .dashboard-stats-grid > .stat-card:nth-child(3) { order: 2; } /* Stok Tersedia */
+  .dashboard-stats-grid > .stat-card:nth-child(4) { order: 3; } /* Stok Dipinjam */
+  .dashboard-stats-grid > .stat-card:nth-child(5) { order: 4; } /* Pending */
+  
+  .dashboard-stats-grid > .stat-card:nth-child(1) { /* Total Aset */
+    order: 5; 
+    grid-column: 1 / -1; 
+    justify-self: center; 
+    width: calc(50% - 0.375rem); /* Exactly 1 column width */
+  }
+  /* Bold Total Aset as requested */
+  .dashboard-stats-grid > .stat-card:nth-child(1) .stat-label,
+  .dashboard-stats-grid > .stat-card:nth-child(1) .stat-number {
+    font-weight: 900 !important;
+  }
 
   /* Reduce container hover expand on mobile (less jarring) */
   [style*="border-radius: 16px"][style*="padding"]:hover,
@@ -1552,4 +1916,593 @@ aside a:focus-visible { outline-offset: -2px !important; border-radius: var(--ra
   .dashboard-stat-card, .dashboard-list-item { opacity: 1 !important; transform: none !important; }
   aside a[style]:hover, .stat-card:hover, .sesd-stat-card:hover,
   .dashboard-stat-card:hover { transform: none !important; }
+}
+
+/* ══════════════════════════════════════════════════════════
+   REDESIGN PASS (v16) — see docs/REDESIGN-GUIDE.md
+   ══════════════════════════════════════════════════════════ */
+
+/* ── #5 — larger, more noticeable primary action buttons ── */
+.sesd-btn-lg {
+  padding: 0.72rem 1.45rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  border-radius: var(--radius-pill);
+  gap: 8px;
+}
+.sesd-btn-lg .ic svg { width: 1.1rem; height: 1.1rem; }
+@media (max-width: 768px) {
+  .sesd-btn-lg { padding: 0.62rem 1.1rem; font-size: 0.88rem; }
+}
+
+/* ── #1/#3/#4 — collapsible sidebar (desktop "rail" mode).
+   The rail is driven by EITHER aside.sesd-rail (set by JS) OR html.sesd-rail-pref
+   (set by the inline <head> script from localStorage). The second form applies the
+   narrow width before first paint, so the rail no longer "pops" open when you
+   navigate between menus — it stays collapsed. ── */
+.sesd-collapse-btn {
+  background: var(--bg-mid) !important;
+  border: 1px solid var(--border) !important;
+  color: var(--text-muted) !important;
+  width: 30px !important; height: 30px !important;
+  min-width: 30px;
+  border-radius: 9px !important;
+  display: flex !important; align-items: center; justify-content: center;
+  cursor: pointer; flex-shrink: 0; padding: 0 !important;
+  transition: background var(--dur-fast) var(--ease-smooth),
+              color var(--dur-fast) var(--ease-smooth),
+              border-color var(--dur-fast) var(--ease-smooth),
+              width var(--dur-normal) var(--ease-smooth),
+              height var(--dur-normal) var(--ease-smooth);
+}
+.sesd-collapse-btn:hover { background: var(--primary) !important; color: #fff !important; border-color: var(--primary) !important; }
+.sesd-collapse-btn svg { width: 18px; height: 18px; transition: transform var(--dur-normal) var(--ease-spring); }
+
+/* #4 — pre-paint the raw sidebar header button to the SAME look app.js gives it,
+   so the collapse control never flashes a navy square on load — consistent in both
+   the expanded and rail (small) states. The '‹' glyph is hidden until the SVG lands. */
+aside > div:first-child > button {
+  background: var(--bg-mid) !important;
+  border: 1px solid var(--border) !important;
+  color: var(--text-muted) !important;
+  width: 30px !important; height: 30px !important; min-width: 30px;
+  border-radius: 9px !important; padding: 0 !important;
+  display: flex !important; align-items: center; justify-content: center;
+  flex-shrink: 0; font-size: 0 !important; line-height: 0;
+}
+@media (min-width: 769px) {
+  :is(aside.sesd-rail, html.sesd-rail-pref aside[style]) > div:first-child > button {
+    width: 44px !important; height: 44px !important; margin: 0 auto !important;
+    background: var(--primary) !important; color: #fff !important; border-color: var(--primary) !important;
+    box-shadow: 0 6px 18px var(--primary-glow) !important;
+  }
+}
+
+@media (min-width: 769px) {
+  :is(aside.sesd-rail, html.sesd-rail-pref aside[style]) { width: 78px !important; }
+  /* header: only the prominent, centered expand button shows */
+  :is(aside.sesd-rail, html.sesd-rail-pref aside[style]) > div:first-child {
+    flex-direction: column !important; gap: 0 !important;
+    padding: 0.8rem 0 !important; justify-content: center !important;
+  }
+  :is(aside.sesd-rail, html.sesd-rail-pref aside[style]) .sesd-brand-logo,
+  :is(aside.sesd-rail, html.sesd-rail-pref aside[style]) .sesd-brand-wordmark { display: none !important; }
+  /* also match the raw text logo before app.js tags it .sesd-brand-wordmark, so the
+     SESDIAN wordmark never flashes for a frame when the sidebar loads railed. */
+  :is(aside.sesd-rail, html.sesd-rail-pref aside[style]) > div:first-child > div { display: none !important; }
+  /* #4 — expand button: centered, larger, primary-filled = clearly noticeable */
+  :is(aside.sesd-rail, html.sesd-rail-pref aside[style]) .sesd-collapse-btn {
+    width: 44px !important; height: 44px !important; margin: 0 auto !important;
+    background: var(--primary) !important; color: #fff !important; border-color: var(--primary) !important;
+    box-shadow: 0 6px 18px var(--primary-glow) !important;
+  }
+  :is(aside.sesd-rail, html.sesd-rail-pref aside[style]) .sesd-collapse-btn svg { width: 23px; height: 23px; transform: rotate(180deg); }
+  /* #1 — no separators in rail: drop whole section headers, even out every row.
+     Match BOTH the JS-added .sesd-navsec class AND the raw static markup by its
+     inline padding, so the labels never flash before app.js runs on navigation. */
+  :is(aside.sesd-rail, html.sesd-rail-pref aside[style]) .sesd-navsec,
+  :is(aside.sesd-rail, html.sesd-rail-pref aside[style]) [style*="padding: 0.6rem 0.5rem 0.25rem"] { display: none !important; }
+  :is(aside.sesd-rail, html.sesd-rail-pref aside[style]) [data-role-nav] { margin-top: 0 !important; }
+  /* nav rows: uniform, centered, with BIGGER icons (fixed px, independent of text size) */
+  :is(aside.sesd-rail, html.sesd-rail-pref aside[style]) a[style] {
+    justify-content: center !important;
+    padding: 0.62rem 0 !important; margin: 5px 8px !important;
+  }
+  :is(aside.sesd-rail, html.sesd-rail-pref aside[style]) a[style] > div { display: none !important; }
+  :is(aside.sesd-rail, html.sesd-rail-pref aside[style]) a[style] > span:first-child { margin: 0 !important; }
+  :is(aside.sesd-rail, html.sesd-rail-pref aside[style]) a[style] .ic svg { width: 25px !important; height: 25px !important; }
+  /* account card → avatar only */
+  :is(aside.sesd-rail, html.sesd-rail-pref aside[style]) > div:last-child > div { justify-content: center !important; padding: 0.5rem !important; }
+  :is(aside.sesd-rail, html.sesd-rail-pref aside[style]) > div:last-child [data-user-name],
+  :is(aside.sesd-rail, html.sesd-rail-pref aside[style]) > div:last-child [data-user-role],
+  :is(aside.sesd-rail, html.sesd-rail-pref aside[style]) > div:last-child button { display: none !important; }
+}
+
+/* Ajukan page: the old right-hand "Detail Peminjaman" panel is legacy (borrowing
+   now happens in the unit-pick modal). Collapse the two-column grid to one and
+   hide the panel from first paint so it never flashes on load. */
+body[data-page="ajukanpinjam"] [style*="grid-template-columns: 1fr 340px"] { grid-template-columns: 1fr !important; }
+body[data-page="ajukanpinjam"] [style*="grid-template-columns: 1fr 340px"] > div:nth-child(2) { display: none !important; }
+
+/* ── #4 — profile menu (per-user) + avatar in header & sidebar ── */
+.sesd-head-profile {
+  overflow: hidden; padding: 0;
+  border-color: transparent !important;   /* never show the generic --border ring */
+  outline: none !important;               /* suppress browser focus outlines */
+  -webkit-tap-highlight-color: transparent; /* suppress mobile tap highlight */
+}
+.sesd-head-profile:focus,
+.sesd-head-profile:active,
+.sesd-head-profile:focus-visible {
+  outline: none !important;
+  box-shadow: 0 0 0 2px var(--primary-glow) !important; /* subtle glow instead of sharp outline */
+}
+.sesd-head-profile img { width: 100%; height: 100%; object-fit: cover; display: block; }
+aside [data-user-initials] img { width: 100%; height: 100%; object-fit: cover; border-radius: inherit; display: block; }
+
+.sesd-profile-menu {
+  position: fixed;
+  width: 264px; max-width: calc(100vw - 24px);
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--card-hover-shadow);
+  padding: 1rem; z-index: 9000;
+  animation: 0.18s var(--ease-smooth) both fadeUp;
+}
+.sesd-profile-head { display: flex; align-items: center; gap: 12px; margin-bottom: 0.9rem; }
+.sesd-profile-av {
+  width: 56px; height: 56px; border-radius: 14px; flex-shrink: 0; overflow: hidden;
+  background: var(--primary); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 1.1rem; position: relative;
+}
+.sesd-profile-av img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.sesd-profile-name { font-weight: 800; font-size: 0.95rem; color: var(--text); line-height: 1.2; }
+.sesd-profile-nip { font-size: 0.72rem; color: var(--text-muted); font-family: "JetBrains Mono", monospace; margin-top: 2px; }
+.sesd-profile-role {
+  display: inline-block; margin-top: 5px;
+  font-size: 0.62rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em;
+  padding: 0.12rem 0.5rem; border-radius: var(--radius-pill);
+  background: var(--primary-light); color: var(--primary);
+}
+.sesd-profile-menu .sesd-btn { width: 100%; justify-content: center; }
+.sesd-profile-divider { height: 1px; background: var(--border); margin: 0.75rem 0; }
+
+/* ── #3 — notification bell: unread badge + dropdown feed ── */
+.sesd-notif-badge {
+  position: absolute; top: -3px; right: -3px; min-width: 16px; height: 16px;
+  padding: 0 4px; border-radius: 9px; background: var(--danger); color: #fff;
+  font-size: 0.62rem; font-weight: 800; line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 0 0 2px var(--bg-surface);
+}
+.sesd-notif-menu {
+  position: fixed; width: 320px; max-width: calc(100vw - 24px); max-height: 70vh; overflow: auto;
+  background: var(--bg-surface); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); box-shadow: var(--card-hover-shadow);
+  padding: 0.5rem; z-index: 9000; animation: 0.18s var(--ease-smooth) both fadeUp;
+}
+.sesd-notif-head { font-weight: 800; font-size: 0.9rem; padding: 0.4rem 0.6rem 0.6rem; }
+.sesd-notif-empty { color: var(--text-muted); font-size: 0.85rem; padding: 1.2rem 0.6rem; text-align: center; }
+.sesd-notif-row {
+  display: flex; align-items: flex-start; gap: 10px; padding: 0.6rem; border-radius: var(--radius);
+  text-decoration: none; color: var(--text); transition: background var(--dur-fast) var(--ease-smooth);
+}
+.sesd-notif-row:hover { background: var(--bg-mid); opacity: 1; }
+.sesd-notif-row.is-unread { background: rgba(0,117,222,0.06); }
+.sesd-notif-ic { flex-shrink: 0; width: 30px; height: 30px; border-radius: 8px; background: var(--primary-light); color: var(--primary); display: inline-flex; align-items: center; justify-content: center; }
+.sesd-notif-ic .ic svg { width: 16px; height: 16px; }
+.sesd-notif-text { font-size: 0.82rem; font-weight: 500; line-height: 1.35; }
+.sesd-notif-time { font-size: 0.68rem; color: var(--text-muted); margin-top: 2px; }
+
+/* ── #11 — table toolbar: search box + filter-icon dropdown ── */
+.sesd-table-tools { display: flex; align-items: center; gap: 6px; }
+.sesd-table-search {
+  height: 34px; padding: 0 0.7rem !important; border-radius: var(--radius-pill) !important;
+  border: 1px solid var(--border) !important; background: var(--bg-card) !important;
+  font-size: 0.8rem; width: 170px; max-width: 46vw;
+}
+.sesd-table-filter {
+  width: 34px; height: 34px; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 10px; border: 1px solid var(--border); background: var(--bg-card); color: var(--text-muted);
+  cursor: pointer; transition: all var(--dur-fast) var(--ease-smooth);
+}
+.sesd-table-filter:hover { color: var(--primary); border-color: var(--primary); }
+.sesd-table-filter-menu {
+  position: fixed; z-index: 9000; min-width: 160px; padding: 6px;
+  background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
+  box-shadow: var(--card-hover-shadow); animation: 0.16s var(--ease-smooth) both fadeUp;
+  display: flex; flex-direction: column; gap: 2px;
+}
+.sesd-table-filter-opt {
+  text-align: left; padding: 0.5rem 0.7rem; border: none; background: transparent; cursor: pointer;
+  border-radius: 8px; font-size: 0.83rem; color: var(--text); font-family: inherit;
+}
+.sesd-table-filter-opt:hover { background: var(--bg-mid); }
+.sesd-table-filter-opt.is-active { background: var(--primary-light); color: var(--primary); font-weight: 700; }
+
+/* ── custom dropdown (asset form: category/room/jenis/kondisi) ── */
+.sesd-dd { position: relative; }
+.sesd-dd-btn {
+  width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding: 0.7rem 0.85rem; border: 1px solid var(--border); border-radius: var(--radius-input);
+  background: var(--bg-card); color: var(--text); font-family: inherit; font-size: 0.9rem; font-weight: 500;
+  cursor: pointer; text-align: left;
+}
+.sesd-dd-btn:hover { border-color: rgba(0,117,222,0.4); }
+.sesd-dd.is-open .sesd-dd-btn { border-color: rgba(0,117,222,0.55); box-shadow: 0 0 0 3px var(--primary-glow); }
+.sesd-dd-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sesd-dd-label.is-ph { color: var(--text-muted); }
+.sesd-dd-caret { display: inline-flex; color: var(--text-muted); flex-shrink: 0; transition: transform var(--dur-fast) var(--ease-smooth); }
+.sesd-dd.is-open .sesd-dd-caret { transform: rotate(180deg); }
+.sesd-dd-menu {
+  display: none; position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 60;
+  background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius);
+  box-shadow: var(--card-hover-shadow); padding: 5px; max-height: 240px; overflow: auto;
+}
+.sesd-dd.is-open .sesd-dd-menu { display: block; }
+.sesd-dd-opt { display: flex; align-items: center; gap: 6px; padding: 0.5rem 0.6rem; border-radius: 8px; cursor: pointer; font-size: 0.86rem; }
+.sesd-dd-opt:hover { background: var(--bg-mid); }
+.sesd-dd-opt.is-active { background: var(--primary-light); color: var(--primary); font-weight: 700; }
+.sesd-dd-del { flex-shrink: 0; width: 26px; height: 26px; display: inline-flex; align-items: center; justify-content: center; border: none; background: transparent; color: var(--text-muted); border-radius: 6px; cursor: pointer; }
+.sesd-dd-del:hover { background: rgba(224,62,62,0.12); color: var(--danger); }
+.sesd-dd-del .ic svg { width: 15px; height: 15px; }
+.sesd-dd-empty { padding: 0.6rem; color: var(--text-muted); font-size: 0.82rem; text-align: center; }
+.sesd-dd-add { display: flex; gap: 6px; padding: 6px 4px 2px; border-top: 1px solid var(--border); margin-top: 4px; }
+.sesd-dd-add input { flex: 1; min-width: 0; padding: 0.45rem 0.6rem; border: 1px solid var(--border); border-radius: 8px; font-family: inherit; font-size: 0.82rem; background: var(--bg-card); color: var(--text); }
+
+/* ── name autocomplete (asset form) ── */
+.sesd-ac { position: relative; }
+.sesd-ac-input { width: 100%; padding-right: 6.75rem !important; }
+.sesd-ac-status {
+  position: absolute; top: 50%; right: 0.55rem; transform: translateY(-50%);
+  display: none; align-items: center; gap: 4px; pointer-events: none;
+  font-size: 0.66rem; font-weight: 800; padding: 0.2rem 0.5rem; border-radius: var(--radius-pill);
+}
+.sesd-ac-status .ic svg { width: 0.85rem; height: 0.85rem; }
+.sesd-ac-status.is-exist { background: var(--primary-light); color: var(--primary); }
+.sesd-ac-status.is-new { background: rgba(26,174,57,0.14); color: var(--success); }
+.sesd-prof-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: rgba(0, 0, 0, 0.02) 0 2px 8px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.sesd-ac-menu {
+  display: none; position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 60;
+  background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius);
+  box-shadow: var(--card-hover-shadow); padding: 5px; max-height: 220px; overflow: auto;
+}
+.sesd-ac.is-open .sesd-ac-menu { display: block; }
+.sesd-ac-opt { padding: 0.5rem 0.6rem; border-radius: 8px; cursor: pointer; font-size: 0.86rem; }
+.sesd-ac-opt:hover { background: var(--bg-mid); }
+
+/* refined scrollbar for in-modal lists (room add/contents panels) */
+.sesd-scroll { scrollbar-width: thin; scrollbar-color: var(--border) transparent; scroll-behavior: smooth; }
+.sesd-scroll::-webkit-scrollbar { width: 9px; height: 9px; }
+.sesd-scroll::-webkit-scrollbar-track { background: transparent; margin: 4px 0; }
+.sesd-scroll::-webkit-scrollbar-thumb {
+  background: var(--border); border-radius: 999px;
+  border: 2px solid transparent; background-clip: padding-box;   /* floating, padded pill */
+  transition: background-color var(--dur-fast) var(--ease-smooth);
+}
+.sesd-scroll::-webkit-scrollbar-thumb:hover { background: rgba(0,117,222,0.55); background-clip: padding-box; }
+.sesd-scroll::-webkit-scrollbar-thumb:active { background: var(--primary); background-clip: padding-box; }
+.sesd-scroll::-webkit-scrollbar-corner { background: transparent; }
+
+/* image drag & drop picker (asset forms + per-jenis image editor) */
+.sesd-drop {
+  position: relative; min-height: 150px; cursor: pointer;
+  border: 2px dashed var(--border); border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  text-align: center; overflow: hidden; background: var(--bg);
+  transition: border-color var(--dur-fast) var(--ease-smooth), background-color var(--dur-fast) var(--ease-smooth);
+}
+.sesd-drop:hover { border-color: rgba(0, 117, 222, 0.45); }
+.sesd-drop.is-over { border-color: var(--primary); background: var(--primary-light); }
+.sesd-drop .sesd-drop-hint { padding: 1rem; font-size: 0.85rem; color: var(--text); position: relative; z-index: 1; pointer-events: none; }
+.sesd-drop .sesd-drop-hint svg { font-size: 1.4rem; color: var(--text-muted); }
+.sesd-drop .sesd-drop-prev { display: none; position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.sesd-drop.has-img .sesd-drop-prev { display: block; }
+.sesd-drop.has-img .sesd-drop-hint {
+  background: rgba(25, 25, 24, 0.62); color: #fff; border-radius: 10px; padding: 0.5rem 0.8rem;
+}
+.sesd-drop.has-img .sesd-drop-hint span { color: rgba(255, 255, 255, 0.75) !important; }
+.sesd-drop.has-img .sesd-drop-hint svg { color: #fff; }
+
+/* crop viewport: drag to pan, slider/wheel to zoom (fixed 640x420 aspect) */
+.sesd-crop-stage {
+  position: relative; width: 100%; aspect-ratio: 32 / 21;
+  overflow: hidden; border-radius: 12px; background: #191918;
+  cursor: grab; touch-action: none; user-select: none;
+  border: 1px solid var(--border);
+}
+.sesd-crop-stage.is-dragging { cursor: grabbing; }
+.sesd-crop-stage::after {   /* rule-of-thirds guides */
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background:
+    linear-gradient(to right, transparent calc(33.3% - 1px), rgba(255,255,255,0.22) 33.3%, transparent calc(33.3% + 1px)),
+    linear-gradient(to right, transparent calc(66.6% - 1px), rgba(255,255,255,0.22) 66.6%, transparent calc(66.6% + 1px)),
+    linear-gradient(to bottom, transparent calc(33.3% - 1px), rgba(255,255,255,0.22) 33.3%, transparent calc(33.3% + 1px)),
+    linear-gradient(to bottom, transparent calc(66.6% - 1px), rgba(255,255,255,0.22) 66.6%, transparent calc(66.6% + 1px));
+}
+.sesd-crop-img {
+  position: absolute; left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+  max-width: none; pointer-events: none;
+}
+
+/* segmented status filter (radio-style, single select) for the tables */
+.sesd-segfilter { display: inline-flex; flex-wrap: wrap; gap: 4px; padding: 4px; background: var(--bg); border: 1px solid var(--border); border-radius: 13px; }
+.sesd-segfilter > button {
+  display: inline-flex; align-items: center; gap: 7px; padding: 0.5rem 0.85rem;
+  border: none; border-radius: 9px; cursor: pointer; font-family: inherit;
+  font-size: 0.82rem; font-weight: 600; color: var(--text-muted); background: transparent; white-space: nowrap;
+  transition: background-color var(--dur-fast) var(--ease-smooth), color var(--dur-fast) var(--ease-smooth), box-shadow var(--dur-fast) var(--ease-smooth);
+}
+.sesd-segfilter > button:hover { background: var(--bg-mid); color: var(--text); }
+.sesd-segfilter > button[data-filter-active] { background: var(--primary); color: #fff; box-shadow: 0 1px 4px rgba(0, 117, 222, 0.3); }
+.sesd-segfilter > button[data-filter-active]:hover { background: var(--primary); color: #fff; }
+.sesd-segfilter .seg-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.sesd-segfilter > button[data-filter-active] .seg-dot { box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.6); }
+.sesd-segfilter .seg-count {
+  display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 18px; padding: 0 6px;
+  border-radius: 999px; font-size: 0.68rem; font-weight: 800; background: var(--bg-mid); color: var(--text-muted);
+}
+.sesd-segfilter > button[data-filter-active] .seg-count { background: rgba(255, 255, 255, 0.25); color: #fff; }
+@media (max-width: 640px) {
+  .sesd-segfilter { width: 100%; }
+  .sesd-segfilter > button { flex: 1 1 auto; justify-content: center; }
+}
+
+/* ── #7 — text-size segmented toggle (A small / medium / large) ── */
+.sesd-textsize {
+  display: inline-flex; align-items: center; gap: 2px;
+  background: var(--bg-mid); border: 1px solid var(--border);
+  border-radius: var(--radius-pill); padding: 3px; flex-shrink: 0;
+}
+.sesd-textsize button {
+  border: none; background: transparent; color: var(--text-muted);
+  cursor: pointer; width: 30px; height: 30px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; line-height: 1;
+  font-weight: 800; font-family: inherit; padding: 0;
+  transition: background var(--dur-fast) var(--ease-smooth), color var(--dur-fast) var(--ease-smooth);
+}
+.sesd-textsize button:hover { color: var(--text); }
+.sesd-textsize button.is-active { background: var(--primary); color: #fff; }
+
+/* user-selected base text scale (rem-based type across the app responds) */
+html[data-textsize="small"] { font-size: 15px; }
+html[data-textsize="large"] { font-size: 18px; }
+
+@media (max-width: 768px) {
+  .sesd-head-iconbtn { width: 34px; height: 34px; }   /* keep the (now functional) bell on phones */
+  .sesd-textsize button { width: 27px; height: 27px; }
+}
+
+/* ══════════════════════════════════════════════════════════
+   REDESIGN PASS (v17)
+   ══════════════════════════════════════════════════════════ */
+
+/* ── #6 — Profile page ── */
+.sesd-prof-hero {
+  display: flex; align-items: center; gap: 1.1rem; flex-wrap: wrap;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--card-shadow);
+  padding: 1.4rem 1.6rem;
+  margin-bottom: 1.25rem;
+}
+.sesd-prof-av {
+  position: relative; width: 84px; height: 84px; flex-shrink: 0;
+  border-radius: 20px; overflow: hidden;
+  background: var(--primary); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 1.7rem; letter-spacing: -1px;
+}
+.sesd-prof-av img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.sesd-prof-av-edit {
+  position: absolute; right: 4px; bottom: 4px;
+  width: 26px; height: 26px; border-radius: 50%;
+  background: var(--bg-card); color: var(--primary);
+  border: 1px solid var(--border); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: var(--card-shadow); padding: 0;
+}
+.sesd-prof-av-edit:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
+.sesd-prof-av-edit .ic svg { width: 14px; height: 14px; }
+.sesd-prof-name { font-size: 1.3rem; font-weight: 800; letter-spacing: -0.02em; color: var(--text); line-height: 1.15; }
+.sesd-prof-logout { margin-left: auto; flex-shrink: 0; }
+.sesd-prof-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.1rem; }
+.sesd-prof-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--card-shadow);
+  padding: 1.4rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.sesd-prof-card-title { font-size: 1.05rem; font-weight: 800; letter-spacing: -0.01em; color: var(--text); }
+.sesd-prof-card-sub { font-size: 0.82rem; color: var(--text-muted); margin: 4px 0 1rem; }
+@media (max-width: 760px) {
+  .sesd-prof-grid { grid-template-columns: 1fr; }
+  .sesd-prof-logout { margin-left: 0; width: 100%; }
+}
+
+/* ── #7 — Dashboard greeting hero (all actors), neumorphism ── */
+.sesd-greet {
+  position: relative; overflow: hidden;
+  border-radius: 24px;
+  padding: 2rem 2.4rem;
+  margin-bottom: 1.5rem;
+  background: var(--bg-card);
+  border: none;
+  box-shadow:
+    8px 8px 16px rgba(163, 177, 198, 0.45),
+    -8px -8px 16px rgba(255, 255, 255, 1);
+}
+/* dark mode: neumorphism tetap ada, dengan warna shadow sesuai dark background */
+[data-theme="dark"] .sesd-greet {
+  border: none;
+  box-shadow:
+    8px 8px 16px rgba(0, 0, 0, 0.6),
+    -8px -8px 16px rgba(55, 65, 81, 0.25);
+}
+.sesd-greet::before,
+.sesd-greet::after { display: none; }
+.sesd-greet-inner { position: relative; z-index: 1; }
+.sesd-greet-eyebrow {
+  font-family: "JetBrains Mono", monospace; font-size: 0.7rem;
+  letter-spacing: 0.18em; color: var(--text-muted); font-weight: 700; margin-bottom: 10px;
+}
+.sesd-greet-title { color: var(--text); font-size: 1.95rem; font-weight: 800; letter-spacing: -0.025em; line-height: 1.12; }
+.sesd-greet-sub { color: var(--text-muted); font-size: 0.95rem; margin-top: 8px; max-width: 580px; }
+.sesd-greet-badges { margin-top: 14px; display: flex; gap: 8px; flex-wrap: wrap; }
+.sesd-greet-role {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--primary-light); color: var(--primary); font-weight: 800;
+  font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em;
+  padding: 0.34rem 0.75rem; border-radius: var(--radius-pill);
+}
+.sesd-greet-role::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--success); box-shadow: 0 0 0 3px rgba(94,224,138,0.25); }
+@media (max-width: 768px) {
+  .sesd-greet { padding: 1.4rem 1.4rem; }
+  .sesd-greet-inner {
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center !important;
+    gap: 0.75rem !important;
+  }
+  .sesd-greet-inner > div:first-child {
+    width: 100% !important;
+    flex: unset !important;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    order: 2;
+  }
+  /* Logo above everything — reorder to top and shrink */
+  .sesd-greet-inner > div:last-child:not(:first-child) {
+    order: 1 !important;
+    display: flex !important;
+    justify-content: center !important;
+  }
+  .sesd-greet-inner > div:last-child:not(:first-child) img {
+    height: 50px !important;
+    max-width: 120px !important;
+  }
+  .sesd-greet-title { font-size: 1.35rem !important; }
+  .sesd-greet-sub { font-size: 0.85rem; text-align: center; }
+  .sesd-greet-eyebrow { font-size: 0.6rem; text-align: center; }
+  .sesd-greet-badges { justify-content: center; }
+}
+
+/* ── #8 — guest (katalog) header theme/text-size controls ── */
+[data-guest-controls] { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+@media (max-width: 600px) {
+  [data-guest-controls] .sesd-textsize { display: none; }   /* keep the catalog header compact on phones */
+}
+
+/* ===== MOBILE: Center & Symmetric Layout ===== */
+@media (max-width: 768px) {
+  /* Page title centered */
+  [data-page="laporan"] h1,
+  [data-page="verifikasi"] h1,
+  [data-page="users"] h1,
+  [data-page="dataaset"] h1,
+  [data-page="kategoriaset"] h1,
+  [data-page="ruangan"] h1,
+  [data-page="daftarpinjam"] h1,
+  [data-page="dashboard"] h1 {
+    text-align: center !important;
+  }
+  
+  /* Page title + subtitle wrapper centered */
+  [data-page="laporan"] > div > div > div > div:first-child,
+  [data-page="verifikasi"] > div > div > div > div:first-child,
+  [data-page="users"] > div > div > div > div:first-child {
+    width: 100% !important;
+    text-align: center !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+  }
+  
+  /* Summary grid - stacked and centered */
+  [data-page="laporan"] [style*="grid-template-columns: 220px 1fr"] {
+    grid-template-columns: 1fr !important;
+  }
+  
+  /* Bento cards - symmetric columns */
+  .sesd-report-total,
+  [data-status-breakdown] {
+    width: 100% !important;
+  }
+  
+  /* Export/Print buttons centered */
+  [data-page="laporan"] [style*="justify-content: space-between"]:not([data-topbar]) {
+    justify-content: center !important;
+    flex-direction: column !important;
+    align-items: center !important;
+  }
+  
+  /* Buttons row */
+  [data-page="laporan"] [style*="display: flex"][style*="gap: 8px"]:not(.sesd-topbar-crumb) {
+    justify-content: center !important;
+    width: 100% !important;
+  }
+}
+
+/* ===== MOBILE: Data Aset — center & symmetric ===== */
+@media (max-width: 768px) {
+  /* Header row: stack vertically, center */
+  [data-page="dataaset"] .sesd-dataset-header {
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  /* Title + subtitle block: centered text */
+  [data-page="dataaset"] .sesd-dataset-title-block {
+    width: 100% !important;
+    text-align: center !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+  }
+
+  /* Admin bar (Tambah Aset + Import Excel): full width, centered */
+  [data-page="dataaset"] .sesd-admin-bar {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+
+  /* Filter segmented control (Semua / BMN / Non-BMN): centered */
+  [data-page="dataaset"] .sesd-dataset-filter-wrap {
+    display: flex !important;
+    justify-content: center !important;
+  }
+
+  /* Stat cards grid: symmetric */
+  [data-page="dataaset"] .sesd-stat-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* Search + status filter row: stack & center */
+  [data-page="dataaset"] .animate-fade-up.delay-3 {
+    flex-direction: column !important;
+    align-items: center !important;
+  }
+  [data-page="dataaset"] .animate-fade-up.delay-3 > div {
+    width: 100% !important;
+    justify-content: center !important;
+  }
 }

@@ -35,17 +35,18 @@
     return _loading;
   }
 
-  // map a spreadsheet row (header->value) to our asset keys
+  // map a spreadsheet row (header->value) to our asset keys.
+  // Mengikuti format "daftar aset 2026": Kode Barang + NUP menjadi kode unik,
+  // Nama Barang, Merk, Jenis BMN (kategori), Kondisi.
   var FIELDS = {
     code: ['kode', 'code'],
-    name: ['nama', 'name', 'nama aset'],
-    category: ['kategori', 'category'],
-    brand: ['brand', 'merek', 'merk'],
+    name: ['nama barang', 'nama', 'name', 'nama aset'],
+    category: ['jenis bmn', 'kategori', 'category'],
+    brand: ['merk', 'brand', 'merek'],
     room: ['ruangan', 'room', 'lokasi'],
     year: ['tahun', 'year'],
     condition: ['kondisi', 'condition'],
-    type: ['tipe', 'type'],
-    asset_type: ['jenis aset', 'jenis', 'asset type', 'asset_type'],
+    asset_type: ['jenis aset', 'asset type', 'asset_type'],
     stock_total: ['stok total', 'stok', 'stock', 'jumlah', 'stok_total', 'stock_total'],
   };
   function normalizeRow(raw) {
@@ -55,6 +56,10 @@
     Object.keys(FIELDS).forEach(function (key) {
       for (var i = 0; i < FIELDS[key].length; i++) { var h = FIELDS[key][i]; if (low[h] != null && String(low[h]).trim() !== '') { out[key] = String(low[h]).trim(); break; } }
     });
+    // format 2026: kode unik = "Kode Barang" + "NUP" digabung
+    if (!out.code && low['kode barang'] != null && String(low['kode barang']).trim() !== '') {
+      out.code = String(low['kode barang']).trim() + String(low['nup'] != null ? low['nup'] : '').trim();
+    }
     return out;
   }
 
@@ -63,9 +68,9 @@
     var ov = el('div', { class: 'sesd-overlay' });
     var m = el('div', { class: 'sesd-modal', style: 'width:680px' });
     m.appendChild(el('h3', {}, 'Import Aset dari Excel'));
-    m.appendChild(el('p', { style: 'color:var(--text-muted);font-size:0.82rem;margin-bottom:0.75rem' }, 'Kolom yang dikenali: Kode, Nama, Kategori, Brand, Ruangan, Tahun, Kondisi, Tipe (BMN/Non-BMN), Jenis Aset, Stok Total. Baris dengan kode yang sudah ada akan dilewati.'));
+    m.appendChild(el('p', { style: 'color:var(--text-muted);font-size:0.82rem;margin-bottom:0.75rem' }, 'Mengikuti format daftar aset 2026. Kolom inti: Kode Barang + NUP (menjadi kode unik), Nama Barang, Jenis BMN (kategori), Merk, Kondisi. Setiap baris = satu barang; baris dengan kode yang sudah ada otomatis dilewati.'));
 
-    var tmpl = el('a', { href: '#', style: 'font-size:0.8rem;font-weight:700;display:inline-block;margin-bottom:0.75rem' }, '⬇ Unduh template CSV');
+    var tmpl = el('a', { href: '#', style: 'font-size:0.8rem;font-weight:700;display:inline-block;margin-bottom:0.75rem' }, 'Unduh template CSV (contoh)');
     tmpl.addEventListener('click', function (e) { e.preventDefault(); downloadTemplate(); });
     m.appendChild(tmpl);
 
@@ -100,6 +105,15 @@
         var wb = XLSX.read(buf, { type: 'array' });
         var sheet = wb.Sheets[wb.SheetNames[0]];
         var raw = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+        // #5 — reject files that don't follow the template (must have Kode + Nama columns)
+        var headers = raw.length ? Object.keys(raw[0]).map(function (h) { return String(h).trim().toLowerCase(); }) : [];
+        var hasCode = headers.some(function (h) { return FIELDS.code.indexOf(h) !== -1 || h === 'kode barang'; });
+        var hasName = headers.some(function (h) { return FIELDS.name.indexOf(h) !== -1; });
+        if (!hasCode || !hasName) {
+          info.innerHTML = '<span style="color:var(--danger);font-weight:700">File tidak sesuai template.</span> Wajib ada kolom <b>Kode Barang</b> dan <b>Nama Barang</b> (format daftar aset 2026). Unduh template lalu gunakan kolom yang sama.';
+          previewWrap.style.display = 'none'; importBtn.disabled = true; importBtn.style.opacity = '0.6'; rows = [];
+          return;
+        }
         rows = raw.map(normalizeRow).filter(function (r) { return r.code || r.name; });
         if (!rows.length) { info.textContent = 'Tidak ada baris valid ditemukan.'; previewWrap.style.display = 'none'; importBtn.disabled = true; importBtn.style.opacity = '0.6'; return; }
         info.textContent = rows.length + ' baris siap diimpor (menampilkan 10 pertama):';
@@ -132,10 +146,17 @@
   }
 
   function downloadTemplate() {
-    var head = 'Kode,Nama,Kategori,Brand,Ruangan,Tahun,Kondisi,Tipe,Jenis Aset,Stok Total';
-    var sample = 'A001,Monitor LG 24",Elektronik,LG,Ruang Tata Usaha,2024,Baik,BMN,Fixed Asset,10';
-    var blob = new Blob(['﻿' + head + '\r\n' + sample + '\r\n'], { type: 'text/csv;charset=utf-8;' });
-    var a = el('a', { href: URL.createObjectURL(blob), download: 'template-import-aset.csv' });
+    // mirrors the daftar aset 2026 format: kode unik = Kode Barang + NUP,
+    // kategori = Jenis BMN, merek = Merk (contoh baris diambil dari file asli 2026)
+    var head = 'No,Jenis BMN,Kode Barang,NUP,Nama Barang,Merk,Tipe,Kondisi';
+    var samples = [
+      '1,ALAT ANGKUTAN BERMOTOR,3020101003,1,Station Wagon,TOYOTA KIJANG,INNOVA TYPE J,Baik',
+      '2,ALAT ANGKUTAN BERMOTOR,3020102003,2,Mini Bus ( Penumpang 14 Orang Kebawah ),ISUZU PANTHER,BR54FTURBO H TOURING,Baik',
+      '3,MESIN PERALATAN NON TIK,3080117016,2,Lemari Asam,ESCO,EFA-4UDRVW-8,Baik',
+      '4,MESIN PERALATAN KHUSUS TIK,3100102002,5,Lap Top,ACER,ASPIRE 5,Baik',
+    ];
+    var blob = new Blob(['﻿' + head + '\r\n' + samples.join('\r\n') + '\r\n'], { type: 'text/csv;charset=utf-8;' });
+    var a = el('a', { href: URL.createObjectURL(blob), download: 'template-import-aset-2026.csv' });
     document.body.appendChild(a); a.click(); a.remove();
   }
 

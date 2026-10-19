@@ -8,7 +8,7 @@ Aplikasi ini memerlukan environment variables berikut:
 
 1. **DATABASE_URL** - Connection string Neon Postgres
    ```
-   postgresql://USER:PASSWORD@ep-xxxx-pooler.REGION.aws.neon.tech/neondb?sslmode=require&channel_binding=require
+   postgresql://USER:PASSWORD@ep-xxxx-pooler.REGION.aws.neon.tech/DBNAME?sslmode=require
    ```
 
 2. **JWT_SECRET** - Secret key untuk signing JWT token

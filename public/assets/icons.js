@@ -6,7 +6,7 @@
    ============================================================ */
 (function () {
   var P = {
-    zap: '<path d="M13 2 4 14h7l-1 8 9-12h-7z"/>',
+    zap: '<rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/>',
     package: '<path d="M21 8 12 3 3 8v8l9 5 9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/>',
     tag: '<path d="M3 3h7l11 11-7 7L3 10z"/><circle cx="7.5" cy="7.5" r="1.3"/>',
     home: '<path d="M3 11 12 3l9 8"/><path d="M5 10v10h14V10"/>',

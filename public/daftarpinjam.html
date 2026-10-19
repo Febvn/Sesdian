@@ -1,19 +1,30 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="id">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>SESDIAN - Daftar Pinjam</title>
-    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="icon" type="image/png" href="logo.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap"
       rel="stylesheet"
     />
-    <script>(function(){try{if(localStorage.getItem('sesdian_theme')==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(e){}})();</script>
-    <link rel="stylesheet" href="assets/app.css?v=14" />
-    <link rel="stylesheet" href="assets/preloader.css?v=14" />
+    <script>(function(){try{var d=document.documentElement;if(localStorage.getItem('sesdian_theme')==='dark')d.setAttribute('data-theme','dark');var ts=localStorage.getItem('sesdian_textsize');if(ts==='small'||ts==='large')d.setAttribute('data-textsize',ts);if(localStorage.getItem('sesdian_rail')==='1')d.classList.add('sesd-rail-pref');}catch(e){}})();</script>
+    <link rel="stylesheet" href="assets/app.css?v=59" />
+    <link rel="stylesheet" href="assets/preloader.css?v=57" />
+    <style>
+      @media (max-width: 640px) {
+        .sesd-pinjam-header {
+          flex-direction: column !important;
+          align-items: center !important;
+          text-align: center;
+        }
+        .sesd-pinjam-header > div { text-align: center; }
+        .sesd-pinjam-header > .sesd-btn { width: 100%; }
+      }
+    </style>
   </head>
   <body data-page="daftarpinjam" data-auth="required">
     <div id="root">
@@ -684,7 +695,7 @@
                 style="width: 1px; height: 14px; background: rgb(226, 232, 240)"
               ></div>
               <span style="font-size: 0.72rem; color: rgb(148, 163, 184)"
-                >18 Jun 2026</span
+                 data-now="short">—</span
               >
               <div
                 style="width: 1px; height: 14px; background: rgb(226, 232, 240)"
@@ -728,7 +739,7 @@
           <div style="padding: 1.75rem">
             <div>
               <div
-                class="animate-fade-up"
+                class="animate-fade-up sesd-pinjam-header"
                 style="
                   display: flex;
                   justify-content: space-between;
@@ -748,191 +759,31 @@
                   >
                     Peminjaman Aset
                   </h1>
-                  <p style="color: var(--text-muted); font-size: 0.875rem">
-                    1 total transaksi
+                  <p data-borrow-subtitle style="color: var(--text-muted); font-size: 0.875rem">
+                    <span class="sesd-loading-inline"></span>
                   </p>
                 </div>
-                <button data-modal-open="ajukan" class="sesd-btn sesd-btn-success">
+                <button data-modal-open="ajukan" class="sesd-btn sesd-btn-lg sesd-btn-success">
                   Ajukan Pinjam
                 </button>
               </div>
-              <div
-                class="animate-fade-up delay-1"
-                style="
-                  display: grid;
-                  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-                  gap: 0.75rem;
-                  margin-bottom: 1.25rem;
-                "
-              >
-                <div
-                  data-filter="status"
-                  data-filter-val="pending"
-                  data-filter-active
-                  style="
-                    background: rgb(255, 255, 255);
-                    border-radius: 12px;
-                    padding: 1rem;
-                    border: 1.5px solid var(--border);
-                    cursor: pointer;
-                    transition: 0.2s;
-                    text-align: center;
-                  "
-                >
-                  <div
-                    style="
-                      width: 8px;
-                      height: 8px;
-                      border-radius: 50%;
-                      background: rgb(245, 158, 11);
-                      margin: 0px auto 8px;
-                    "
-                  ></div>
-                  <div
-                    data-count="pending"
-                    style="
-                      font-size: 1.5rem;
-                      font-weight: 800;
-                      color: rgb(146, 64, 14);
-                    "
-                  >
-                    1
-                  </div>
-                  <div
-                    style="
-                      font-size: 0.75rem;
-                      color: var(--text-muted);
-                      font-weight: 600;
-                    "
-                  >
-                    Pending
-                  </div>
-                </div>
-                <div
-                  data-filter="status"
-                  data-filter-val="approved"
-                  style="
-                    background: rgb(255, 255, 255);
-                    border-radius: 12px;
-                    padding: 1rem;
-                    border: 1.5px solid var(--border);
-                    cursor: pointer;
-                    transition: 0.2s;
-                    text-align: center;
-                  "
-                >
-                  <div
-                    style="
-                      width: 8px;
-                      height: 8px;
-                      border-radius: 50%;
-                      background: rgb(59, 130, 246);
-                      margin: 0px auto 8px;
-                    "
-                  ></div>
-                  <div
-                    data-count="approved"
-                    style="
-                      font-size: 1.5rem;
-                      font-weight: 800;
-                      color: rgb(30, 64, 175);
-                    "
-                  >
-                    0
-                  </div>
-                  <div
-                    style="
-                      font-size: 0.75rem;
-                      color: var(--text-muted);
-                      font-weight: 600;
-                    "
-                  >
-                    Disetujui
-                  </div>
-                </div>
-                <div
-                  data-filter="status"
-                  data-filter-val="rejected"
-                  style="
-                    background: rgb(255, 255, 255);
-                    border-radius: 12px;
-                    padding: 1rem;
-                    border: 1.5px solid var(--border);
-                    cursor: pointer;
-                    transition: 0.2s;
-                    text-align: center;
-                  "
-                >
-                  <div
-                    style="
-                      width: 8px;
-                      height: 8px;
-                      border-radius: 50%;
-                      background: rgb(239, 68, 68);
-                      margin: 0px auto 8px;
-                    "
-                  ></div>
-                  <div
-                    data-count="rejected"
-                    style="
-                      font-size: 1.5rem;
-                      font-weight: 800;
-                      color: rgb(185, 28, 28);
-                    "
-                  >
-                    0
-                  </div>
-                  <div
-                    style="
-                      font-size: 0.75rem;
-                      color: var(--text-muted);
-                      font-weight: 600;
-                    "
-                  >
-                    Ditolak
-                  </div>
-                </div>
-                <div
-                  data-filter="status"
-                  data-filter-val="returned"
-                  style="
-                    background: rgb(255, 255, 255);
-                    border-radius: 12px;
-                    padding: 1rem;
-                    border: 1.5px solid var(--border);
-                    cursor: pointer;
-                    transition: 0.2s;
-                    text-align: center;
-                  "
-                >
-                  <div
-                    style="
-                      width: 8px;
-                      height: 8px;
-                      border-radius: 50%;
-                      background: rgb(16, 185, 129);
-                      margin: 0px auto 8px;
-                    "
-                  ></div>
-                  <div
-                    data-count="returned"
-                    style="
-                      font-size: 1.5rem;
-                      font-weight: 800;
-                      color: rgb(22, 101, 52);
-                    "
-                  >
-                    0
-                  </div>
-                  <div
-                    style="
-                      font-size: 0.75rem;
-                      color: var(--text-muted);
-                      font-weight: 600;
-                    "
-                  >
-                    Kembali
-                  </div>
+              <div class="animate-fade-up delay-1" style="margin-bottom: 1.25rem">
+                <div class="sesd-segfilter" role="tablist" aria-label="Filter status">
+                  <button type="button" data-filter="status" data-filter-val="all" data-filter-active>
+                    <span>Semua</span><span class="seg-count" data-count="all">0</span>
+                  </button>
+                  <button type="button" data-filter="status" data-filter-val="pending">
+                    <span class="seg-dot" style="background: #dd5b00"></span><span>Pending</span><span class="seg-count" data-count="pending">0</span>
+                  </button>
+                  <button type="button" data-filter="status" data-filter-val="approved">
+                    <span class="seg-dot" style="background: #0075de"></span><span>Disetujui</span><span class="seg-count" data-count="approved">0</span>
+                  </button>
+                  <button type="button" data-filter="status" data-filter-val="rejected">
+                    <span class="seg-dot" style="background: #e03e3e"></span><span>Ditolak</span><span class="seg-count" data-count="rejected">0</span>
+                  </button>
+                  <button type="button" data-filter="status" data-filter-val="returned">
+                    <span class="seg-dot" style="background: #1aae39"></span><span>Sudah dikembalikan</span><span class="seg-count" data-count="returned">0</span>
+                  </button>
                 </div>
               </div>
               <div
@@ -1026,7 +877,7 @@
                           letter-spacing: 0.5px;
                         "
                       >
-                        Peminjam
+                        Pemin
                       </th>
                       <th
                         style="
@@ -1039,7 +890,7 @@
                           letter-spacing: 0.5px;
                         "
                       >
-                        Status
+                        Stat
                       </th>
                       <th
                         style="
@@ -1052,7 +903,7 @@
                           letter-spacing: 0.5px;
                         "
                       >
-                        Jatuh Tempo
+                        Tempo
                       </th>
                       <th
                         style="
@@ -1065,7 +916,7 @@
                           letter-spacing: 0.5px;
                         "
                       >
-                        Tgl Pengajuan
+                        Tgl Ajuan
                       </th>
                     </tr>
                   </thead>
@@ -1086,6 +937,10 @@
                           padding: 0.875rem 1rem;
                           font-weight: 600;
                           font-size: 0.875rem;
+                          max-width: 100px;
+                          overflow: hidden;
+                          text-overflow: ellipsis;
+                          white-space: nowrap;
                         "
                       >
                         -
@@ -1106,6 +961,10 @@
                           padding: 0.875rem 1rem;
                           font-size: 0.875rem;
                           color: var(--text-muted);
+                          max-width: 80px;
+                          overflow: hidden;
+                          text-overflow: ellipsis;
+                          white-space: nowrap;
                         "
                       >
                         -
@@ -1404,11 +1263,11 @@
         </div>
       </div>
     </div>
-    <script defer src="assets/config.js?v=14"></script>
-    <script defer src="assets/db.js?v=14"></script>
-    <script defer src="assets/icons.js?v=14"></script>
-    <script defer src="assets/preloader.js?v=14"></script>
-    <script defer src="assets/app.js?v=14"></script>
-      <script defer src="assets/theme.js?v=14"></script>
+    <script defer src="assets/config.js?v=57"></script>
+    <script defer src="assets/db.js?v=57"></script>
+    <script defer src="assets/icons.js?v=58"></script>
+    <script defer src="assets/preloader.js?v=57"></script>
+    <script defer src="assets/app.js?v=60"></script>
+      <script defer src="assets/theme.js?v=57"></script>
   </body>
 </html>

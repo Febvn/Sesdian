@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SESDIAN - Profil Saya</title>
+    <link rel="icon" type="image/png" href="logo.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <script>(function(){try{var d=document.documentElement;if(localStorage.getItem('sesdian_theme')==='dark')d.setAttribute('data-theme','dark');var ts=localStorage.getItem('sesdian_textsize');if(ts==='small'||ts==='large')d.setAttribute('data-textsize',ts);if(localStorage.getItem('sesdian_rail')==='1')d.classList.add('sesd-rail-pref');}catch(e){}})();</script>
+    <link rel="stylesheet" href="assets/app.css?v=59" />
+    <link rel="stylesheet" href="assets/preloader.css?v=57" />
+  </head>
+  <body data-page="profil" data-auth="required">
+    <div id="root">
+      <div style="display: flex; min-height: 100vh; background: rgb(240, 244, 255)">
+        <aside
+          data-shell
+          style="
+            width: 256px;
+            background: rgb(11, 17, 32);
+            display: flex;
+            flex-direction: column;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow: hidden;
+            flex-shrink: 0;
+            box-shadow: rgba(0, 0, 0, 0.25) 4px 0 32px;
+          "
+        ></aside>
+        <main style="flex: 1 1 0%; overflow: auto; min-width: 0">
+          <div
+            data-topbar
+            style="
+              background: #fff;
+              border-bottom: 1px solid rgb(226, 232, 240);
+              padding: 0.7rem 1rem;
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              position: sticky;
+              top: 0;
+              z-index: 10;
+              box-shadow: rgba(0, 0, 0, 0.04) 0 1px 0;
+            "
+          ></div>
+          <div style="padding: 1.75rem;">
+            <div data-profile-root>
+              <div class="sesd-page-loader"><span></span><span></span><span></span></div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+    <script defer src="assets/config.js?v=57"></script>
+    <script defer src="assets/db.js?v=57"></script>
+    <script defer src="assets/icons.js?v=58"></script>
+    <script defer src="assets/preloader.js?v=57"></script>
+    <script defer src="assets/app.js?v=60"></script>
+    <script defer src="assets/theme.js?v=57"></script>
+  </body>
+</html>

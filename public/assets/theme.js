@@ -40,6 +40,31 @@
   // file self-sufficient if the inline guard is ever missing on a page.
   applyTheme(getPreferred());
 
+  /* ── #7 — user text-size preference (small / medium / large) ── */
+  var TEXTSIZE_KEY = 'sesdian_textsize';
+  function getTextSize() {
+    try { var t = localStorage.getItem(TEXTSIZE_KEY); if (t === 'small' || t === 'large' || t === 'medium') return t; } catch (e) {}
+    return 'medium';
+  }
+  function applyTextSize(sz) {
+    if (sz === 'small' || sz === 'large') document.documentElement.setAttribute('data-textsize', sz);
+    else document.documentElement.removeAttribute('data-textsize');
+    try { localStorage.setItem(TEXTSIZE_KEY, sz); } catch (e) {}
+  }
+  applyTextSize(getTextSize());   // apply as early as possible
+
+  /* ── #4 — current user + per-user avatar (stored client-side) ── */
+  function currentUserLS() {
+    // API mode stores a JWT (with nip/name/role), not a 'sesdian_user' object —
+    // read identity from the token first so the header profile shows the NIP (#7).
+    try { var db = window.SESDIAN_DB; if (db && db.auth && db.auth.currentUser) { var u = db.auth.currentUser(); if (u && (u.nip || u.name)) return u; } } catch (e) {}
+    try { return JSON.parse(localStorage.getItem('sesdian_user') || 'null'); } catch (e) { return null; }
+  }
+  function avatarKey(u) { return 'sesdian_avatar_' + ((u && (u.nip || u.name)) || 'anon'); }
+  function getAvatar(u) { try { return localStorage.getItem(avatarKey(u)) || ''; } catch (e) { return ''; } }
+  function setAvatar(u, d) { try { localStorage.setItem(avatarKey(u), d); } catch (e) {} }
+  function initialsOf(name) { return (name || '').trim().split(/\s+/).map(function (w) { return w[0] || ''; }).join('').slice(0, 2).toUpperCase() || 'U'; }
+
   /* ── small inline icons, matched to the app's stroke icon language ── */
   var ICON_CAL  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4.5" width="18" height="17" rx="2.5"/><path d="M16 2.5v4M8 2.5v4M3 9.5h18"/></svg>';
   var ICON_BELL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9a6 6 0 0 1 12 0c0 7 3 7 3 9H3c0-2 3-2 3-9"/><path d="M10.5 21a1.5 1.5 0 0 0 3 0"/></svg>';
@@ -83,12 +108,109 @@
     return d.getDate() + ' ' + m[d.getMonth()] + ' ' + d.getFullYear();
   }
 
-  /* ── Normalised header right-cluster: toggle | date | bell | profile ── */
+  /* ── #7 — text-size segmented control (A small / medium / large) ── */
+  function buildTextSize() {
+    var wrap = document.createElement('div');
+    wrap.className = 'sesd-textsize';
+    wrap.setAttribute('role', 'group');
+    wrap.setAttribute('aria-label', 'Ukuran teks');
+    var sizes = [['small', '0.68rem', 'Teks kecil'], ['medium', '0.92rem', 'Teks sedang'], ['large', '1.18rem', 'Teks besar']];
+    var cur = getTextSize();
+    sizes.forEach(function (s) {
+      var b = document.createElement('button');
+      b.type = 'button'; b.title = s[2]; b.setAttribute('data-ts', s[0]);
+      b.setAttribute('aria-label', s[2]);
+      b.innerHTML = '<span style="font-size:' + s[1] + '">A</span>';
+      if (s[0] === cur) b.className = 'is-active';
+      b.addEventListener('click', function () {
+        applyTextSize(s[0]);
+        Array.prototype.forEach.call(wrap.querySelectorAll('button'), function (x) {
+          x.className = (x.getAttribute('data-ts') === s[0]) ? 'is-active' : '';
+        });
+      });
+      wrap.appendChild(b);
+    });
+    return wrap;
+  }
+
+  /* ── #4 — apply the saved avatar to the header button + sidebar tile ── */
+  function applyAvatarEverywhere(u) {
+    var av = getAvatar(u);
+    var prof = document.querySelector('.sesd-head-profile');
+    if (prof) prof.innerHTML = av ? '<img alt="Foto profil" src="' + av + '">' : '<span class="ic">' + ICON_USER + '</span>';
+    var sb = document.querySelector('aside [data-user-initials]');
+    if (sb && av) sb.innerHTML = '<img alt="" src="' + av + '">';
+  }
+  // let other scripts (the profile page) refresh the avatar after a photo change
+  window.SESDIAN_APPLY_AVATAR = function () { applyAvatarEverywhere(currentUserLS()); };
+  function centerCropSquare(file, cb) {
+    var fr = new FileReader();
+    fr.onload = function () {
+      var img = new Image();
+      img.onload = function () {
+        var s = Math.min(img.width, img.height), sx = (img.width - s) / 2, sy = (img.height - s) / 2, out = 256;
+        var c = document.createElement('canvas'); c.width = out; c.height = out;
+        c.getContext('2d').drawImage(img, sx, sy, s, s, 0, 0, out, out);
+        try { cb(c.toDataURL('image/webp', 0.85)); } catch (e) { try { cb(c.toDataURL('image/jpeg', 0.85)); } catch (e2) { cb(null); } }
+      };
+      img.onerror = function () { cb(null); };
+      img.src = fr.result;
+    };
+    fr.onerror = function () { cb(null); };
+    fr.readAsDataURL(file);
+  }
+  function buildProfileMenu(u) {
+    var menu = document.createElement('div');
+    menu.className = 'sesd-profile-menu';
+    var av = getAvatar(u);
+    menu.innerHTML =
+      '<div class="sesd-profile-head">' +
+        '<div class="sesd-profile-av" data-pf-av>' + (av ? '<img alt="Foto profil" src="' + av + '">' : initialsOf(u && u.name)) + '</div>' +
+        '<div style="min-width:0">' +
+          '<div class="sesd-profile-name">' + ((u && u.name) || 'Pengguna') + '</div>' +
+          '<div class="sesd-profile-nip">NIP ' + ((u && u.nip) || '-') + '</div>' +
+          '<span class="sesd-profile-role">' + ((u && u.role) || 'user') + '</span>' +
+        '</div>' +
+      '</div>' +
+      '<a href="profil.html" class="sesd-btn sesd-btn-primary" data-pf-detail>Detail Profil</a>' +
+      '<div class="sesd-profile-divider"></div>' +
+      '<button type="button" class="sesd-btn sesd-btn-danger" data-pf-logout>Keluar</button>';
+    menu.querySelector('[data-pf-logout]').addEventListener('click', function () {
+      var lo = document.querySelector('[data-action="logout"]');
+      if (!lo) {
+        Array.prototype.forEach.call(document.querySelectorAll('aside button'), function (x) {
+          if (!lo && /^(keluar|logout|log out)$/i.test((x.textContent || '').trim())) lo = x;
+        });
+      }
+      if (lo) lo.click(); else { try { localStorage.removeItem('sesdian_user'); } catch (e) {} location.href = 'login.html'; }
+    });
+    return menu;
+  }
+  function wireProfile() {
+    var prof = document.querySelector('.sesd-head-profile'); if (!prof) return;
+    applyAvatarEverywhere(currentUserLS());
+    var menu = null;
+    function close() { if (menu) { menu.remove(); menu = null; } document.removeEventListener('click', onDoc, true); }
+    function position() { if (!menu) return; var r = prof.getBoundingClientRect(); menu.style.top = (r.bottom + 8) + 'px'; menu.style.right = Math.max(12, window.innerWidth - r.right) + 'px'; }
+    function onDoc(e) { if (menu && !menu.contains(e.target) && !prof.contains(e.target)) close(); }
+    prof.addEventListener('click', function (e) {
+      e.preventDefault(); e.stopPropagation();
+      if (menu) { close(); return; }
+      menu = buildProfileMenu(currentUserLS());
+      document.body.appendChild(menu);
+      position();
+      setTimeout(function () { document.addEventListener('click', onDoc, true); }, 0);
+      window.addEventListener('resize', position, { passive: true });
+    });
+  }
+
+  /* ── Normalised header right-cluster: toggle | text-size | date | bell | profile ── */
   function buildHeaderCluster() {
     var wrap = document.createElement('div');
     wrap.className = 'sesd-headbar';
 
     wrap.appendChild(buildSwitch());
+    wrap.appendChild(buildTextSize());
 
     var date = document.createElement('span');
     date.className = 'sesd-head-date';
@@ -133,13 +255,20 @@
   /* ── Inject header cluster + back-to-top once the shell exists ── */
   var tries = 0;
   function inject() {
+    // Only app-shell pages (which have an <aside>) expose their topbar as
+    // main's first child. On guest pages (katalog / aset-detail / auth) there is
+    // no shell, so we must NOT treat main's first child as a topbar — doing so
+    // injected the theme cluster into the hero / back-link. Fall back to the
+    // floating toggle there instead.
+    var hasShell = !!document.querySelector('aside');
     var header =
       document.querySelector('[data-topbar]') ||
-      (document.querySelector('main') && document.querySelector('main').firstElementChild);
+      (hasShell && document.querySelector('main') ? document.querySelector('main').firstElementChild : null);
 
     // The dynamic shell pages build their topbar asynchronously; wait for it.
     if (header && !header.children.length && tries < 20) { tries++; return setTimeout(inject, 60); }
 
+    var controls = document.querySelector('[data-guest-controls]');
     if (header && !document.getElementById('sesd-theme-toggle')) {
       var cluster = buildHeaderCluster();
       if (header.children.length >= 2) {
@@ -147,6 +276,12 @@
       } else {
         header.appendChild(cluster);
       }
+      wireProfile();      // #4 — make the profile button open the per-user menu
+    } else if (controls && !document.getElementById('sesd-theme-toggle')) {
+      // #8 — guest pages (katalog): theme + text-size live in the page header,
+      // mirroring the dashboard chrome, instead of a floating toggle.
+      controls.insertBefore(buildTextSize(), controls.firstChild);
+      controls.insertBefore(buildSwitch(), controls.firstChild);
     } else if (!header && !document.getElementById('sesd-theme-toggle')) {
       // No header at all: keep the toggle reachable as a floating control.
       var fallback = buildSwitch();

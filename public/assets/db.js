@@ -54,8 +54,21 @@
 
   /* ====================== auth ====================== */
   var auth = {
+    // check NIP existence and password status (step 1 of multi-step login)
+    async checkNip(nip) { return await req('login', { method: 'POST', body: { nip: nip, action: 'check' } }); },
     async signUp(o) { var d = await req('register', { method: 'POST', body: { nip: o.nip, name: o.name, password: o.password, phone: o.phone } }); setToken(d.token); return d; },
-    async signIn(o) { var d = await req('login', { method: 'POST', body: { nip: o.nip, password: o.password } }); setToken(d.token); return d; },
+    async signIn(o) {
+      var d = await req('login', { method: 'POST', body: { nip: o.nip, password: o.password } });
+      // akun NIP-saja menjawab { claim_required: true } tanpa token
+      if (d.token) setToken(d.token);
+      return d;
+    },
+    // klaim akun NIP-saja: pemilik NIP mengatur nama + password lalu langsung masuk
+    async claimAccount(o) {
+      var d = await req('login', { method: 'POST', body: { nip: o.nip, claim: true, name: o.name, password: o.password } });
+      if (d.token) setToken(d.token);
+      return d;
+    },
     async signOut() { clearToken(); },
     currentUser() {
       var t = token(); if (!t) return null;
@@ -85,15 +98,45 @@
 
   async function categories() { return demo ? P(DEMO.categories.slice()) : (await cachedReq('categories', 60000)).categories; }
   async function rooms() { return demo ? P(DEMO.rooms.slice()) : (await cachedReq('rooms', 60000)).rooms; }
-  async function assets() { return demo ? P(DEMO.assets.map(demoAsset)) : (await req('assets')).assets; }
+
+  // Image priority per asset: (1) jenis image (one per NAME, uploaded via the
+  // group editor and served as binary from /api/public?resource=img), then
+  // (2) legacy per-unit photo in assets.image, then (3) the generated
+  // assets/aset/<slug>.webp illustration. slugAsset MUST stay in sync with
+  // scripts/generate-asset-images.mjs and the SQL key in the API joins.
+  // /assets/* is served immutable for 1 year (vercel.json), so bump ASSET_IMG_V
+  // whenever the webp files are regenerated or browsers will keep the old ones.
+  var ASSET_IMG_V = '4';
+  function slugAsset(s) { return String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''); }
+  // image identity = (nama, merk): units sharing name+brand share ONE image
+  function assetImgKey(name, brand) { return slugAsset(String(name || '') + ' ' + String(brand || '')); }
+  function fillAssetImage(a) {
+    if (!a) return a;
+    if (a.jenis_key && a.jenis_ver) a.image = 'api/public?resource=img&key=' + encodeURIComponent(a.jenis_key) + '&t=' + a.jenis_ver;
+    else if (!a.image) { var k = assetImgKey(a.name, a.brand); if (k) a.image = 'assets/aset/' + k + '.webp?v=' + ASSET_IMG_V; }
+    return a;
+  }
+  // one image per jenis (nama + merk): a single upsert covers every matching unit
+  async function setJenisImage(name, brand, image) {
+    if (demo) {
+      var key = assetImgKey(name, brand);
+      DEMO.assets.forEach(function (a) { if (assetImgKey(a.name, a.brand) === key) a.image = image; });
+      return P({ ok: true });
+    }
+    return req('assets', { method: 'POST', body: { jenis_image: { name: String(name || '') + ' ' + String(brand || ''), image: image } } });
+  }
+  async function assets() { return demo ? P(DEMO.assets.map(demoAsset).map(fillAssetImage)) : (await req('assets')).assets.map(fillAssetImage); }
 
   function fmtBorrow(b) {
     var d = b.created_at ? new Date(b.created_at) : null;
     return {
       id: b.id, asset_name: b.asset_name || '-', asset_code: b.asset_code || '',
-      borrower: b.borrower_name || '-', qty: b.qty, status: b.status,
+      borrower: b.borrower_name || '-', borrower_avatar: b.borrower_avatar || '', qty: b.qty, status: b.status,
       due_date: b.due_date ? String(b.due_date).slice(0, 10) : '',
       request_date: d ? (d.getDate() + '/' + (d.getMonth() + 1) + '/' + d.getFullYear()) : '',
+      // raw timestamps for the notification bell (event time per status)
+      created_at: b.created_at || null, approved_at: b.approved_at || null,
+      verified_at: b.verified_at || null, returned_at: b.returned_at || null,
     };
   }
   async function borrowings() {
@@ -136,8 +179,18 @@
   /* ====================== public catalog / detail (guest) ====================== */
   function publicAsset(a) { return { id: a.id, code: a.code, name: a.name, brand: a.brand, type: a.type, image: a.image, qr_code: a.qr_code, category: a.category, room: a.room }; }
   async function catalog() {
-    if (demo) { var as = await assets(); return P({ assets: as.map(publicAsset), categories: DEMO.categories.slice(), rooms: DEMO.rooms.slice() }); }
-    return req('public?resource=catalog');
+    if (demo) {
+      var as = await assets();
+      var sum = function (k) { return as.reduce(function (t, a) { return t + (a[k] || 0); }, 0); };
+      var bs = await borrowings();
+      return P({
+        assets: as.map(publicAsset), categories: DEMO.categories.slice(), rooms: DEMO.rooms.slice(),
+        stats: { total_assets: as.length, total_stock: sum('stock_total'), stock_available: sum('stock_available'), stock_borrowed: sum('stock_borrowed'), pending: bs.filter(function (b) { return b.status === 'pending'; }).length }
+      });
+    }
+    var data = await req('public?resource=catalog');
+    if (data.assets) data.assets = data.assets.map(fillAssetImage);
+    return data;
   }
   async function assetDetail(o) {
     o = o || {};
@@ -148,13 +201,39 @@
       return P({ asset: publicAsset(a), authed: !!currentUserRaw() });
     }
     var qs = o.qr ? ('qr=' + encodeURIComponent(o.qr)) : ('id=' + encodeURIComponent(o.id));
-    return req('public?resource=detail&' + qs);
+    var data = await req('public?resource=detail&' + qs);
+    if (data.asset) fillAssetImage(data.asset);
+    return data;
   }
 
   /* ====================== reports (admin/verifikator) ====================== */
   async function reports(params) {
     params = params || {};
-    if (demo) { return P({ period: params.period || 'daily', start: '', end: '', total: 0, series: [], by_status: {}, top_assets: [], top_borrowers: [], rows: [] }); }
+    if (demo) {
+      var list = await borrowings();
+      var bs = {};
+      var total = list.length;
+      list.forEach(function (b) {
+        bs[b.status] = (bs[b.status] || 0) + 1;
+      });
+      var rows = list.map(function (b) {
+        return {
+          id: b.id,
+          borrower_name: b.borrower,
+          qty: b.qty,
+          status: b.status,
+          due_date: b.due_date,
+          created_at: b.created_at,
+          returned_at: b.returned_at || null,
+          asset_name: b.asset_name,
+          asset_code: b.asset_code,
+          admin_name: b.status === 'approved' || b.status === 'borrowed' || b.status === 'returned' ? 'Admin Demo' : '',
+          verifikator_name: b.status === 'borrowed' || b.status === 'returned' ? 'Verifikator Demo' : '',
+          borrower_avatar: b.borrower_avatar
+        };
+      });
+      return P({ period: params.period || 'daily', start: '2026-06-01', end: '2026-06-30', total: total, series: [], by_status: bs, top_assets: [], top_borrowers: [], rows: rows });
+    }
     var qs = Object.keys(params).filter(function (k) { return params[k]; }).map(function (k) { return k + '=' + encodeURIComponent(params[k]); }).join('&');
     return req('dashboard?view=reports' + (qs ? ('&' + qs) : ''));
   }
@@ -176,12 +255,26 @@
     return (await req('users', { method: 'PATCH', body: { id: id, role: role } })).user;
   }
   async function createUser(d) {
-    if (demo) { var u = { id: ++DEMO.seq, nip: d.nip, name: d.name, role: d.role || 'user' }; DEMO.users.push(u); return P(u); }
-    return (await req('users', { method: 'POST', body: d })).user;
+    // hanya NIP + role + HP; nama & password diatur pemilik NIP saat klaim
+    if (demo) { var u = { id: ++DEMO.seq, nip: d.nip, name: '', role: d.role || 'user', claimed: false }; DEMO.users.push(u); return P(u); }
+    return (await req('users', { method: 'POST', body: { nip: d.nip, role: d.role, phone: d.phone } })).user;
   }
   async function deleteUser(id) {
     if (demo) { DEMO.users = DEMO.users.filter(function (x) { return x.id != id; }); return P({ ok: true }); }
     return req('users', { method: 'DELETE', body: { id: id } });
+  }
+  /* ====================== self-service profile ====================== */
+  async function profile() {
+    if (demo) { var p = currentUserRaw() || {}; return P({ nip: p.nip || '123456789012345678', name: p.name || 'Pengguna Demo', phone: '', role: p.role || 'admin' }); }
+    return (await req('profile')).user;
+  }
+  async function updateProfile(d) {
+    if (demo) return P(Object.assign({}, currentUserRaw(), d));
+    return (await req('profile', { method: 'PATCH', body: { name: d.name, phone: d.phone, avatar: d.avatar } })).user;
+  }
+  async function changePassword(currentPassword, newPassword) {
+    if (demo) { if (!newPassword || newPassword.length < 8) return Promise.reject(new Error('Password baru minimal 8 karakter')); return P({ ok: true }); }
+    return req('profile', { method: 'PATCH', body: { currentPassword: currentPassword, newPassword: newPassword } });
   }
 
   /* ====================== admin: assets ====================== */
@@ -243,7 +336,8 @@
     categories: categories, rooms: rooms, assets: assets, borrowings: borrowings, dashboard: dashboard, requestBorrowing: requestBorrowing,
     catalog: catalog, assetDetail: assetDetail, reports: reports, importAssets: importAssets,
     users: users, usersFresh: usersFresh, setUserRole: setUserRole, createUser: createUser, deleteUser: deleteUser,
-    createAsset: createAsset, updateAsset: updateAsset, deleteAsset: deleteAsset,
+    profile: profile, updateProfile: updateProfile, changePassword: changePassword,
+    createAsset: createAsset, updateAsset: updateAsset, deleteAsset: deleteAsset, setJenisImage: setJenisImage,
     createCategory: createCategory, updateCategory: updateCategory, deleteCategory: deleteCategory,
     createRoom: createRoom, updateRoom: updateRoom, deleteRoom: deleteRoom,
     updateBorrowingStatus: updateBorrowingStatus,

@@ -1,47 +1,44 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="id">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>SESDIAN - Detail Aset</title>
-    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="icon" type="image/png" href="logo.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap"
       rel="stylesheet"
     />
-    <script>(function(){try{if(localStorage.getItem('sesdian_theme')==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(e){}})();</script>
-    <link rel="stylesheet" href="assets/app.css?v=14" />
+    <script>(function(){try{var d=document.documentElement;if(localStorage.getItem('sesdian_theme')==='dark')d.setAttribute('data-theme','dark');var ts=localStorage.getItem('sesdian_textsize');if(ts==='small'||ts==='large')d.setAttribute('data-textsize',ts);if(localStorage.getItem('sesdian_rail')==='1')d.classList.add('sesd-rail-pref');}catch(e){}})();</script>
+    <link rel="stylesheet" href="assets/app.css?v=59" />
+    <style>
+      .sesd-cat-nav {
+        background: var(--bg-surface);
+        border-bottom: 1px solid var(--border);
+        position: sticky; top: 0; z-index: 50;
+      }
+      .sesd-cat-nav__inner {
+        max-width: 720px; margin: 0 auto;
+        padding: 0.7rem 1.25rem;
+        display: flex; align-items: center; gap: 14px;
+      }
+      .sesd-cat-nav__logo {
+        height: 34px; width: auto; max-width: 158px;
+        object-fit: contain; object-position: left center;
+        background: transparent; display: block;
+      }
+    </style>
   </head>
   <body data-page="aset-detail" style="background: var(--bg)">
-    <header
-      style="
-        background: rgb(11, 17, 32);
-        position: sticky;
-        top: 0;
-        z-index: 10;
-        box-shadow: rgba(0, 0, 0, 0.25) 0 2px 16px;
-      "
-    >
-      <div
-        style="
-          max-width: 720px;
-          margin: 0 auto;
-          padding: 0.85rem 1.25rem;
-          display: flex;
-          align-items: center;
-          gap: 14px;
-        "
-      >
-        <a
-          href="katalog.html"
-          style="text-decoration: none; display: flex; flex-direction: column"
-        >
-          <span style="font-size: 1.15rem; font-weight: 900; color: #fff; letter-spacing: -0.5px; line-height: 1">SES<span style="color: rgb(99, 102, 241)">DIAN</span></span>
-          <span style="font-size: 0.55rem; color: rgb(100, 116, 139); font-family: 'JetBrains Mono'; letter-spacing: 2px; margin-top: 3px">ASSET MANAGEMENT</span>
+    <header class="sesd-cat-nav">
+      <div class="sesd-cat-nav__inner">
+        <a href="katalog.html" aria-label="SESDIAN — Katalog">
+          <img class="sesd-cat-nav__logo" src="assets/logosesdian.png" alt="SESDIAN" />
         </a>
         <div style="flex: 1"></div>
+        <div data-guest-controls></div>
         <div data-guest-auth></div>
       </div>
     </header>
@@ -49,7 +46,8 @@
     <main style="max-width: 720px; margin: 0 auto; padding: 1.75rem 1.25rem">
       <a
         href="katalog.html"
-        style="display: inline-flex; align-items: center; gap: 4px; color: var(--primary); font-size: 0.85rem; font-weight: 700; margin-bottom: 1rem; text-decoration: none"
+        class="sesd-btn"
+        style="margin-bottom: 1rem; text-decoration: none"
         >‹ Kembali ke katalog</a
       >
       <div
@@ -62,14 +60,14 @@
           padding: 1.25rem;
         "
       >
-        <div class="sesd-loading">Memuat detail aset…</div>
+        <div class="sesd-loading">Memuat detail aset...</div>
       </div>
     </main>
 
-    <script defer src="assets/config.js?v=14"></script>
-    <script defer src="assets/db.js?v=14"></script>
-    <script defer src="assets/icons.js?v=14"></script>
-    <script defer src="assets/guest.js?v=14"></script>
-      <script defer src="assets/theme.js?v=14"></script>
+    <script defer src="assets/config.js?v=57"></script>
+    <script defer src="assets/db.js?v=57"></script>
+    <script defer src="assets/icons.js?v=58"></script>
+    <script defer src="assets/guest.js?v=57"></script>
+    <script defer src="assets/theme.js?v=57"></script>
   </body>
 </html>

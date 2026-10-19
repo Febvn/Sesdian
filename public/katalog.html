@@ -1,170 +1,306 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="id">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>SESDIAN - Katalog Aset</title>
-    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="icon" type="image/png" href="logo.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap"
       rel="stylesheet"
     />
-    <script>(function(){try{if(localStorage.getItem('sesdian_theme')==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(e){}})();</script>
-    <link rel="stylesheet" href="assets/app.css?v=14" />
+    <script>(function(){try{var d=document.documentElement;if(localStorage.getItem('sesdian_theme')==='dark')d.setAttribute('data-theme','dark');var ts=localStorage.getItem('sesdian_textsize');if(ts==='small'||ts==='large')d.setAttribute('data-textsize',ts);if(localStorage.getItem('sesdian_rail')==='1')d.classList.add('sesd-rail-pref');}catch(e){}})();</script>
+    <link rel="stylesheet" href="assets/app.css?v=59" />
+    <style>
+      /* Catalog (guest) — Notion language, scoped to this page.
+         Cards reuse the shared .sesd-aset-* primitives from app.css. */
+      .sesd-cat-nav {
+        background: var(--bg-surface);
+        border-bottom: 1px solid var(--border);
+        position: sticky; top: 0; z-index: 50;
+      }
+      .sesd-cat-nav__inner {
+        max-width: 1180px; margin: 0 auto;
+        padding: 0.7rem 1.25rem;
+        display: flex; align-items: center; gap: 14px;
+      }
+      .sesd-cat-nav__logo {
+        height: 34px; width: auto; max-width: 158px;
+        object-fit: contain; object-position: left center;
+        background: transparent; display: block;
+      }
+      .sesd-cat-nav__title {
+        font-size: 1rem; font-weight: 800; color: var(--text);
+        letter-spacing: -0.02em; white-space: nowrap;
+      }
+      .sesd-cat-main { max-width: 1180px; margin: 0 auto; padding: 1.75rem 1.25rem; }
+
+      .sesd-cat-toolbar { display: flex; flex-direction: column; gap: 0.85rem; margin-bottom: 1.25rem; }
+      .sesd-cat-search { position: relative; width: 100%; }
+      .sesd-cat-search .ic {
+        position: absolute; left: 13px; top: 50%; transform: translateY(-50%);
+        color: var(--text-muted); display: inline-flex; pointer-events: none;
+      }
+      .sesd-cat-search input {
+        width: 100%; box-sizing: border-box;
+        padding: 0.7rem 1rem 0.7rem 2.6rem;
+        border-radius: var(--radius-input) !important;
+        border: 1px solid var(--border) !important;
+        background: var(--bg-card) !important;
+        color: var(--text) !important;
+        font-size: 0.9rem; outline: none;
+      }
+      .sesd-cat-search input:focus {
+        border-color: rgba(0,117,222,0.55) !important;
+        box-shadow: 0 0 0 3px var(--primary-glow) !important;
+      }
+      .sesd-cat-chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; }
+
+      /* #8 — tidy, uniform responsive grid */
+      .sesd-cat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(216px, 1fr));
+        gap: 1.1rem;
+        align-items: stretch;
+      }
+      /* equal-height, professional catalog cards */
+      .sesd-cat-grid .sesd-aset-card { height: 100%; }
+      .sesd-cat-grid .sesd-aset-img { height: 150px; }
+      .sesd-cat-grid .sesd-aset-name {
+        font-size: 0.9rem; line-height: 1.3;
+        display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+        overflow: hidden; min-height: 2.34em;
+      }
+
+      /* unit-count badge + bottom-pinned "Lihat detail" affordance */
+      .sesd-cat-count {
+        font-size: 0.66rem; font-weight: 800; white-space: nowrap;
+        padding: 0.18rem 0.55rem; border-radius: var(--radius-pill);
+        background: rgba(0,117,222,0.10); color: var(--primary);
+      }
+      .sesd-cat-more {
+        margin-top: auto; padding-top: 10px;
+        display: inline-flex; align-items: center; gap: 4px;
+        font-size: 0.72rem; font-weight: 700; color: var(--primary);
+        opacity: 0.55; transform: translateX(0);
+        transition: opacity var(--dur-fast) var(--ease-smooth), transform var(--dur-fast) var(--ease-smooth);
+      }
+      .sesd-aset-card:hover .sesd-cat-more { opacity: 1; transform: translateX(3px); }
+      @media (hover: none) { .sesd-cat-more { opacity: 1; } }
+
+      .sesd-cat-footer {
+        background: var(--bg-mid);
+        border-top: 1px solid var(--border);
+        text-align: center; color: var(--text-muted);
+        font-size: 0.82rem; padding: 2rem 1rem; margin-top: 1rem;
+      }
+      .sesd-cat-footer a { font-weight: 700; }
+
+      /* Stat cards for katalog */
+      .sesd-cat-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+      }
+      .stat-card {
+        background: var(--glass-card, var(--bg-card));
+        backdrop-filter: var(--glass-blur, none);
+        -webkit-backdrop-filter: var(--glass-blur, none);
+        width: 100%;
+        border-radius: 16px;
+        padding: 0;
+        font-family: "Inter", "Arial", sans-serif;
+        color: var(--text);
+        display: flex;
+        overflow: hidden;
+        position: relative;
+        transition: transform 0.35s var(--ease-spring), box-shadow 0.35s var(--ease-smooth), background 0.3s;
+        box-shadow: var(--card-shadow);
+        border: 1px solid var(--border);
+      }
+      .stat-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--card-hover-shadow);
+        background: var(--glass-hover, var(--bg-card));
+      }
+      .stat-icon-wrap {
+        width: 64px;
+        min-width: 64px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+      }
+      .stat-icon-wrap svg {
+        width: 24px;
+        height: 24px;
+        transform: rotate(-15deg);
+        transition: transform 0.35s var(--ease-spring);
+        filter: drop-shadow(0 2px 4px rgba(0,0,0,0.18));
+      }
+      .stat-card:hover .stat-icon-wrap svg {
+        transform: rotate(0deg) scale(1.08);
+      }
+      .stat-info {
+        flex: 1;
+        padding: 1.15rem 1.35rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+      .stat-label {
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        margin-bottom: 5px;
+      }
+      .stat-number {
+        font-size: 1.85rem;
+        font-weight: 800;
+        color: var(--text);
+        line-height: 1;
+        letter-spacing: -0.5px;
+        font-feature-settings: "tnum" 1;
+      }
+      .stat-subtitle {
+        font-size: 0.72rem;
+        color: var(--text-muted);
+        margin-top: 5px;
+      }
+
+      @media (max-width: 560px) {
+        .sesd-cat-stats { grid-template-columns: repeat(2, 1fr); gap: 0.6rem; }
+        .sesd-cat-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 0.7rem; }
+        .stat-info { padding: 0.8rem 0.9rem; }
+        .stat-number { font-size: 1.4rem; }
+        .stat-icon-wrap { width: 50px; min-width: 50px; }
+      }
+
+      /* Center the 3-dots loader when it's inside the grid */
+      .sesd-cat-grid .sesd-page-loader {
+        grid-column: 1 / -1;
+        justify-self: center;
+        margin: 3rem 0;
+      }
+    </style>
   </head>
   <body data-page="katalog" style="background: var(--bg)">
     <!-- top bar -->
-    <header
-      style="
-        background: rgb(11, 17, 32);
-        position: sticky;
-        top: 0;
-        z-index: 10;
-        box-shadow: rgba(0, 0, 0, 0.25) 0 2px 16px;
-      "
-    >
-      <div
-        style="
-          max-width: 1180px;
-          margin: 0 auto;
-          padding: 0.85rem 1.25rem;
-          display: flex;
-          align-items: center;
-          gap: 14px;
-        "
-      >
-        <a
-          href="katalog.html"
-          style="text-decoration: none; display: flex; flex-direction: column"
-        >
-          <span
-            style="
-              font-size: 1.15rem;
-              font-weight: 900;
-              color: #fff;
-              letter-spacing: -0.5px;
-              line-height: 1;
-            "
-            >SES<span style="color: rgb(99, 102, 241)">DIAN</span></span
-          >
-          <span
-            style="
-              font-size: 0.55rem;
-              color: rgb(100, 116, 139);
-              font-family: 'JetBrains Mono';
-              letter-spacing: 2px;
-              margin-top: 3px;
-            "
-            >ASSET MANAGEMENT</span
-          >
+    <header class="sesd-cat-nav">
+      <div class="sesd-cat-nav__inner">
+        <a href="katalog.html" aria-label="SESDIAN — Katalog" style="display:flex;align-items:center;gap:12px;text-decoration:none;">
+          <img class="sesd-cat-nav__logo" src="assets/logosesdian.png" alt="SESDIAN" />
+          <span class="sesd-cat-nav__title">Katalog Publik</span>
         </a>
         <div style="flex: 1"></div>
+        <div data-guest-controls></div>
         <div data-guest-auth></div>
       </div>
     </header>
 
-    <main style="max-width: 1180px; margin: 0 auto; padding: 1.75rem 1.25rem">
-      <div
-        class="animate-fade-up"
-        style="
-          background: linear-gradient(135deg, rgb(15, 23, 42) 0%, rgb(30, 41, 59) 50%, rgb(49, 46, 129) 100%);
-          border-radius: 20px;
-          padding: 2rem 2.5rem;
-          margin-bottom: 1.5rem;
-          position: relative;
-          overflow: hidden;
-        "
-      >
-        <div style="position: absolute; top: -40px; right: -40px; width: 200px; height: 200px; border-radius: 50%; background: rgba(99, 102, 241, 0.15)"></div>
-        <div style="position: absolute; bottom: -60px; right: 80px; width: 150px; height: 150px; border-radius: 50%; background: rgba(139, 92, 246, 0.1)"></div>
-        <div style="position: relative">
-          <div style="font-size: 0.72rem; color: rgb(99, 102, 241); font-weight: 700; letter-spacing: 2px; margin-bottom: 8px; font-family: 'JetBrains Mono'">
-            KATALOG PUBLIK
+    <main class="sesd-cat-main">
+      <!-- stat cards (populated by guest.js) -->
+      <div class="sesd-cat-stats dashboard-stats-grid">
+        <div class="stat-card katalog-stat-card delay-1" data-cat-stat="total_assets">
+          <div class="stat-icon-wrap" style="background: linear-gradient(135deg, #0075de, #005bab);">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 8 12 3 3 8v8l9 5 9-5z" />
+              <path d="M3 8l9 5 9-5M12 13v8" />
+            </svg>
           </div>
-          <h1 style="color: #fff; font-size: 1.75rem; font-weight: 800; margin-bottom: 6px">
-            Katalog Aset
-          </h1>
-          <p data-catalog-sub style="color: rgb(148, 163, 184); font-size: 0.9rem">
-            Memuat katalog…
-          </p>
+          <div class="stat-info">
+            <div class="stat-label">Total Aset</div>
+            <div class="stat-number" data-cat-stat-num="total_assets"><span class="sesd-loading-inline"></span></div>
+            <div class="stat-subtitle">Semua aset</div>
+          </div>
+        </div>
+        <div class="stat-card animate-fade-up delay-2" data-cat-stat="total_stock">
+          <div class="stat-icon-wrap" style="background: linear-gradient(135deg, #2a9d99, #1f7d7a);">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="4" width="18" height="4" rx="1" />
+              <path d="M5 8v12h14V8" />
+              <path d="M10 12h4" />
+            </svg>
+          </div>
+          <div class="stat-info">
+            <div class="stat-label">Total Stok</div>
+            <div class="stat-number" data-cat-stat-num="total_stock"><span class="sesd-loading-inline"></span></div>
+            <div class="stat-subtitle">Jumlah stok</div>
+          </div>
+        </div>
+        <div class="stat-card animate-fade-up delay-3" data-cat-stat="stock_available">
+          <div class="stat-icon-wrap" style="background: linear-gradient(135deg, #1aae39, #128a2e);">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="9" />
+              <path d="m8.5 12 2.5 2.5 4.5-5" />
+            </svg>
+          </div>
+          <div class="stat-info">
+            <div class="stat-label">Stok Tersedia</div>
+            <div class="stat-number" data-cat-stat-num="stock_available"><span class="sesd-loading-inline"></span></div>
+            <div class="stat-subtitle">Siap dipinjam</div>
+          </div>
+        </div>
+        <div class="stat-card animate-fade-up delay-4" data-cat-stat="stock_borrowed">
+          <div class="stat-icon-wrap" style="background: linear-gradient(135deg, #dd5b00, #b94a00);">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 12a9 9 0 0 1 15-6.7L21 8" />
+              <path d="M21 3v5h-5" />
+              <path d="M21 12a9 9 0 0 1-15 6.7L3 16" />
+              <path d="M3 21v-5h5" />
+            </svg>
+          </div>
+          <div class="stat-info">
+            <div class="stat-label">Stok Dipinjam</div>
+            <div class="stat-number" data-cat-stat-num="stock_borrowed"><span class="sesd-loading-inline"></span></div>
+            <div class="stat-subtitle">Sedang dipinjam</div>
+          </div>
+        </div>
+        <div class="stat-card animate-fade-up delay-5" data-cat-stat="pending">
+          <div class="stat-icon-wrap" style="background: linear-gradient(135deg, #e03e3e, #c5302f);">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="9" />
+              <path d="M12 7v5l3 2" />
+            </svg>
+          </div>
+          <div class="stat-info">
+            <div class="stat-label">Pending</div>
+            <div class="stat-number" data-cat-stat-num="pending"><span class="sesd-loading-inline"></span></div>
+            <div class="stat-subtitle">Menunggu approve</div>
+          </div>
         </div>
       </div>
 
-      <div
-        style="
-          position: relative;
-          margin-bottom: 1rem;
-          max-width: 460px;
-        "
-      >
-        <span
-          class="ic"
-          style="
-            position: absolute;
-            left: 14px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--text-muted);
-          "
-          ><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="1em" height="1em" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></svg
-        ></span>
-        <input
-          data-search
-          placeholder="Cari nama, kode, atau merek aset…"
-          style="
-            width: 100%;
-            padding: 0.8rem 1rem 0.8rem 2.8rem;
-            border-radius: 12px;
-            border: 1px solid var(--border);
-            font-size: 0.9rem;
-            outline: none;
-            background: #fff;
-            box-sizing: border-box;
-          "
-        />
+      <!-- toolbar: search + category chips -->
+      <div class="sesd-cat-toolbar">
+        <div class="sesd-cat-search">
+          <span class="ic"
+            ><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="1em" height="1em" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></svg
+          ></span>
+          <input data-search placeholder="Cari nama, kode, atau merek aset&hellip;" aria-label="Cari aset" />
+        </div>
+        <div data-cat-filters class="sesd-cat-chips"></div>
       </div>
 
-      <div
-        data-cat-filters
-        style="
-          display: flex;
-          gap: 8px;
-          overflow-x: auto;
-          padding-bottom: 6px;
-          margin-bottom: 1.25rem;
-        "
-      ></div>
-
-      <div
-        data-catalog-grid
-        style="
-          display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-          gap: 1rem;
-        "
-      >
-        <div class="sesd-loading">Memuat katalog…</div>
+      <div data-catalog-grid class="sesd-cat-grid">
+        <div class="sesd-page-loader"><span></span><span></span><span></span></div>
       </div>
     </main>
 
-    <footer
-      style="
-        text-align: center;
-        color: var(--text-muted);
-        font-size: 0.78rem;
-        padding: 2rem 1rem;
-      "
-    >
+    <footer class="sesd-cat-footer">
       Untuk meminjam aset, silakan
-      <a href="login.html" style="font-weight: 700">masuk</a> terlebih dahulu.
+      <a href="login.html">masuk</a> terlebih dahulu.
     </footer>
 
-    <script defer src="assets/config.js?v=14"></script>
-    <script defer src="assets/db.js?v=14"></script>
-    <script defer src="assets/icons.js?v=14"></script>
-    <script defer src="assets/guest.js?v=14"></script>
-      <script defer src="assets/theme.js?v=14"></script>
+    <script defer src="assets/config.js?v=57"></script>
+    <script defer src="assets/db.js?v=57"></script>
+    <script defer src="assets/icons.js?v=58"></script>
+    <script defer src="assets/guest.js?v=57"></script>
+    <script defer src="assets/theme.js?v=57"></script>
   </body>
 </html>

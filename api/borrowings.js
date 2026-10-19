@@ -5,7 +5,7 @@ import { ensureSchema } from './_schema.js';
 
 // Stock is counted as "out" while a borrowing is in any of these states.
 const RESERVED = ['pending', 'approved', 'verified', 'borrowed', 'return_pending'];
-const STATUSES = ['pending', 'approved', 'verified', 'borrowed', 'return_pending', 'returned', 'rejected'];
+const STATUSES = ['pending', 'approved', 'verified', 'borrowed', 'return_pending', 'returned', 'rejected', 'cancelled'];
 const STAFF = ['admin', 'verifikator'];
 
 // Workflow (2 verifications, then the item is out — no separate "lend" step):
@@ -13,6 +13,7 @@ const STAFF = ['admin', 'verifikator'];
 //        --(verifikator verify = verif 2, serah terima)--> borrowed  (= sedang dipinjam)
 //        --(peminjam: konfirmasi kembali)--> return_pending
 //        --(admin verifikasi pengembalian)--> returned
+//   pending --(peminjam batalkan sendiri, tanpa admin)--> cancelled  (stok dikembalikan)
 //   'verified' is kept only for legacy data and treated like 'borrowed' (out).
 function transitionError(prevStatus, target, role, isOwner) {
   const staff = STAFF.indexOf(role) !== -1;
@@ -26,6 +27,8 @@ function transitionError(prevStatus, target, role, isOwner) {
   else if (target === 'return_pending') rule = { from: ['borrowed', 'verified'], ok: staff || isOwner, msg: 'Hanya peminjam atau admin yang dapat mengonfirmasi pengembalian.' };
   else if (target === 'returned') rule = { from: ['borrowed', 'verified', 'return_pending'], ok: staff, msg: 'Verifikasi pengembalian hanya oleh admin/verifikator.' };
   else if (target === 'rejected') rule = { from: ['pending', 'approved', 'verified'], ok: staff, msg: 'Peminjaman ini tidak bisa ditolak.' };
+  // Peminjam boleh membatalkan pengajuannya sendiri selama masih menunggu persetujuan admin.
+  else if (target === 'cancelled') rule = { from: ['pending'], ok: isOwner, msg: 'Hanya peminjam yang dapat membatalkan, dan hanya selagi menunggu persetujuan admin.' };
   else return 'Status tidak valid';
   if (!rule.ok) return rule.msg;
   if (rule.from.indexOf(prevStatus) === -1) return rule.msg;
@@ -50,8 +53,10 @@ export default async function handler(req, res) {
         ? await sql`select b.id, b.borrower_name, b.qty, b.status, b.due_date, b.created_at,
                b.approved_at, b.verified_at, b.returned_at,
                coalesce(a.name,'-') as asset_name, coalesce(a.code,'') as asset_code,
+               coalesce(u.avatar,'') as borrower_avatar,
                count(*) over() as total_count
             from borrowings b left join assets a on a.id = b.asset_id
+            left join users u on u.id = b.user_id
             order by b.created_at desc limit ${limit} offset ${offset}`
         : await sql`select b.id, b.borrower_name, b.qty, b.status, b.due_date, b.created_at,
                b.approved_at, b.verified_at, b.returned_at,
@@ -76,6 +81,13 @@ export default async function handler(req, res) {
       const dueDate = body.dueDate || null;
       const notes = body.notes || null;
       if (!assetId) return send(res, 400, { error: 'Aset tidak valid' });
+      if (!dueDate) return send(res, 400, { error: 'Tanggal jatuh tempo kembali wajib diisi' });
+      // clean 400 instead of a raw DB cast error, and no due dates in the past
+      // (compared against UTC "today" so WIB/WITA/WIT users are never blocked early)
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(String(dueDate)) || isNaN(new Date(dueDate + 'T00:00:00Z').getTime()))
+        return send(res, 400, { error: 'Format tanggal jatuh tempo tidak valid' });
+      if (String(dueDate) < new Date().toISOString().slice(0, 10))
+        return send(res, 400, { error: 'Tanggal jatuh tempo tidak boleh di masa lalu' });
 
       const urows = await sql`select name from users where id = ${auth.sub}`;
       const borrower = urows.length ? urows[0].name : 'Pengguna';
@@ -136,8 +148,8 @@ export default async function handler(req, res) {
             status = ${status},
             approved_by = case when ${status} = 'approved' then ${auth.sub} else approved_by end,
             approved_at = case when ${status} = 'approved' then now()      else approved_at end,
-            verified_by = case when ${status} = 'verified' then ${auth.sub} else verified_by end,
-            verified_at = case when ${status} = 'verified' then now()      else verified_at end,
+            verified_by = case when (${status} = 'borrowed' and ${prev.status} = 'approved') or ${status} = 'verified' then ${auth.sub} else verified_by end,
+            verified_at = case when (${status} = 'borrowed' and ${prev.status} = 'approved') or ${status} = 'verified' then now() else verified_at end,
             returned_at = case when ${status} = 'returned' then now()      else returned_at end
           where id = ${id} returning asset_id
         )

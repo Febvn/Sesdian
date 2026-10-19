@@ -1,19 +1,92 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="id">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>SESDIAN - Laporan Peminjaman</title>
-    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="icon" type="image/png" href="logo.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap"
       rel="stylesheet"
     />
-    <script>(function(){try{if(localStorage.getItem('sesdian_theme')==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(e){}})();</script>
-    <link rel="stylesheet" href="assets/app.css?v=14" />
-    <link rel="stylesheet" href="assets/preloader.css?v=14" />
+    <script>(function(){try{var d=document.documentElement;if(localStorage.getItem('sesdian_theme')==='dark')d.setAttribute('data-theme','dark');var ts=localStorage.getItem('sesdian_textsize');if(ts==='small'||ts==='large')d.setAttribute('data-textsize',ts);if(localStorage.getItem('sesdian_rail')==='1')d.classList.add('sesd-rail-pref');}catch(e){}})();</script>
+    <link rel="stylesheet" href="assets/app.css?v=59" />
+    <link rel="stylesheet" href="assets/preloader.css?v=57" />
+    <style>
+      .laporan-table-wrapper { -webkit-overflow-scrolling: touch; }
+      @media (max-width: 768px) {
+        .laporan-content { padding: 1rem !important; }
+        .laporan-header-area { flex-direction: column; align-items: flex-start !important; }
+        .laporan-header-actions { margin-top: 0.5rem; width: 100%; }
+        .laporan-summary-grid { grid-template-columns: 1fr !important; }
+        .laporan-filter-wrapper {
+          flex-wrap: nowrap !important;
+          padding: 0.75rem !important;
+          gap: 8px !important;
+        }
+        .laporan-filter-left, .laporan-filter-wrapper [data-period-select] {
+          flex: 1;
+          min-width: 0;
+        }
+        .sesd-period-toggle {
+          width: 100%;
+          display: flex !important;
+        }
+        .sesd-period-toggle button {
+          flex: 1;
+          padding: 0.5rem 0 !important;
+          text-align: center;
+        }
+        .laporan-filter-wrapper [data-period-select] input {
+          min-width: 0 !important;
+          width: 100%;
+          padding-left: 0.25rem !important;
+          padding-right: 0.25rem !important;
+        }
+        .laporan-table-wrapper { 
+          margin-left: -1rem; 
+          margin-right: -1rem; 
+          border-radius: 0 !important; 
+          border-left: none; 
+          border-right: none; 
+          box-shadow: none !important;
+          border-top: 1px solid var(--border);
+          border-bottom: 1px solid var(--border);
+        }
+        .laporan-table-wrapper table, 
+        .laporan-table-wrapper tbody, 
+        .laporan-table-wrapper tr, 
+        .laporan-table-wrapper td {
+          display: block;
+          width: 100%;
+        }
+        .laporan-table-wrapper table { min-width: 0 !important; }
+        .laporan-table-wrapper thead { display: none; }
+        .laporan-table-wrapper tr {
+          border-bottom: 6px solid rgb(240, 244, 255);
+          padding: 0.5rem 0;
+        }
+        .laporan-table-wrapper tr:last-child { border-bottom: none; }
+        .laporan-table-wrapper td {
+          display: flex;
+          justify-content: space-between;
+          text-align: right;
+          border: none !important;
+          padding: 0.4rem 1rem !important;
+        }
+        .laporan-table-wrapper td::before {
+          content: attr(data-label);
+          font-weight: 700;
+          text-align: left;
+          color: var(--text-muted);
+          text-transform: uppercase;
+          font-size: 0.75rem;
+          margin-right: 1rem;
+        }
+      }
+    </style>
   </head>
   <body
     data-page="laporan"
@@ -53,7 +126,7 @@
               box-shadow: rgba(0, 0, 0, 0.04) 0 1px 0;
             "
           ></div>
-          <div style="padding: 1.75rem">
+          <div style="padding: 1.75rem" class="laporan-content">
             <div
               style="
                 display: flex;
@@ -63,6 +136,7 @@
                 gap: 12px;
                 margin-bottom: 1.25rem;
               "
+              class="laporan-header-area"
             >
               <div>
                 <h1 style="font-size: 1.5rem; font-weight: 800; margin-bottom: 4px">
@@ -72,9 +146,9 @@
                   Rekap peminjaman per periode.
                 </p>
               </div>
-              <div style="display: flex; gap: 8px; flex-wrap: wrap">
-                <button data-export class="sesd-btn sesd-btn-success">Export CSV</button>
-                <button data-print class="sesd-btn sesd-btn-danger">Cetak PDF</button>
+              <div style="display: flex; gap: 8px; flex-wrap: wrap" class="laporan-header-actions">
+                <button data-export class="sesd-btn sesd-btn-lg sesd-btn-success"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="1em" height="1em" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg></span> Export CSV</button>
+                <button data-print class="sesd-btn sesd-btn-lg sesd-btn-danger"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="1em" height="1em" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></span> Export PDF</button>
               </div>
             </div>
 
@@ -91,31 +165,24 @@
                 flex-wrap: wrap;
                 align-items: flex-end;
               "
+              class="laporan-filter-wrapper"
             >
-              <div>
+              <div class="laporan-filter-left">
                 <label style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; display: block; margin-bottom: 5px">Periode</label>
                 <div class="sesd-period-toggle" style="display: inline-flex; border-radius: 12px; padding: 4px; gap: 2px">
                   <button data-period="daily" style="padding: 0.5rem 1rem; border-radius: 9px; border: none; cursor: pointer; font-weight: 700; font-size: 0.8rem; background: transparent; color: var(--text-muted)">Harian</button>
-                  <button data-period="weekly" style="padding: 0.5rem 1rem; border-radius: 9px; border: none; cursor: pointer; font-weight: 700; font-size: 0.8rem; background: transparent; color: var(--text-muted)">Mingguan</button>
                   <button data-period="monthly" style="padding: 0.5rem 1rem; border-radius: 9px; border: none; cursor: pointer; font-weight: 700; font-size: 0.8rem; background: transparent; color: var(--text-muted)">Bulanan</button>
                 </div>
               </div>
-              <div>
-                <label style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; display: block; margin-bottom: 5px">Dari</label>
-                <input data-start type="date" style="padding: 0.6rem 0.7rem; border: 1.5px solid var(--border); border-radius: 10px; font-size: 0.875rem; outline: none" />
-              </div>
-              <div>
-                <label style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; display: block; margin-bottom: 5px">Sampai</label>
-                <input data-end type="date" style="padding: 0.6rem 0.7rem; border: 1.5px solid var(--border); border-radius: 10px; font-size: 0.875rem; outline: none" />
-              </div>
+              <div data-period-select></div>
             </div>
 
             <!-- summary -->
-            <div style="display: grid; grid-template-columns: 220px 1fr; gap: 1rem; margin-bottom: 1.25rem">
+            <div style="display: grid; grid-template-columns: 220px 1fr; gap: 1rem; margin-bottom: 1.25rem" class="laporan-summary-grid">
               <div class="sesd-report-total" style="background: linear-gradient(135deg, rgb(99, 102, 241), rgb(139, 92, 246)); color: #fff; border-radius: 16px; padding: 1.25rem; box-shadow: var(--shadow-lg)">
-                <div style="font-size: 0.8rem; font-weight: 600">Total Peminjaman</div>
+                <div style="font-size: 0.8rem; font-weight: 600; display: flex; align-items: center; gap: 6px"><span class="ic" style="opacity:0.85"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="1em" height="1em" aria-hidden="true"><rect x="8" y="3" width="8" height="4" rx="1"/><path d="M8 5H6v16h12V5h-2"/><path d="M9 12h6M9 16h6"/></svg></span> Total Peminjaman</div>
                 <div data-total style="font-size: 2.6rem; font-weight: 800; line-height: 1.1; margin-top: 6px">0</div>
-                <div class="sesd-report-sub" style="font-size: 0.72rem; margin-top: 4px">pada periode terpilih</div>
+                <div class="sesd-report-sub" style="font-size: 0.72rem; margin-top: 4px; display: flex; align-items: center; gap: 4px"><span class="ic" style="opacity:0.7"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="0.85em" height="0.85em" aria-hidden="true"><path d="M4 4v16h16"/><rect x="7" y="11" width="3" height="6"/><rect x="12" y="7" width="3" height="10"/><rect x="17" y="13" width="3" height="4"/></svg></span> pada periode terpilih</div>
               </div>
               <div style="background: #fff; border-radius: 16px; padding: 1.25rem; box-shadow: var(--shadow)">
                 <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 10px">Berdasarkan Status</div>
@@ -123,8 +190,11 @@
               </div>
             </div>
 
+            <!-- status filter -->
+            <div data-report-filter style="margin-bottom: 1rem"></div>
+
             <!-- detail table -->
-            <div style="background: #fff; border-radius: 16px; box-shadow: var(--shadow); overflow: auto">
+            <div style="background: #fff; border-radius: 16px; box-shadow: var(--shadow); overflow: auto" class="laporan-table-wrapper">
               <table style="width: 100%; border-collapse: collapse; min-width: 920px">
                 <thead style="background: rgb(248, 250, 255)">
                   <tr>
@@ -141,16 +211,22 @@
                 <tbody data-report-rows></tbody>
               </table>
             </div>
+
+            <!-- grafik tren peminjaman (Harian / Bulanan / Tahunan) -->
+            <div data-trend-card style="background: #fff; border-radius: 16px; box-shadow: var(--shadow); padding: 1.25rem; margin-top: 1.25rem; position: relative; width: 100%; min-width: 0; box-sizing: border-box;"></div>
           </div>
         </main>
       </div>
     </div>
-    <script defer src="assets/config.js?v=14"></script>
-    <script defer src="assets/db.js?v=14"></script>
-    <script defer src="assets/icons.js?v=14"></script>
-    <script defer src="assets/preloader.js?v=14"></script>
-    <script defer src="assets/app.js?v=14"></script>
-    <script defer src="assets/reports.js?v=14"></script>
-      <script defer src="assets/theme.js?v=14"></script>
+    <script defer src="assets/config.js?v=57"></script>
+    <script defer src="assets/db.js?v=57"></script>
+    <script defer src="assets/icons.js?v=58"></script>
+    <script defer src="assets/preloader.js?v=57"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.4/dist/jspdf.plugin.autotable.min.js"></script>
+    <script defer src="assets/app.js?v=60"></script>
+    <script defer src="assets/reports.js?v=58"></script>
+      <script defer src="assets/theme.js?v=57"></script>
   </body>
 </html>
