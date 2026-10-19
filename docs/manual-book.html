@@ -16,14 +16,24 @@
     font-family: "Segoe UI", Arial, sans-serif; color: var(--ink);
     font-size: 11.5pt; line-height: 1.65; background: #f2f0ee;
   }
+  /* Isi mengalir alami; halaman dipecah otomatis oleh peramban (bukan tinggi
+     tetap), supaya tidak ada ruang kosong besar dan tidak meluber ke margin. */
   .page {
-    background: #fff; max-width: 210mm; min-height: 285mm; margin: 12px auto;
-    padding: 20mm 18mm; box-shadow: 0 2px 14px rgba(0,0,0,0.12);
-    page-break-after: always;
+    background: #fff; max-width: 210mm; margin: 12px auto;
+    padding: 18mm; box-shadow: 0 2px 14px rgba(0,0,0,0.12);
   }
+  /* Tiap bab besar (h1) mulai di halaman baru; sampul tanpa h1 jadi tetap di depan. */
+  h1 { break-before: page; }
+  /* Jangan biarkan judul terpisah dari isinya, dan jangan potong gambar,
+     kotak info, atau baris langkah/tabel di tengah. */
+  h1, h2, h3 { break-after: avoid; }
+  figure, table.kotak { break-inside: avoid; }
+  table.langkah tr, table tr { break-inside: avoid; }
+  thead { display: table-header-group; }
+  p, li { orphans: 2; widows: 2; }
   @media print {
     body { background: #fff; }
-    .page { box-shadow: none; margin: 0; max-width: none; min-height: auto; padding: 15mm 16mm; }
+    .page { box-shadow: none; margin: 0; max-width: none; padding: 0; }
     .noprint { display: none; }
     a { color: inherit; text-decoration: none; }
   }
