@@ -5,527 +5,181 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Buku Panduan SESDIAN</title>
 <style>
-  :root {
-    --blue: #0075de; --blue-dark: #005bab; --blue-light: #e7f1fc;
-    --ink: #1f1f1e; --muted: #5c5955; --border: #d9d6d2;
-    --orange: #c95a00; --orange-bg: #fbeede;
-    --green: #187a2f; --green-bg: #e8f5ec;
-  }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
-    font-family: "Segoe UI", Arial, sans-serif; color: var(--ink);
-    font-size: 11.5pt; line-height: 1.65; background: #f2f0ee;
+    font-family: "Times New Roman", Georgia, serif;
+    font-size: 12pt; line-height: 1.5; color: #111;
+    background: #eceae8;
   }
-  /* Isi mengalir alami; halaman dipecah otomatis oleh peramban (bukan tinggi
-     tetap), supaya tidak ada ruang kosong besar dan tidak meluber ke margin. */
   .page {
     background: #fff; max-width: 210mm; margin: 12px auto;
-    padding: 18mm; box-shadow: 0 2px 14px rgba(0,0,0,0.12);
+    padding: 40mm 30mm 30mm 40mm;   /* preview: T4 L4 B3 R3 */
+    box-shadow: 0 2px 12px rgba(0,0,0,0.12);
   }
-  /* Tiap bab besar (h1) mulai di halaman baru; sampul tanpa h1 jadi tetap di depan. */
-  h1 { break-before: page; }
-  /* Jangan biarkan judul terpisah dari isinya, dan jangan potong gambar,
-     kotak info, atau baris langkah/tabel di tengah. */
-  h1, h2, h3 { break-after: avoid; }
-  figure, table.kotak { break-inside: avoid; }
-  table.langkah tr, table tr { break-inside: avoid; }
-  thead { display: table-header-group; }
-  p, li { orphans: 2; widows: 2; }
   @media print {
     body { background: #fff; }
     .page { box-shadow: none; margin: 0; max-width: none; padding: 0; }
-    .noprint { display: none; }
-    a { color: inherit; text-decoration: none; }
   }
   @page { size: A4; margin: 0; }
 
-  h1 { font-size: 17pt; color: var(--blue-dark); border-bottom: 3px solid var(--blue); padding-bottom: 6px; margin-bottom: 14px; }
-  h2 { font-size: 13pt; color: var(--blue-dark); margin: 18px 0 8px; }
-  h3 { font-size: 11.5pt; margin: 14px 0 6px; }
-  p { margin-bottom: 9px; text-align: justify; }
-  ul, ol { margin: 0 0 11px 22px; }
-  li { margin-bottom: 5px; }
+  p { text-align: justify; text-indent: 1.1cm; margin-bottom: 6pt; }
+  p.noindent, li p { text-indent: 0; }
 
-  table { width: 100%; border-collapse: collapse; margin: 10px 0 15px; font-size: 10.5pt; }
-  th { background: var(--blue); color: #fff; text-align: left; padding: 7px 11px; font-weight: 700; }
-  td { border: 1px solid var(--border); padding: 7px 11px; vertical-align: top; }
-  tr:nth-child(even) td { background: #f8f7f6; }
+  h1 {
+    font-size: 14pt; font-weight: bold; text-align: center;
+    text-transform: uppercase; margin: 0 0 14pt; letter-spacing: 0.3px;
+    break-before: page;
+  }
+  h2 { font-size: 12pt; font-weight: bold; margin: 14pt 0 6pt; }
+  h1 + h2 { margin-top: 0; }
 
-  /* langkah bernomor sebagai tabel supaya rapi di Word maupun PDF */
-  table.langkah td { border: 1px solid var(--border); }
-  table.langkah .no { width: 42px; text-align: center; background: var(--blue); color: #fff; font-size: 15pt; font-weight: 700; }
-  table.langkah tr:nth-child(even) td { background: #fff; }
-  table.langkah .judul { font-weight: 700; display: block; margin-bottom: 2px; }
+  figure { margin: 12pt auto; text-align: center; break-inside: avoid; }
+  figure img { max-width: 84%; border: 1px solid #cfccc8; }
+  figcaption { font-size: 10.5pt; margin-top: 5pt; }
 
-  /* kotak info sebagai tabel 1 kolom */
-  table.kotak { border: 1px solid var(--blue); }
-  table.kotak .kepala { background: var(--blue); color: #fff; font-weight: 700; border: none; }
-  table.kotak .badan { background: var(--blue-light); border: none; }
-  table.kotak.oranye { border-color: var(--orange); }
-  table.kotak.oranye .kepala { background: var(--orange); }
-  table.kotak.oranye .badan { background: var(--orange-bg); }
-  table.kotak.hijau { border-color: var(--green); }
-  table.kotak.hijau .kepala { background: var(--green); }
-  table.kotak.hijau .badan { background: var(--green-bg); }
-  table.kotak tr:nth-child(even) td { background: var(--blue-light); }
-  table.kotak.oranye tr:nth-child(even) td { background: var(--orange-bg); }
-  table.kotak.hijau tr:nth-child(even) td { background: var(--green-bg); }
+  ul, ol { margin: 4pt 0 8pt 1.6cm; }
+  li { margin-bottom: 3pt; text-align: justify; }
 
-  figure { margin: 12px 0 16px; text-align: center; }
-  figure img { max-width: 100%; border: 1px solid var(--border); }
-  figcaption { font-size: 9.5pt; color: var(--muted); font-style: italic; margin-top: 5px; }
+  table.data { width: 100%; border-collapse: collapse; margin: 8pt 0 12pt; font-size: 11pt; }
+  table.data th, table.data td { border: 1px solid #333; padding: 4pt 8pt; text-align: left; vertical-align: top; }
+  table.data th { background: #f0eeec; font-weight: bold; }
 
-  .badge { display: inline-block; padding: 1px 9px; border-radius: 10px; font-size: 9.5pt; font-weight: 700; }
+  /* Kop surat / letterhead */
+  .kop { display: flex; align-items: center; gap: 10px; padding-bottom: 6px; }
+  .kop .kiri { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; }
+  .kop .kiri img { height: 17mm; width: auto; }
+  .kop .tengah { flex: 1; text-align: center; line-height: 1.22; padding: 0 4px; }
+  .kop .tengah .l1 { font-size: 10pt; font-weight: bold; letter-spacing: 0.2px; }
+  .kop .tengah .l2 { font-size: 11pt; font-weight: bold; }
+  .kop .tengah .l3 { font-size: 8.5pt; margin-top: 2px; }
+  .kop .kanan img { height: 12mm; width: auto; }
+  .kop-rule { border: none; border-top: 3px solid #111; margin: 2px 0 0; }
+  .kop-rule.thin { border-top: 1px solid #111; margin-top: 2px; }
 
-  .cover { text-align: left; }
-  .cover .brand { font-size: 27pt; font-weight: 800; letter-spacing: 1px; color: var(--blue); margin: 60px 0 2px; }
-  .cover .brand span { color: #f5a623; }
-  .cover .tagline { color: var(--muted); margin-bottom: 46px; }
-  .cover .kicker { font-size: 15pt; letter-spacing: 2px; color: var(--ink); }
-  .cover .besar { font-size: 33pt; line-height: 1.12; font-weight: 800; color: var(--blue-dark); margin: 4px 0 16px; }
-  .cover .url { display: inline-block; background: var(--blue); color: #fff; border-radius: 10px; padding: 8px 20px; font-weight: 700; margin: 12px 0 44px; }
-
-  .toc td { border: none; border-bottom: 1px dotted var(--border); padding: 5px 4px; }
-  .toc .hal { text-align: right; color: var(--muted); width: 42px; }
-  .toc .sub td:first-child { padding-left: 26px; }
+  .judul-utama { text-align: center; margin: 46mm 0 0; }
+  .judul-utama .t1 { font-size: 15pt; letter-spacing: 1px; }
+  .judul-utama .t2 { font-size: 22pt; font-weight: bold; margin: 8px 0; line-height: 1.2; }
+  .judul-utama .t3 { font-size: 13pt; }
+  .judul-utama .sesd { margin: 40px auto 0; height: 26mm; }
+  .judul-utama .alamat { margin-top: 30mm; font-size: 12pt; }
 </style>
 </head>
 <body>
 
-<!-- ================= SAMPUL ================= -->
-<div class="page cover">
-  <div class="brand">SESDi<span>AN</span></div>
-  <div class="tagline">Sistem Digital Inventarisasi Aset Negara</div>
-  <div class="kicker">BUKU PANDUAN</div>
-  <div class="besar">PENGGUNAAN<br />APLIKASI</div>
-  <p><strong>SESDIAN</strong></p>
-  <p>Alamat situs resmi:</p>
-  <span class="url">https://sesdian.vercel.app</span>
-  <table class="kotak">
-    <tr><td class="kepala">Buku Panduan Ini Untuk:</td></tr>
-    <tr><td class="badan">
-      <ol style="margin-bottom:0">
-        <li><strong>Pengguna Umum (Publik)</strong>. Melihat daftar barang dan memindai QR Code barang atau ruangan tanpa perlu masuk akun.</li>
-        <li><strong>Pegawai</strong>. Mengaktifkan akun, mencari barang, meminjam, dan mengembalikan barang.</li>
-        <li><strong>Verifikator</strong>. Memeriksa ulang peminjaman yang sudah disetujui admin.</li>
-        <li><strong>Administrator</strong>. Mengelola data barang, ruangan, kategori, pengguna, persetujuan peminjaman, dan laporan.</li>
-      </ol>
-    </td></tr>
-  </table>
+<!-- ============ HALAMAN JUDUL / KOP ============ -->
+<div class="page">
+  <div class="kop">
+    <div class="kiri">
+      <img src="manual-img/logo-kkp.png" alt="Kementerian Kelautan dan Perikanan" />
+      <img src="manual-img/logo-bppmhkp.png" alt="BPPMHKP" />
+    </div>
+    <div class="tengah">
+      <div class="l1">KEMENTERIAN KELAUTAN DAN PERIKANAN</div>
+      <div class="l2">BADAN PENGENDALIAN DAN PENGUJIAN MUTU<br/>HASIL KELAUTAN DAN PERIKANAN</div>
+      <div class="l3">Sistem Digital Inventarisasi Aset Negara</div>
+    </div>
+    <div class="kanan">
+      <img src="manual-img/logo-sesdian.png" alt="SESDIAN" />
+    </div>
+  </div>
+  <hr class="kop-rule" />
+  <hr class="kop-rule thin" />
+
+  <div class="judul-utama">
+    <div class="t1">BUKU PANDUAN PENGGUNAAN</div>
+    <div class="t2">SISTEM DIGITAL INVENTARISASI<br/>ASET NEGARA (SESDIAN)</div>
+    <div class="t3">Panduan bagi Pengguna Umum, Pegawai, Verifikator, dan Administrator</div>
+    <img class="sesd" src="manual-img/logo-sesdian.png" alt="SESDIAN" />
+    <div class="alamat">Dapat diakses melalui https://sesdian.vercel.app</div>
+  </div>
 </div>
 
-<!-- ================= DAFTAR ISI ================= -->
+<!-- ============ BAB I ============ -->
 <div class="page">
-  <h1>DAFTAR ISI</h1>
-  <table class="toc">
-    <tr><td>A. Tentang Aplikasi SESDIAN</td><td class="hal">3</td></tr>
-    <tr><td>B. Cara Membuka dan Siapa Penggunanya</td><td class="hal">4</td></tr>
-    <tr><td>C. Panduan Pengguna Umum (Tanpa Masuk Akun)</td><td class="hal">5</td></tr>
-    <tr class="sub"><td>C.1 Melihat Daftar Barang (Katalog)</td><td class="hal">5</td></tr>
-    <tr class="sub"><td>C.2 Melihat Rincian Barang dan Memindai QR Code</td><td class="hal">6</td></tr>
-    <tr class="sub"><td>C.3 QR Code Ruangan</td><td class="hal">6</td></tr>
-    <tr class="sub"><td>C.4 Tema Gelap atau Terang dan Ukuran Tulisan</td><td class="hal">6</td></tr>
-    <tr><td>D. Panduan Pegawai</td><td class="hal">7</td></tr>
-    <tr class="sub"><td>D.1 Mengaktifkan Akun Pertama Kali</td><td class="hal">7</td></tr>
-    <tr class="sub"><td>D.2 Masuk Akun</td><td class="hal">8</td></tr>
-    <tr class="sub"><td>D.3 Halaman Beranda (Dashboard)</td><td class="hal">9</td></tr>
-    <tr class="sub"><td>D.4 Mencari dan Melihat Barang</td><td class="hal">9</td></tr>
-    <tr class="sub"><td>D.5 Meminjam Barang</td><td class="hal">11</td></tr>
-    <tr class="sub"><td>D.6 Memantau Status Peminjaman</td><td class="hal">12</td></tr>
-    <tr class="sub"><td>D.7 Mengembalikan Barang</td><td class="hal">13</td></tr>
-    <tr class="sub"><td>D.8 Pemberitahuan (Lonceng dan WhatsApp)</td><td class="hal">13</td></tr>
-    <tr class="sub"><td>D.9 Halaman Profil</td><td class="hal">13</td></tr>
-    <tr><td>E. Panduan Verifikator</td><td class="hal">14</td></tr>
-    <tr><td>F. Panduan Administrator</td><td class="hal">15</td></tr>
-    <tr class="sub"><td>F.1 Beranda Admin</td><td class="hal">15</td></tr>
-    <tr class="sub"><td>F.2 Mengelola Data Barang</td><td class="hal">15</td></tr>
-    <tr class="sub"><td>F.3 Memasukkan Data dari Excel</td><td class="hal">17</td></tr>
-    <tr class="sub"><td>F.4 Mencetak QR Code Barang dan Ruangan</td><td class="hal">17</td></tr>
-    <tr class="sub"><td>F.5 Mengelola Kategori dan Ruangan</td><td class="hal">17</td></tr>
-    <tr class="sub"><td>F.6 Menyetujui Peminjaman dan Pengembalian</td><td class="hal">18</td></tr>
-    <tr class="sub"><td>F.7 Mendaftarkan Pengguna Baru</td><td class="hal">19</td></tr>
-    <tr class="sub"><td>F.8 Laporan dan Grafik</td><td class="hal">20</td></tr>
-    <tr class="sub"><td>F.9 Nomor WhatsApp Admin</td><td class="hal">20</td></tr>
-    <tr><td>G. Pertanyaan yang Sering Ditanyakan</td><td class="hal">21</td></tr>
-    <tr><td>H. Penutup dan Cara Mengatasi Masalah</td><td class="hal">22</td></tr>
-  </table>
+  <h1>Bab I &nbsp; Gambaran Umum Sistem</h1>
+  <p>SESDIAN, kependekan dari Sistem Digital Inventarisasi Aset Negara, merupakan aplikasi berbasis web yang dibangun untuk menata pencatatan dan peminjaman barang milik kantor di lingkungan instansi. Aplikasi ini menggantikan pencatatan yang sebelumnya dikerjakan secara manual di atas kertas dengan sebuah sistem yang menyimpan seluruh data barang beserta riwayat pemakaiannya dalam satu tempat, sehingga jumlah, lokasi, kondisi, maupun status setiap barang dapat diketahui sewaktu-waktu tanpa harus membuka arsip fisik.</p>
+  <p>Persoalan yang ingin dijawab cukup jelas. Pada pengelolaan yang masih mengandalkan formulir kertas, permohonan pinjam pakai barang sering tertahan di meja, catatan ketersediaan mudah tertinggal dari keadaan sebenarnya, dan rekapitulasi untuk laporan harus disusun ulang setiap kali dibutuhkan. Dengan memindahkan seluruh proses tersebut ke dalam aplikasi, pegawai dapat mengajukan peminjaman dari perangkatnya masing-masing, petugas dapat menyetujui langsung dari layar, dan angka stok ikut menyesuaikan begitu barang berpindah tangan.</p>
+  <p>Ada beberapa hal pokok yang ditawarkan sistem ini. Peminjaman barang diajukan secara daring tanpa perlu mengisi kertas, sementara ketersediaan setiap barang ditampilkan apa adanya agar tidak terjadi rebutan pemakaian. Setiap permohonan melewati dua kali pemeriksaan, yakni oleh administrator terlebih dahulu lalu oleh verifikator, sebelum barang benar-benar boleh digunakan. Di samping itu, sistem menyiapkan pemberitahuan melalui WhatsApp pada tahap-tahap penting, menyediakan laporan yang dapat diunduh dalam bentuk berkas Excel maupun dicetak sebagai PDF, dan membuka sebagian data barang kepada masyarakat umum melalui katalog terbuka serta kode QR yang ditempel pada barang dan ruangan.</p>
+  <p>Aplikasi dijalankan sepenuhnya melalui peramban web, baik dari komputer maupun telepon genggam, dan dapat dibuka pada alamat https://sesdian.vercel.app. Karena berjalan di peramban, tidak ada perangkat lunak tambahan yang perlu dipasang; pengguna cukup mengetikkan alamat tersebut pada Google Chrome, Mozilla Firefox, Microsoft Edge, atau Safari. Bagian-bagian berikut menjelaskan cara memakainya, dimulai dari hal yang dapat dilakukan tanpa masuk akun, kemudian diperinci menurut peran masing-masing pengguna.</p>
 </div>
 
-<!-- ================= A ================= -->
+<!-- ============ BAB II ============ -->
 <div class="page">
-  <h1>A. TENTANG APLIKASI SESDIAN</h1>
-  <p>SESDIAN adalah aplikasi berbasis website untuk mengatur peminjaman dan pencatatan barang milik kantor. Semua barang tercatat rapi: berapa jumlahnya, di ruangan mana, bagaimana kondisinya, sampai siapa saja yang pernah meminjamnya.</p>
-  <p>Dengan aplikasi ini, pencatatan barang tidak lagi memakai kertas. Pegawai bisa meminjam barang secara online, admin menyetujui lewat aplikasi, verifikator memeriksa ulang, dan pengembalian barang juga dicatat sehingga jumlah stok selalu benar.</p>
-
-  <h2>Manfaat Utama</h2>
-  <ul>
-    <li>Pegawai bisa meminjam barang kantor secara online tanpa mengisi formulir kertas.</li>
-    <li>Ketersediaan barang terlihat jelas sehingga tidak berebut memakai barang yang sama.</li>
-    <li>Setiap peminjaman diperiksa dua kali (oleh admin lalu verifikator) supaya lebih tertib.</li>
-    <li>Ada pemberitahuan lewat WhatsApp pada setiap tahap peminjaman.</li>
-    <li>Laporan peminjaman bisa diunduh sebagai file Excel maupun dicetak sebagai PDF.</li>
-    <li>Masyarakat umum bisa melihat data barang lewat daftar terbuka dan QR Code yang ditempel pada barang dan ruangan.</li>
-  </ul>
-
-  <table class="kotak hijau">
-    <tr><td class="kepala">Ringkasnya</td></tr>
-    <tr><td class="badan">SESDIAN membantu kantor memantau barang secara tertib dan terbuka, mempermudah pegawai meminjam barang, dan memudahkan admin menyusun laporan. Semua dilakukan lewat website, cukup dari komputer atau ponsel.</td></tr>
-  </table>
+  <h1>Bab II &nbsp; Hak Akses dan Cara Masuk</h1>
+  <p>Sistem membedakan penggunanya ke dalam empat kelompok yang memiliki kewenangan berbeda. Kelompok pertama adalah pengguna umum atau publik, yang tidak perlu masuk akun dan hanya dapat melihat data barang. Kelompok kedua adalah pegawai, yang setelah masuk dapat menelusuri barang, mengajukan peminjaman, serta mengembalikannya. Kelompok ketiga adalah verifikator, yang bertugas memeriksa kembali peminjaman yang sudah disetujui administrator. Kelompok keempat adalah administrator, yang memegang kendali atas data barang, ruangan, kategori, pengguna, persetujuan peminjaman, dan penyusunan laporan. Ketiga kelompok yang terakhir masuk melalui halaman yang sama dan dibedakan oleh peran yang melekat pada akunnya, bukan oleh halaman masuk yang berbeda.</p>
+  <p>Hal yang membedakan SESDIAN dari kebanyakan aplikasi serupa terletak pada cara akun dibuat. Tidak ada pendaftaran mandiri. Seorang administrator mendaftarkan akun baru cukup dengan mengisi Nomor Induk Pegawai sepanjang delapan belas angka, tanpa menetapkan nama maupun kata sandi. Nama dan kata sandi justru diatur sendiri oleh pemilik NIP ketika ia masuk untuk pertama kali. Dengan begitu, kata sandi tidak pernah diketahui oleh pihak lain, termasuk administrator yang mendaftarkannya.</p>
+  <p>Proses masuk berlangsung bertahap. Pengguna mula-mula mengetikkan NIP-nya dan menekan tombol Lanjutkan. Apabila NIP tersebut sudah terdaftar tetapi belum pernah diberi kata sandi, tampilan berpindah ke halaman Aktifkan Akun, tempat pengguna mengisi nama lengkap dan membuat kata sandi minimal delapan karakter yang diketik ulang untuk memastikan tidak ada salah ketik. Setelah disimpan, akun langsung aktif dan pengguna dibawa ke halaman beranda tanpa perlu masuk ulang. Bila NIP sudah memiliki kata sandi, yang muncul adalah kolom kata sandi biasa. Halaman masuk juga memuat keterangan singkat yang mengingatkan pengguna baru untuk memasukkan NIP terlebih dahulu, sebagaimana terlihat pada Gambar 1, dan langkah pengaktifan akun ditunjukkan pada Gambar 2.</p>
+  <figure><img src="manual-img/r-login.webp" alt="Halaman masuk" /><figcaption>Gambar 1. Halaman masuk yang meminta NIP terlebih dahulu</figcaption></figure>
+  <figure><img src="manual-img/r-aktivasi.webp" alt="Aktifkan akun" /><figcaption>Gambar 2. Halaman pengaktifan akun bagi NIP yang belum memiliki kata sandi</figcaption></figure>
+  <p>Sesi yang terbentuk setelah masuk berlaku selama tujuh hari pada perangkat yang sama, sehingga pengguna tidak perlu memasukkan NIP dan kata sandi setiap kali membuka aplikasi. Sesi berakhir ketika masa itu habis atau ketika pengguna menekan tombol Keluar. Apabila seorang pegawai lupa kata sandinya, penyelesaiannya ditempuh melalui administrator, yang dapat menghapus akun lama lalu mendaftarkan ulang NIP yang sama agar pemiliknya kembali melewati proses pengaktifan dan menetapkan kata sandi yang baru.</p>
 </div>
 
-<!-- ================= B ================= -->
+<!-- ============ BAB III ============ -->
 <div class="page">
-  <h1>B. CARA MEMBUKA DAN SIAPA PENGGUNANYA</h1>
-  <p>Buka aplikasi peramban (browser) di komputer atau ponsel, misalnya Google Chrome, Mozilla Firefox, Microsoft Edge, atau Safari. Lalu ketik alamat berikut:</p>
-  <p style="text-align:center"><strong style="color:var(--blue);font-size:13pt">https://sesdian.vercel.app</strong></p>
-  <p>Aplikasi ini memiliki empat jenis pengguna dengan hak yang berbeda:</p>
-  <table>
-    <tr><th style="width:26%">Jenis Pengguna</th><th>Cara Masuk dan Apa yang Bisa Dilakukan</th></tr>
-    <tr><td><strong>Umum / Publik</strong></td><td>Tidak perlu masuk akun. Bisa melihat daftar barang, rincian barang, dan isi ruangan lewat halaman katalog atau dengan memindai QR Code.</td></tr>
-    <tr><td><strong>Pegawai</strong></td><td>Masuk memakai NIP 18 angka dan kata sandi. Akun dibuatkan oleh admin (hanya berupa NIP), lalu pegawai mengaktifkannya sendiri saat pertama kali masuk. Bisa mencari barang, meminjam, dan mengembalikan barang.</td></tr>
-    <tr><td><strong>Verifikator</strong></td><td>Cara masuk sama seperti pegawai. Bertugas memeriksa ulang peminjaman yang sudah disetujui admin, serta memeriksa pengembalian barang.</td></tr>
-    <tr><td><strong>Administrator</strong></td><td>Cara masuk sama, tetapi punya menu tambahan. Mengelola barang, ruangan, kategori, pengguna, menyetujui atau menolak peminjaman, dan membuat laporan.</td></tr>
-  </table>
-
-  <table class="kotak oranye">
-    <tr><td class="kepala">Penting: Cara Mendapatkan Akun</td></tr>
-    <tr><td class="badan">Tidak ada pendaftaran sendiri. Semua akun dibuatkan oleh admin, cukup dengan <strong>NIP 18 angka</strong>. Nama dan kata sandi tidak diisi oleh admin, melainkan diatur sendiri oleh pemilik NIP saat pertama kali masuk. Caranya dijelaskan di bagian D.1.</td></tr>
-  </table>
-
-  <h2>Menu untuk Tiap Pengguna</h2>
-  <table>
-    <tr><th>Menu</th><th>Pegawai</th><th>Verifikator</th><th>Admin</th></tr>
-    <tr><td>Beranda</td><td>Ya</td><td>Ya</td><td>Ya</td></tr>
-    <tr><td>Data Barang</td><td>Ya (lihat dan pinjam)</td><td>Ya</td><td>Ya (kelola penuh)</td></tr>
-    <tr><td>Ruangan</td><td>Ya (lihat)</td><td>Ya</td><td>Ya (kelola)</td></tr>
-    <tr><td>Daftar Pinjam</td><td>Ya (milik sendiri)</td><td>Ya (semua)</td><td>Ya (semua)</td></tr>
-    <tr><td>Sedang Dipinjam</td><td>Ya</td><td>Ya</td><td>Ya</td></tr>
-    <tr><td>Ajukan Pinjam</td><td>Ya</td><td>Ya</td><td>Ya</td></tr>
-    <tr><td>Verifikasi</td><td>Tidak</td><td>Ya</td><td>Ya</td></tr>
-    <tr><td>Laporan</td><td>Tidak</td><td>Ya</td><td>Ya</td></tr>
-    <tr><td>Kelola User</td><td>Tidak</td><td>Tidak</td><td>Ya</td></tr>
-    <tr><td>Profil</td><td>Ya</td><td>Ya</td><td>Ya</td></tr>
-  </table>
+  <h1>Bab III &nbsp; Penggunaan bagi Pengguna Umum</h1>
+  <p>Bagian ini ditujukan bagi siapa saja yang ingin melihat data barang tanpa memiliki akun, termasuk tamu, pengawas dari luar, maupun pegawai yang akunnya belum aktif. Titik masuk yang paling mudah adalah halaman katalog pada alamat https://sesdian.vercel.app/katalog, yang juga dapat dicapai melalui tautan Lihat katalog di halaman masuk. Halaman ini menyajikan ringkasan angka di bagian atas berupa jumlah seluruh barang, total stok, stok yang tersedia, stok yang sedang dipinjam, dan jumlah pengajuan yang masih menunggu, diikuti kolom pencarian serta sederet tombol kategori untuk menyaring tampilan. Di bawahnya, barang ditampilkan dalam bentuk kartu yang memuat foto, penanda BMN atau Non-BMN, jumlah unit, nama barang, mereknya, serta kategori dan ruangannya. Tampilan katalog dengan data sebenarnya dapat dilihat pada Gambar 3.</p>
+  <figure><img src="manual-img/r-katalog.webp" alt="Katalog publik" /><figcaption>Gambar 3. Halaman katalog yang dapat dibuka tanpa masuk akun</figcaption></figure>
+  <p>Barang yang serupa, yakni yang memiliki nama dan merek sama, digabungkan menjadi satu kartu agar daftar tidak menjadi terlalu panjang, sedangkan jumlah unit yang tergabung tetap tertera pada kartunya. Ketika salah satu foto pada kartu diklik, gambar barang terbuka dalam ukuran besar dan dapat ditutup kembali dengan menekan di mana saja atau menekan tombol Esc. Bila yang diklik adalah bagian kartu selain foto, aplikasi membuka halaman rincian barang yang memuat kode, nama, merek, kategori, ruangan, tahun, kondisi, jenis, dan tipe barang seperti tampak pada Gambar 4. Pada halaman rincian ini, jumlah stok maupun tombol untuk meminjam baru muncul setelah pengguna masuk akun, sehingga pengunjung umum yang menekan tombol pinjam akan diarahkan ke halaman masuk.</p>
+  <figure><img src="manual-img/r-aset-detail.webp" alt="Rincian barang" /><figcaption>Gambar 4. Halaman rincian barang untuk pengguna umum</figcaption></figure>
+  <p>Selain penelusuran melalui katalog, rincian barang juga dapat dibuka dengan memindai kode QR yang ditempel pada barang. Pengguna cukup mengarahkan kamera telepon ke stiker QR dari jarak sekitar sepuluh hingga lima belas sentimeter, lalu menekan tautan yang muncul, dan halaman rincian barang tersebut langsung terbuka. Cara serupa berlaku untuk kode QR yang dipasang di dekat pintu ruangan; memindainya menampilkan daftar barang yang tercatat berada di ruangan itu, lengkap dengan kondisi dan jumlah stoknya. Sebagai pelengkap, pada pojok kanan atas setiap halaman tersedia tombol untuk mengganti tampilan menjadi terang atau gelap serta tombol pengatur ukuran tulisan, dan kedua pilihan itu tersimpan pada perangkat sehingga tetap berlaku ketika pengguna berpindah halaman.</p>
 </div>
 
-<!-- ================= C ================= -->
+<!-- ============ BAB IV ============ -->
 <div class="page">
-  <h1>C. PANDUAN PENGGUNA UMUM (TANPA MASUK AKUN)</h1>
-  <p>Masyarakat umum, tamu, maupun pegawai yang belum punya akun tetap bisa melihat data barang tanpa masuk akun.</p>
-
-  <h2>C.1 Melihat Daftar Barang (Katalog)</h2>
-  <p>Buka alamat <strong>https://sesdian.vercel.app/katalog</strong>, atau klik tulisan "Lihat katalog" di halaman masuk. Di halaman ini Anda melihat:</p>
-  <ul>
-    <li><strong>Kotak ringkasan angka</strong>: total barang, total stok, stok tersedia, stok yang sedang dipinjam, dan jumlah pengajuan yang menunggu.</li>
-    <li><strong>Kolom pencarian</strong> untuk mencari barang berdasarkan nama, kode, atau merek. Hasilnya langsung tersaring saat diketik.</li>
-    <li><strong>Tombol kategori</strong> seperti Elektronik, Furnitur, Kendaraan, dan lainnya.</li>
-    <li><strong>Kartu barang</strong> yang memuat foto, tanda BMN atau Non-BMN, jumlah unit, nama barang, merek (ditandai dengan label biru), serta kategori dan ruangannya.</li>
-  </ul>
-  <table class="kotak hijau">
-    <tr><td class="kepala">Tips: Melihat Foto Lebih Besar</td></tr>
-    <tr><td class="badan">Klik langsung pada <strong>foto</strong> di kartu barang untuk membukanya dalam ukuran besar. Untuk menutup, klik di mana saja atau tekan tombol Esc. Kalau Anda klik bagian kartu yang lain, aplikasi akan membuka halaman rincian barang.</td></tr>
-  </table>
-  <figure><img src="manual-img/katalog.webp" alt="Halaman katalog" /><figcaption>Gambar C.1. Halaman Daftar Barang untuk umum</figcaption></figure>
+  <h1>Bab IV &nbsp; Penggunaan bagi Pegawai</h1>
+  <p>Setelah akunnya aktif dan berhasil masuk, seorang pegawai disambut oleh halaman beranda yang menyajikan sapaan sesuai waktu, lima kotak ringkasan berisi total aset, total stok, stok tersedia, stok dipinjam, dan jumlah pengajuan yang menunggu, serta sebuah tabel peminjaman terbaru yang dilengkapi kolom pencarian dan penyaring status. Tampilan beranda ini, sebagaimana terlihat pada Gambar 5, memberi gambaran cepat mengenai keadaan barang tanpa perlu membuka menu satu per satu.</p>
+  <figure><img src="manual-img/r-dashboard-user.webp" alt="Beranda pegawai" /><figcaption>Gambar 5. Halaman beranda bagi pegawai</figcaption></figure>
+  <p>Untuk menelusuri barang, pegawai membuka menu Data Aset pada bilah sisi kiri. Sama seperti di katalog, unit yang bernama dan bermerek sama dikelompokkan menjadi satu kartu, dengan merek ditampilkan sebagai label tersendiri di bawah nama agar barang yang namanya kebetulan sama tetap mudah dibedakan. Setiap kartu memuat foto, penanda jenis, jumlah yang tersedia, kode atau jumlah unit, kondisi, serta bilah kecil yang menggambarkan perbandingan stok tersedia terhadap total. Pencarian menurut nama atau kode, penyaring BMN dan Non-BMN, serta penyaring status tersedia untuk mempersempit tampilan. Keseluruhan halaman Data Aset dengan data nyata diperlihatkan pada Gambar 6.</p>
+  <figure><img src="manual-img/r-dataaset-user.webp" alt="Data aset pegawai" /><figcaption>Gambar 6. Halaman Data Aset pada tampilan pegawai</figcaption></figure>
+  <p>Ketika sebuah kartu dibuka, muncul jendela rincian jenis yang menampilkan ringkasan jumlah total, tersedia, dan dipinjam, foto barang yang dapat diperbesar, serta daftar seluruh unit fisik beserta kode dan kondisinya. Dari jendela inilah peminjaman dimulai: pegawai mencentang unit yang tersedia, mengisi tanggal rencana pengembalian yang wajib diisi, lalu menekan Ajukan Pinjam. Jendela rincian jenis tersebut ditunjukkan pada Gambar 7.</p>
+  <figure><img src="manual-img/r-detail-jenis.webp" alt="Rincian jenis barang" /><figcaption>Gambar 7. Jendela rincian jenis barang beserta daftar unitnya</figcaption></figure>
+  <p>Selain melalui jendela tersebut, tersedia pula halaman khusus Ajukan Pinjam yang dapat dibuka dari menu. Di halaman ini pegawai memilih satu atau beberapa unit sekaligus dalam satu pengajuan, menentukan tanggal pengembalian, dan mengirimkannya. Begitu pengajuan terkirim, statusnya menjadi Pending dan menunggu diperiksa administrator, sementara aplikasi menyiapkan pesan WhatsApp berisi rincian pengajuan untuk administrator, yang dapat terkirim secara otomatis atau terbuka sebagai pesan siap kirim. Halaman Ajukan Pinjam diperlihatkan pada Gambar 8.</p>
+  <figure><img src="manual-img/r-ajukan.webp" alt="Ajukan pinjam" /><figcaption>Gambar 8. Halaman pengajuan peminjaman</figcaption></figure>
+  <p>Perjalanan sebuah pengajuan dapat dipantau melalui menu Daftar Pinjam, yang memuat seluruh riwayat permohonan milik pegawai bersangkutan beserta penyaring cepat menurut status. Status yang mungkin muncul mengikuti alur pemeriksaan yang berlaku. Sebuah pengajuan mula-mula berstatus Pending selagi menunggu administrator, berubah menjadi Disetujui Admin setelah lolos pemeriksaan pertama, kemudian Terverifikasi ketika verifikator menyetujuinya, dan Dipinjam saat barang berada di tangan peminjam. Ketika barang hendak dikembalikan, statusnya menjadi Menunggu Verifikasi Kembali, dan berakhir sebagai Kembali setelah pengembalian diperiksa. Permohonan yang tidak disetujui akan berstatus Ditolak, sedangkan permohonan yang dibatalkan sendiri oleh pemohon berstatus Dibatalkan. Tampilan Daftar Pinjam dengan sejumlah transaksi nyata dapat dilihat pada Gambar 9.</p>
+  <figure><img src="manual-img/r-daftarpinjam.webp" alt="Daftar pinjam" /><figcaption>Gambar 9. Halaman Daftar Pinjam beserta penyaring status</figcaption></figure>
+  <p>Selama sebuah pengajuan masih berstatus Pending, pemohon berhak membatalkannya sendiri melalui tombol Batalkan pada barisnya di Daftar Pinjam tanpa harus meminta bantuan administrator. Setelah dikonfirmasi, status berubah menjadi Dibatalkan dan stok yang sempat dikunci untuk pengajuan itu langsung dikembalikan. Namun begitu pengajuan sudah disetujui administrator, pembatalan mandiri tidak lagi tersedia.</p>
+  <p>Barang yang sedang dipegang pegawai dikelola melalui menu Sedang Dipinjam. Untuk memulai proses pengembalian, pegawai menekan tombol Konfirmasi Pengembalian pada barang yang bersangkutan sehingga statusnya berpindah menjadi Menunggu Verifikasi Kembali, kemudian menyerahkan barang secara fisik kepada petugas yang akan menekan tombol Verifikasi Dikembalikan. Sesudah itu status menjadi Kembali dan stok pulih dengan sendirinya. Halaman Sedang Dipinjam diperlihatkan pada Gambar 10.</p>
+  <figure><img src="manual-img/r-dipinjam.webp" alt="Sedang dipinjam" /><figcaption>Gambar 10. Halaman Sedang Dipinjam</figcaption></figure>
+  <p>Sepanjang proses tersebut, pegawai memperoleh dua jalur pemberitahuan. Ikon lonceng di pojok kanan atas menampilkan kabar terbaru yang relevan, seperti pengajuan yang disetujui, ditolak, atau telah dikembalikan, beserta jumlah yang belum dibaca. Di samping itu, pesan WhatsApp dikirim pada tahap-tahap penting, baik ketika administrator mengambil keputusan maupun ketika permintaan pengembalian diajukan. Terakhir, melalui menu Detail Profil pegawai dapat memperbarui foto profil yang otomatis dipotong menjadi persegi, menyunting data akun, dan mengganti kata sandinya secara berkala. Halaman profil ditunjukkan pada Gambar 11.</p>
+  <figure><img src="manual-img/r-profil.webp" alt="Profil" /><figcaption>Gambar 11. Halaman Detail Profil</figcaption></figure>
 </div>
 
+<!-- ============ BAB V ============ -->
 <div class="page">
-  <h2>C.2 Melihat Rincian Barang dan Memindai QR Code</h2>
-  <p>Halaman rincian barang bisa dibuka dengan dua cara:</p>
-  <table class="langkah">
-    <tr><td class="no">1</td><td><span class="judul">Lewat katalog</span>Klik salah satu kartu barang di halaman katalog.</td></tr>
-    <tr><td class="no">2</td><td><span class="judul">Lewat stiker QR Code pada barang</span>Buka kamera ponsel, arahkan ke stiker QR Code yang menempel di barang dari jarak sekitar 10 sampai 15 cm, lalu ketuk tautan yang muncul. Aplikasi langsung membuka halaman rincian barang tersebut.</td></tr>
-  </table>
-  <p>Halaman rincian menampilkan foto (klik untuk memperbesar), kode barang, nama, merek, kategori, ruangan, tahun, kondisi, jenis (BMN atau Non-BMN), dan tipe barang. Jumlah stok dan tombol untuk meminjam baru muncul setelah Anda masuk akun. Kalau belum masuk, aplikasi mengarahkan Anda ke halaman masuk.</p>
-  <figure><img src="manual-img/aset-detail.webp" alt="Rincian barang" /><figcaption>Gambar C.2. Halaman Rincian Barang untuk umum</figcaption></figure>
-
-  <h2>C.3 QR Code Ruangan</h2>
-  <p>Admin dapat menempel QR Code ruangan di dekat pintu. Kalau QR ini dipindai, aplikasi menampilkan daftar barang khusus di ruangan itu, lengkap dengan kondisi dan jumlah stoknya.</p>
-
-  <h2>C.4 Tema Gelap atau Terang dan Ukuran Tulisan</h2>
-  <p>Di pojok kanan atas setiap halaman ada tombol untuk mengganti tampilan menjadi <strong>terang atau gelap</strong>, serta tombol <strong>A A A</strong> untuk memperbesar atau memperkecil tulisan. Pilihan ini tersimpan di perangkat Anda dan berlaku di semua halaman.</p>
+  <h1>Bab V &nbsp; Penggunaan bagi Verifikator</h1>
+  <p>Verifikator menempati posisi sebagai pemeriksa lapis kedua. Sebuah peminjaman yang telah disetujui administrator belum boleh langsung digunakan sebelum verifikator memeriksanya kembali, sehingga setiap transaksi melewati dua tahap penilaian yang saling melengkapi. Pemisahan tugas ini dimaksudkan agar keputusan tidak bertumpu pada satu orang dan agar catatan peminjaman lebih dapat dipertanggungjawabkan.</p>
+  <p>Pekerjaan verifikator terpusat pada menu Verifikasi. Antrean yang ditampilkan berisi pengajuan yang sudah berstatus Disetujui Admin dan menunggu pemeriksaan kedua, serta permintaan pengembalian yang berstatus Menunggu Verifikasi Kembali. Setiap baris memuat foto dan nama peminjam, barang yang diminta, tanggal, dan status. Verifikator menyetujui sebuah pengajuan sehingga menjadi Terverifikasi, atau menolaknya, dan setiap tindakan selalu meminta konfirmasi ulang untuk mencegah kekeliruan menekan tombol. Untuk pengembalian, tombol Verifikasi Dikembalikan menutup transaksi sekaligus memulihkan stok. Di samping tabel antrean terdapat sebuah grafik lingkaran yang meringkas sebaran status seluruh peminjaman, seperti terlihat pada Gambar 12, yang pada data contoh menunjukkan dua peminjaman yang keduanya telah dikembalikan.</p>
+  <figure><img src="manual-img/r-verifikasi.webp" alt="Verifikasi" /><figcaption>Gambar 12. Halaman Verifikasi beserta ringkasan sebaran status</figcaption></figure>
+  <p>Di luar tugas pemeriksaan tersebut, akun verifikator tetap dapat memakai seluruh fasilitas yang tersedia bagi pegawai biasa, mulai dari menelusuri barang, mengajukan peminjaman, hingga melihat laporan, sehingga perannya bersifat menambah kewenangan dan bukan menggantikan fungsi keseharian sebagai pengguna.</p>
 </div>
 
-<!-- ================= D ================= -->
+<!-- ============ BAB VI ============ -->
 <div class="page">
-  <h1>D. PANDUAN PEGAWAI</h1>
-
-  <h2>D.1 Mengaktifkan Akun Pertama Kali</h2>
-  <p>Akun Anda dibuatkan admin hanya berupa NIP. Saat pertama kali masuk, Anda diminta mengatur nama dan kata sandi sendiri. Caranya:</p>
-  <table class="langkah">
-    <tr><td class="no">1</td><td><span class="judul">Buka halaman masuk</span>Buka https://sesdian.vercel.app/login, ketik <strong>NIP 18 angka</strong> Anda, lalu klik <strong>Lanjutkan</strong>.</td></tr>
-    <tr><td class="no">2</td><td><span class="judul">Aplikasi memeriksa NIP</span>Jika NIP sudah terdaftar tetapi belum punya kata sandi, tampilan berpindah ke halaman <strong>Aktifkan Akun</strong>.</td></tr>
-    <tr><td class="no">3</td><td><span class="judul">Isi data Anda</span>Isi <strong>Nama Lengkap</strong> sesuai identitas, buat <strong>kata sandi minimal 8 huruf atau angka</strong>, lalu ketik ulang kata sandi yang sama.</td></tr>
-    <tr><td class="no">4</td><td><span class="judul">Simpan dan langsung masuk</span>Klik tombol simpan. Akun langsung aktif dan Anda dibawa ke halaman beranda tanpa perlu masuk ulang.</td></tr>
-  </table>
-  <figure><img src="manual-img/aktivasi.webp" alt="Aktifkan akun" /><figcaption>Gambar D.1. Halaman Aktifkan Akun untuk NIP yang belum punya kata sandi</figcaption></figure>
-  <table class="kotak oranye">
-    <tr><td class="kepala">NIP Tidak Dikenali?</td></tr>
-    <tr><td class="badan">Kalau aplikasi menyatakan NIP Anda belum terdaftar, hubungi admin agar NIP Anda didaftarkan lebih dulu melalui menu Kelola User.</td></tr>
-  </table>
+  <h1>Bab VI &nbsp; Penggunaan bagi Administrator</h1>
+  <p>Administrator memegang porsi pengelolaan yang paling luas. Halaman berandanya menyerupai milik pegawai, tetapi angka-angka yang ditampilkan mencakup keseluruhan data organisasi, dan tabel peminjaman terbarunya memuat transaksi dari semua pengguna. Beranda administrator diperlihatkan pada Gambar 13.</p>
+  <figure><img src="manual-img/r-dashboard-admin.webp" alt="Beranda admin" /><figcaption>Gambar 13. Halaman beranda administrator</figcaption></figure>
+  <p>Pengelolaan barang dilakukan melalui menu Data Aset, yang pada tampilan administrator dilengkapi tombol Tambah Aset dan Import Excel di sudut kanan atas seperti terlihat pada Gambar 14. Ketika Tambah Aset dibuka, muncul formulir yang meminta nama barang dengan bantuan saran otomatis dari nama yang sudah ada agar penulisan seragam, kode yang harus unik untuk setiap unit, kategori yang dipilih dari daftar dan dapat ditambah langsung dari daftar itu juga, merek, ruangan, jenis BMN atau Non-BMN, kondisi, status unit, serta foto yang dapat digeser dan diperbesar melalui alat pemotong gambar sebelum disimpan. Formulir penambahan barang ini ditunjukkan pada Gambar 15.</p>
+  <figure><img src="manual-img/r-dataaset-admin.webp" alt="Data aset admin" /><figcaption>Gambar 14. Halaman Data Aset dengan tombol pengelolaan administrator</figcaption></figure>
+  <figure><img src="manual-img/r-tambah-aset.webp" alt="Tambah aset" /><figcaption>Gambar 15. Formulir penambahan barang baru</figcaption></figure>
+  <p>Satu hal yang perlu dipahami adalah pengelolaan foto. Semua unit yang bernama dan bermerek sama memakai satu foto bersama, sehingga penggantian gambar melalui tombol Ganti Gambar pada rincian jenis akan berlaku untuk seluruh unit sejenis sekaligus. Untuk barang yang belum memiliki foto, aplikasi menampilkan ilustrasi bawaan. Pada tingkat unit, administrator dapat menyunting datanya melalui tombol berikon pensil, menghapusnya melalui tombol berikon tempat sampah yang selalu disertai konfirmasi, atau mencetak label QR-nya. Ketika daftar barang berjumlah ratusan, pemuatan formulir suntingan tidak lagi menunggu seluruh daftar; formulir tampil segera setelah data kategori dan ruangan siap, sedangkan daftar barang dimuat di latar hanya untuk keperluan saran nama dan pemeriksaan keunikan kode.</p>
+  <p>Untuk pemasukan data dalam jumlah besar, tersedia fasilitas Import Excel. Administrator terlebih dahulu mengunduh berkas contoh agar susunan kolomnya benar, mengisinya, lalu mengunggahnya kembali; aplikasi memeriksa isi berkas dan melaporkan baris yang bermasalah sebelum data benar-benar disimpan. Jendela pemasukan data ini diperlihatkan pada Gambar 16.</p>
+  <figure><img src="manual-img/r-import.webp" alt="Import Excel" /><figcaption>Gambar 16. Jendela pemasukan data barang dari berkas Excel</figcaption></figure>
+  <p>Penataan tempat dan penggolongan barang ditangani melalui dua menu terpisah. Menu Kategori Aset, yang tampak pada Gambar 17, dipakai untuk menambah golongan barang baru maupun menghapus golongan yang tidak terpakai, dengan catatan barang lama yang memakai golongan tersebut akan menjadi tanpa kategori. Menu Ruangan pada Gambar 18 dipakai untuk mendaftarkan ruangan beserta kode dan penanggung jawabnya, membuka isi ruangan untuk melihat maupun memindahkan barang, dan mencetak kode QR ruangan yang kemudian dapat dipindai publik.</p>
+  <figure><img src="manual-img/r-kategori.webp" alt="Kategori" /><figcaption>Gambar 17. Halaman pengelolaan kategori barang</figcaption></figure>
+  <figure><img src="manual-img/r-ruangan.webp" alt="Ruangan" /><figcaption>Gambar 18. Halaman pengelolaan ruangan</figcaption></figure>
+  <p>Alur persetujuan peminjaman menjadi inti pekerjaan administrator sehari-hari. Sebuah pengajuan yang baru masuk berstatus Pending dan tampak di Daftar Pinjam maupun di halaman Verifikasi milik administrator, disertai pemberitahuan lewat lonceng dan WhatsApp. Administrator memeriksa dan memutuskan untuk menyetujui atau menolak, dan setiap keputusan meminta konfirmasi kedua sebelum dijalankan. Pengajuan yang disetujui kemudian menunggu verifikator menandainya Terverifikasi; sesudah itu barang diserahkan dan stok berkurang. Ketika barang dikembalikan, pemohon mengajukan pengembalian lalu petugas menandainya sebagai Kembali sehingga stok pulih. Untuk menjaga agar angka tetap konsisten, sistem menghitung ulang stok secara otomatis berdasarkan peminjaman yang sedang berjalan. Di luar peminjaman, administrator juga dapat menandai unit tertentu berstatus maintenance ketika barang sedang dalam perbaikan sehingga tidak ikut ditawarkan untuk dipinjam.</p>
+  <p>Pengelolaan akun pengguna dilakukan melalui menu Kelola User yang ditampilkan pada Gambar 19. Sesuai penjelasan pada Bab II, penambahan akun cukup dilakukan dengan mengisi NIP delapan belas angka dan memilih perannya, sementara nama dan kata sandi sengaja tidak dapat diisi administrator. Selama pemilik NIP belum mengaktifkan akunnya, baris akun tersebut ditandai sebagai belum aktif. Dari halaman yang sama administrator dapat mengubah peran seorang pengguna, dengan pengecualian bahwa ia tidak dapat menurunkan peran akunnya sendiri, serta menghapus akun yang sudah tidak memiliki peminjaman berjalan.</p>
+  <figure><img src="manual-img/r-users.webp" alt="Kelola user" /><figcaption>Gambar 19. Halaman pengelolaan pengguna</figcaption></figure>
+  <p>Bagian terakhir yang menjadi tanggung jawab administrator adalah penyusunan laporan melalui menu Laporan yang diperlihatkan pada Gambar 20. Periode laporan dapat dipilih secara harian dengan menentukan tanggal, atau bulanan dengan menentukan bulan, dan seluruh ringkasan serta tabel menyesuaikan pilihan itu. Tabel laporan memuat nama peminjam, barang, tanggal pinjam, tanggal kembali, tanggal pengembalian, administrator, dan verifikator, disertai penyaring status di atasnya. Rekapitulasi dapat diunduh sebagai berkas Excel melalui tombol Export CSV atau dicetak sebagai berkas PDF berupa lembar Daftar Peminjaman Barang Inventaris yang siap ditandatangani. Di bagian bawah halaman tersedia grafik garis yang menggambarkan jumlah pengajuan pada tiap periode, yang angkanya dapat dibaca dengan mengarahkan tetikus ke titik-titik grafik. Adapun pemberitahuan WhatsApp yang menyertai seluruh alur ini bersandar pada nomor administrator yang diatur di Detail Profil; tanpa layanan pengirim otomatis, aplikasi menyiapkan pesan yang tinggal dikirim satu kali klik, sedangkan bila layanan pengirim otomatis telah diatur, pesan terkirim dengan sendirinya, termasuk kabar keputusan kepada peminjam.</p>
+  <figure><img src="manual-img/r-laporan.webp" alt="Laporan" /><figcaption>Gambar 20. Halaman Laporan Peminjaman</figcaption></figure>
 </div>
 
+<!-- ============ BAB VII ============ -->
 <div class="page">
-  <h2>D.2 Masuk Akun</h2>
-  <table class="langkah">
-    <tr><td class="no">1</td><td><span class="judul">Ketik NIP</span>Di halaman masuk, ketik NIP 18 angka lalu klik <strong>Lanjutkan</strong>.</td></tr>
-    <tr><td class="no">2</td><td><span class="judul">Ketik kata sandi</span>Jika akun sudah aktif, kolom kata sandi muncul. Anda bisa menekan gambar mata untuk melihat ketikan agar tidak salah.</td></tr>
-    <tr><td class="no">3</td><td><span class="judul">Klik Masuk</span>Kalau NIP dan kata sandi benar, Anda dibawa ke halaman beranda sesuai jenis akun Anda.</td></tr>
-  </table>
-  <figure><img src="manual-img/login.webp" alt="Halaman masuk" /><figcaption>Gambar D.2. Halaman masuk, cukup ketik NIP terlebih dahulu</figcaption></figure>
-  <table class="kotak">
-    <tr><td class="kepala">Berapa Lama Tetap Masuk?</td></tr>
-    <tr><td class="badan">Setelah masuk, Anda tetap masuk hingga 7 hari di perangkat yang sama. Setelah itu, atau setelah menekan tombol Keluar, Anda diminta masuk kembali.</td></tr>
-  </table>
-
-  <h2>D.3 Halaman Beranda (Dashboard)</h2>
-  <p>Setelah masuk, halaman beranda menampilkan:</p>
-  <ul>
-    <li><strong>Sapaan</strong> sesuai waktu (pagi, siang, sore, atau malam) beserta jenis akun Anda.</li>
-    <li><strong>Lima kotak angka</strong>: Total Aset, Total Stok, Stok Tersedia, Stok Dipinjam, dan Pending (menunggu).</li>
-    <li><strong>Tabel Peminjaman Terbaru</strong> berisi barang, jumlah, peminjam, status, dan batas waktu. Ada kolom pencarian dan penyaring status di pojok tabel.</li>
-  </ul>
-  <figure><img src="manual-img/dashboard-user.webp" alt="Beranda pegawai" /><figcaption>Gambar D.3. Halaman beranda pegawai</figcaption></figure>
-</div>
-
-<div class="page">
-  <h2>D.4 Mencari dan Melihat Barang</h2>
-  <p>Buka menu <strong>Data Aset</strong> di sisi kiri. Barang yang nama dan mereknya sama otomatis digabung menjadi <strong>satu kartu</strong> supaya daftar tetap ringkas.</p>
-  <ul>
-    <li><strong>Setiap kartu</strong> memuat foto, tanda BMN atau Non-BMN, jumlah tersedia, kode atau jumlah unit, nama barang, <strong>label merek berwarna biru</strong> (untuk membedakan barang yang namanya sama), kategori dan ruangan, kondisi, serta bar jumlah tersedia dan total.</li>
-    <li>Ada <strong>pencarian</strong> nama atau kode, <strong>penyaring BMN atau Non-BMN</strong>, dan <strong>penyaring status</strong> (Semua, Tersedia, Sedang Dipinjam, Maintenance).</li>
-    <li><strong>Klik foto</strong> untuk melihat gambar ukuran besar. <strong>Klik kartu</strong> untuk membuka rincian.</li>
-  </ul>
-  <figure><img src="manual-img/dataaset-user.webp" alt="Data barang" /><figcaption>Gambar D.4. Halaman Data Barang (tampilan pegawai)</figcaption></figure>
-  <p>Saat membuka rincian, muncul ringkasan Total, Tersedia, dan Dipinjam, foto barang (klik untuk memperbesar), serta daftar semua unit beserta kode dan kondisinya. Centang unit yang tersedia, isi <strong>tanggal rencana pengembalian</strong> (wajib diisi), lalu klik <strong>Ajukan Pinjam</strong>.</p>
-  <figure><img src="manual-img/modal-jenis.webp" alt="Rincian barang" /><figcaption>Gambar D.5. Rincian barang, pilih unit lalu ajukan pinjam</figcaption></figure>
-</div>
-
-<div class="page">
-  <h2>D.5 Meminjam Barang</h2>
-  <p>Selain lewat rincian di Data Aset, ada halaman khusus <strong>Ajukan Pinjam</strong> di menu kiri:</p>
-  <table class="langkah">
-    <tr><td class="no">1</td><td><span class="judul">Pilih barang</span>Klik kartu barang yang tersedia. Rincian terbuka, lalu centang satu atau beberapa unit yang ingin dipinjam.</td></tr>
-    <tr><td class="no">2</td><td><span class="judul">Isi tanggal pengembalian</span>Isi tanggal rencana pengembalian (wajib diisi).</td></tr>
-    <tr><td class="no">3</td><td><span class="judul">Kirim pengajuan</span>Klik <strong>Ajukan Pinjam</strong>. Status pengajuan menjadi <span class="badge" style="background:#fdecd9;color:#7a3d00">Pending</span> dan menunggu diperiksa admin.</td></tr>
-    <tr><td class="no">4</td><td><span class="judul">Pemberitahuan WhatsApp</span>Aplikasi menyiapkan pesan WhatsApp berisi rincian pengajuan untuk admin. Pesan bisa terkirim otomatis, atau terbuka sebagai pesan siap kirim yang tinggal Anda kirim.</td></tr>
-  </table>
-  <figure><img src="manual-img/ajukanpinjam.webp" alt="Ajukan pinjam" /><figcaption>Gambar D.6. Halaman Ajukan Pinjam</figcaption></figure>
-
-  <h2>D.6 Memantau Status Peminjaman</h2>
-  <p>Menu <strong>Daftar Pinjam</strong> berisi semua pengajuan Anda, dengan penyaring cepat: Semua, Pending, Disetujui, Ditolak, dan Sudah dikembalikan. Angka di tiap penyaring menunjukkan jumlahnya.</p>
-  <table>
-    <tr><th style="width:38%">Status</th><th>Artinya</th></tr>
-    <tr><td><span class="badge" style="background:#fdecd9;color:#7a3d00">Pending</span></td><td>Menunggu diperiksa admin (pemeriksaan pertama).</td></tr>
-    <tr><td><span class="badge" style="background:#e3f0fb;color:#005bab">Disetujui Admin</span></td><td>Lolos pemeriksaan pertama, menunggu diperiksa verifikator.</td></tr>
-    <tr><td><span class="badge" style="background:#daf0ef;color:#1c6e6a">Terverifikasi</span></td><td>Lolos pemeriksaan kedua, barang boleh diambil.</td></tr>
-    <tr><td><span class="badge" style="background:#efe5fb;color:#3a1d58">Dipinjam</span></td><td>Barang sedang dipegang peminjam.</td></tr>
-    <tr><td><span class="badge" style="background:#fce4ef;color:#8e2f63">Menunggu Verifikasi Kembali</span></td><td>Peminjam sudah mengajukan pengembalian, menunggu diperiksa petugas.</td></tr>
-    <tr><td><span class="badge" style="background:#e2f6e7;color:#127a2b">Kembali</span></td><td>Pengembalian sudah diperiksa, urusan selesai dan stok kembali.</td></tr>
-    <tr><td><span class="badge" style="background:#fbe4e4;color:#a02020">Ditolak</span></td><td>Pengajuan ditolak admin.</td></tr>
-    <tr><td><span class="badge" style="background:#eceff3;color:#5b6472">Dibatalkan</span></td><td>Pengajuan dibatalkan sendiri oleh peminjam selagi masih Pending.</td></tr>
-  </table>
-  <figure><img src="manual-img/daftarpinjam.webp" alt="Daftar pinjam" /><figcaption>Gambar D.7. Halaman Daftar Pinjam dengan penyaring status</figcaption></figure>
-</div>
-
-<div class="page">
-  <table class="kotak">
-    <tr><td class="kepala">Membatalkan Pengajuan Sendiri</td></tr>
-    <tr><td class="badan">Selama pengajuan masih berstatus Pending, Anda bisa menekan tombol <strong>Batalkan</strong> pada barisnya di Daftar Pinjam (akan ada konfirmasi), tanpa perlu lewat admin. Status berubah menjadi Dibatalkan dan stok yang sempat dikunci langsung kembali. Kalau sudah disetujui admin, pembatalan tidak bisa lagi dilakukan.</td></tr>
-  </table>
-
-  <h2>D.7 Mengembalikan Barang</h2>
-  <p>Menu <strong>Sedang Dipinjam</strong> berisi barang yang masih Anda pegang:</p>
-  <table class="langkah">
-    <tr><td class="no">1</td><td><span class="judul">Klik "Konfirmasi Pengembalian"</span>Pada barang yang mau dikembalikan, klik tombol konfirmasi lalu setujui pesannya. Status berubah menjadi Menunggu Verifikasi Kembali.</td></tr>
-    <tr><td class="no">2</td><td><span class="judul">Serahkan barangnya</span>Bawa barang ke petugas. Admin atau verifikator akan menekan tombol Verifikasi Pengembalian. Status menjadi Kembali dan stok otomatis pulih.</td></tr>
-  </table>
-
-  <h2>D.8 Pemberitahuan (Lonceng dan WhatsApp)</h2>
-  <ul>
-    <li><strong>Lonceng di pojok kanan atas</strong> menampilkan kabar terbaru untuk Anda, misalnya pengajuan disetujui, ditolak, atau sudah dikembalikan, beserta jumlah yang belum dibaca.</li>
-    <li><strong>WhatsApp</strong>: admin menerima pesan setiap ada pengajuan atau permintaan pengembalian, dan peminjam menerima kabar keputusannya. Pesan bisa terkirim otomatis, atau berupa pesan siap kirim.</li>
-  </ul>
-
-  <h2>D.9 Halaman Profil</h2>
-  <p>Klik gambar profil di pojok kanan atas, lalu pilih <strong>Detail Profil</strong>:</p>
-  <ul>
-    <li><strong>Foto profil</strong>: klik gambar pensil pada foto, lalu pilih gambar. Foto otomatis dipotong dan tampil di semua perangkat.</li>
-    <li><strong>Informasi Akun</strong>: memperbarui data akun Anda.</li>
-    <li><strong>Keamanan</strong>: mengganti kata sandi secara berkala.</li>
-    <li>Khusus admin, ada pengaturan <strong>Nomor WhatsApp</strong> (lihat bagian F.9).</li>
-    <li>Tombol <strong>Keluar</strong> untuk keluar dari akun.</li>
-  </ul>
-  <figure><img src="manual-img/profil.webp" alt="Profil" /><figcaption>Gambar D.8. Halaman Detail Profil</figcaption></figure>
-</div>
-
-<!-- ================= E ================= -->
-<div class="page">
-  <h1>E. PANDUAN VERIFIKATOR</h1>
-  <p>Verifikator bertugas memeriksa untuk kedua kalinya. Peminjaman yang sudah disetujui admin belum boleh dipakai sebelum diperiksa ulang oleh verifikator, sehingga setiap peminjaman diperiksa dua kali.</p>
-
-  <h2>Halaman Verifikasi</h2>
-  <ul>
-    <li>Berisi pengajuan berstatus <strong>Disetujui Admin</strong> (menunggu diperiksa) dan <strong>Menunggu Verifikasi Kembali</strong> (pengembalian barang).</li>
-    <li>Setiap baris menampilkan foto dan nama peminjam, barang, tanggal, dan status.</li>
-    <li>Tombol <strong>Setujui</strong> menandai peminjaman sebagai Terverifikasi. Tombol <strong>Tolak</strong> menolaknya. Setiap tindakan meminta konfirmasi agar tidak salah klik.</li>
-    <li>Untuk pengembalian, tombol <strong>Verifikasi Dikembalikan</strong> menutup urusan dan memulihkan stok.</li>
-    <li>Di samping tabel ada <strong>grafik lingkaran</strong> yang meringkas jumlah tiap status.</li>
-  </ul>
-  <figure><img src="manual-img/verifikasi.webp" alt="Verifikasi" /><figcaption>Gambar E.1. Halaman Verifikasi</figcaption></figure>
-  <p>Selain tugas memeriksa, akun verifikator juga bisa memakai semua fitur pegawai biasa, seperti mencari barang, meminjam, dan melihat laporan.</p>
-</div>
-
-<!-- ================= F ================= -->
-<div class="page">
-  <h1>F. PANDUAN ADMINISTRATOR</h1>
-
-  <h2>F.1 Beranda Admin</h2>
-  <p>Beranda admin mirip dengan pegawai, tetapi menampilkan data seluruh kantor: lima kotak angka gabungan dan tabel Peminjaman Terbaru dari semua pengguna, lengkap dengan pencarian dan penyaring status.</p>
-  <figure><img src="manual-img/dashboard-admin.webp" alt="Beranda admin" /><figcaption>Gambar F.1. Halaman beranda admin</figcaption></figure>
-
-  <h2>F.2 Mengelola Data Barang</h2>
-  <p>Menu <strong>Data Aset</strong> untuk admin memiliki tombol <strong>Tambah Aset</strong> dan <strong>Import Excel</strong> di kanan atas.</p>
-  <figure><img src="manual-img/dataaset-admin.webp" alt="Data barang admin" /><figcaption>Gambar F.2. Halaman Data Barang dengan tombol admin</figcaption></figure>
-  <h3>Menambah Barang Baru</h3>
-  <table>
-    <tr><th style="width:30%">Kolom</th><th>Cara Mengisi</th></tr>
-    <tr><td>Kode Aset</td><td>Kode khusus untuk tiap unit, misalnya gabungan Kode Barang dan NUP.</td></tr>
-    <tr><td>Nama Barang</td><td>Nama resmi barang. Aplikasi memberi saran dari nama yang sudah ada agar penulisan seragam.</td></tr>
-    <tr><td>Kategori</td><td>Pilih dari daftar. Kategori baru bisa langsung ditambah dari daftar yang sama.</td></tr>
-    <tr><td>Ruangan</td><td>Pilih ruangan tempat barang diletakkan.</td></tr>
-    <tr><td>Merek</td><td>Merek atau pembuat barang. Merek menjadi pembeda antar barang yang namanya sama.</td></tr>
-    <tr><td>Tahun, Kondisi, Jenis, Tipe</td><td>Tahun perolehan; kondisi (Baik, Rusak Ringan, atau Rusak Berat); jenis (BMN atau Non-BMN); dan tipe barang.</td></tr>
-    <tr><td>Stok</td><td>Jumlah unit barang.</td></tr>
-    <tr><td>Foto</td><td>Unggah gambar. Tersedia alat untuk menggeser dan memperbesar atau memperkecil gambar sebelum disimpan.</td></tr>
-  </table>
-  <h3>Satu Foto untuk Barang Sejenis</h3>
-  <p>Barang dengan nama dan merek yang sama memakai <strong>satu foto bersama</strong>. Buka rincian barang lalu klik <strong>Ganti Gambar</strong>: unggah gambar baru atau tempel tautan gambar, atur potongannya, dan foto berlaku untuk semua unit sejenis. Barang yang belum ada fotonya otomatis memakai gambar bawaan.</p>
-  <h3>Mengubah dan Menghapus Barang</h3>
-  <p>Di dalam rincian barang, tiap unit punya tombol <strong>ubah</strong> (gambar pensil) untuk memperbarui data, tombol <strong>hapus</strong> (gambar tempat sampah, dengan konfirmasi), dan tombol <strong>QR</strong> untuk mencetak label.</p>
-</div>
-
-<div class="page">
-  <h2>F.3 Memasukkan Data dari Excel</h2>
-  <table class="langkah">
-    <tr><td class="no">1</td><td><span class="judul">Unduh contoh format</span>Klik <strong>Import Excel</strong> lalu unduh contoh format resmi agar susunan kolomnya sudah benar.</td></tr>
-    <tr><td class="no">2</td><td><span class="judul">Isi datanya</span>Lengkapi baris data pada contoh format tersebut.</td></tr>
-    <tr><td class="no">3</td><td><span class="judul">Unggah dan periksa</span>Pilih file pada jendela import. Aplikasi memeriksa isinya, dan baris yang bermasalah akan diberitahukan sebelum data disimpan.</td></tr>
-  </table>
-
-  <h2>F.4 Mencetak QR Code Barang dan Ruangan</h2>
-  <ul>
-    <li><strong>QR Code barang</strong>: tombol QR pada tiap unit membuka halaman cetak label. Tekan tombol Ctrl dan P secara bersamaan untuk mencetak, lalu tempel stiker pada barang. Kalau dipindai, QR ini membuka halaman rincian barang.</li>
-    <li><strong>QR Code ruangan</strong>: dari kartu ruangan, cetak QR yang menampilkan daftar barang di ruangan itu untuk umum.</li>
-  </ul>
-
-  <h2>F.5 Mengelola Kategori dan Ruangan</h2>
-  <p><strong>Kategori Aset</strong>: menambah kategori baru beserta gambarnya, dan menghapus kategori yang tidak dipakai. Barang lama yang memakai kategori itu akan menjadi tanpa kategori.</p>
-  <figure><img src="manual-img/kategoriaset.webp" alt="Kategori" /><figcaption>Gambar F.3. Halaman Kelola Kategori</figcaption></figure>
-  <p><strong>Ruangan</strong>: menambah ruangan (nama, kode, dan penanggung jawab), membuka isi ruangan untuk melihat serta memindahkan barang, dan mencetak QR ruangan.</p>
-  <figure><img src="manual-img/ruangan.webp" alt="Ruangan" /><figcaption>Gambar F.4. Halaman Kelola Ruangan</figcaption></figure>
-</div>
-
-<div class="page">
-  <h2>F.6 Menyetujui Peminjaman dan Pengembalian</h2>
-  <table class="langkah">
-    <tr><td class="no">1</td><td><span class="judul">Pengajuan masuk</span>Pengajuan baru berstatus Pending muncul di Daftar Pinjam dan halaman Verifikasi admin. Lonceng dan WhatsApp memberi tahu admin.</td></tr>
-    <tr><td class="no">2</td><td><span class="judul">Pemeriksaan pertama oleh admin</span>Klik <strong>Setujui</strong> atau <strong>Tolak</strong>. Setiap tindakan meminta konfirmasi. Peminjam menerima kabar keputusannya.</td></tr>
-    <tr><td class="no">3</td><td><span class="judul">Pemeriksaan kedua oleh verifikator</span>Pengajuan yang sudah disetujui menunggu verifikator menandainya Terverifikasi. Setelah itu barang diserahkan dan stok berkurang.</td></tr>
-    <tr><td class="no">4</td><td><span class="judul">Pengembalian</span>Peminjam menekan Konfirmasi Pengembalian. Petugas menekan Verifikasi Dikembalikan saat barang benar-benar kembali. Status menjadi Kembali dan stok pulih.</td></tr>
-  </table>
-  <table class="kotak hijau">
-    <tr><td class="kepala">Stok Selalu Tepat</td></tr>
-    <tr><td class="badan">Aplikasi menghitung ulang stok secara otomatis dari peminjaman yang sedang berjalan, sehingga jumlah tersedia dan dipinjam selalu sesuai dengan kenyataan.</td></tr>
-  </table>
-
-  <h2>F.7 Mendaftarkan Pengguna Baru</h2>
-  <p>Menu <strong>Kelola User</strong> menampilkan semua akun beserta jenis dan tombol tindakannya.</p>
-  <table class="langkah">
-    <tr><td class="no">1</td><td><span class="judul">Klik "Tambah User"</span>Isian hanya meminta <strong>NIP 18 angka</strong>, <strong>jenis pengguna</strong> (User, Verifikator, atau Admin), dan nomor HP jika ada. Nama dan kata sandi sengaja tidak bisa diisi admin.</td></tr>
-    <tr><td class="no">2</td><td><span class="judul">Klik "Daftarkan NIP"</span>Aplikasi menyimpan akun dan menampilkan pesan petunjuk.</td></tr>
-    <tr><td class="no">3</td><td><span class="judul">Beri tahu pemilik NIP</span>Minta yang bersangkutan membuka halaman masuk, mengetik NIP-nya, lalu mengatur nama dan kata sandi sendiri (lihat bagian D.1). Sampai itu dilakukan, akun bertanda <span class="badge" style="background:#fbeede;color:#c95a00">BELUM AKTIF</span>.</td></tr>
-  </table>
-  <figure><img src="manual-img/tambah-user.webp" alt="Tambah user" /><figcaption>Gambar F.5. Isian Tambah User, cukup NIP</figcaption></figure>
-  <figure><img src="manual-img/users.webp" alt="Kelola user" /><figcaption>Gambar F.6. Daftar akun dengan tanda "Belum aktif"</figcaption></figure>
-  <ul>
-    <li><strong>Mengubah jenis pengguna</strong> lewat pilihan di kolom Aksi. Akun sendiri tidak bisa diturunkan.</li>
-    <li><strong>Menghapus akun</strong> dengan tombol merah. Tidak bisa dihapus kalau pengguna itu masih punya peminjaman berjalan.</li>
-  </ul>
-</div>
-
-<div class="page">
-  <h2>F.8 Laporan dan Grafik</h2>
-  <ul>
-    <li><strong>Pilih periode</strong>: Harian (memilih tanggal) atau Bulanan (memilih bulan). Ringkasan dan tabel mengikuti periode yang dipilih.</li>
-    <li><strong>Ringkasan</strong>: jumlah peminjaman pada periode itu beserta rinciannya per status.</li>
-    <li><strong>Tabel laporan</strong> memuat peminjam, barang, tanggal pinjam, tanggal kembali, tanggal pengembalian, admin, dan verifikator, dengan penyaring status di atasnya.</li>
-    <li><strong>Export CSV</strong> mengunduh data sebagai file Excel. <strong>Cetak PDF</strong> membuka lembar resmi "Daftar Peminjaman Barang Inventaris" yang siap ditandatangani.</li>
-    <li><strong>Grafik Peminjaman</strong>: grafik garis yang menunjukkan jumlah pengajuan tiap periode. Arahkan tetikus (kursor) ke grafik untuk melihat angka tiap titik.</li>
-  </ul>
-  <figure><img src="manual-img/laporan.webp" alt="Laporan" /><figcaption>Gambar F.7. Halaman Laporan Peminjaman</figcaption></figure>
-  <figure><img src="manual-img/laporan-grafik.webp" alt="Grafik laporan" /><figcaption>Gambar F.8. Grafik peminjaman berbentuk garis</figcaption></figure>
-
-  <h2>F.9 Nomor WhatsApp Admin</h2>
-  <ul>
-    <li>Atur <strong>nomor WhatsApp admin</strong> di halaman Detail Profil. Nomor ini menerima pesan setiap ada pengajuan dan permintaan pengembalian.</li>
-    <li>Tanpa pengaturan tambahan, aplikasi membuka pesan WhatsApp yang tinggal dikirim dengan sekali klik.</li>
-    <li>Jika layanan pengirim WhatsApp otomatis sudah diatur di aplikasi, pesan terkirim sendiri tanpa perlu dikirim manual, termasuk kabar keputusan untuk peminjam.</li>
-  </ul>
-</div>
-
-<!-- ================= G ================= -->
-<div class="page">
-  <h1>G. PERTANYAAN YANG SERING DITANYAKAN</h1>
-
-  <p><strong>1. Apakah masyarakat umum bisa meminjam barang lewat katalog atau QR Code?</strong><br/>
-  Tidak bisa. Pengguna umum hanya bisa melihat informasi. Untuk meminjam, diperlukan akun pegawai yang dibuatkan admin.</p>
-
-  <p><strong>2. NIP saya tidak dikenali saat masuk. Bagaimana?</strong><br/>
-  Hubungi admin agar NIP Anda didaftarkan lewat menu Kelola User. Setelah itu ulangi masuk dan lakukan aktivasi akun (lihat bagian D.1).</p>
-
-  <p><strong>3. Saya lupa kata sandi. Bagaimana solusinya?</strong><br/>
-  Hubungi admin. Admin bisa menghapus akun lama Anda lalu mendaftarkan ulang NIP yang sama, sehingga Anda bisa mengaktifkan akun lagi dan membuat kata sandi baru. Penghapusan hanya bisa dilakukan jika tidak ada peminjaman berjalan atas nama Anda.</p>
-
-  <p><strong>4. Kenapa beberapa unit barang tampil sebagai satu kartu saja?</strong><br/>
-  Barang dengan nama dan merek yang sama digabung menjadi satu supaya daftar ringkas. Jumlah unit tetap tertera di kartu, dan semua unit tetap tercatat satu per satu di dalam rincian barang, masing-masing dengan kode dan QR sendiri.</p>
-
-  <p><strong>5. Kenapa foto barang sama untuk semua unit sejenis?</strong><br/>
-  Aplikasi memakai satu foto untuk tiap jenis barang (berdasarkan nama dan merek). Admin bisa menggantinya kapan saja lewat tombol Ganti Gambar di rincian barang.</p>
-
-  <p><strong>6. Pesan WhatsApp tidak terkirim otomatis. Kenapa?</strong><br/>
-  Jika layanan pengirim otomatis belum diatur, aplikasi hanya menyiapkan pesan yang harus dikirim manual dengan sekali klik. Minta admin mengatur layanan pengirim WhatsApp otomatis.</p>
-
-  <p><strong>7. Nomor WhatsApp saya berubah. Di mana menggantinya?</strong><br/>
-  Buka halaman Detail Profil dan perbarui pada bagian Informasi Akun, atau laporkan ke admin.</p>
-
-  <p><strong>8. Berapa lama saya tetap masuk tanpa perlu masuk ulang?</strong><br/>
-  Selama 7 hari sejak terakhir masuk. Setelah itu aplikasi meminta Anda masuk kembali.</p>
-
-  <p><strong>9. Tampilan terasa lama atau tidak berubah setelah ada pembaruan.</strong><br/>
-  Muat ulang halaman dengan menekan tombol F5. Kalau masih sama, tekan tombol Ctrl, Shift, dan R secara bersamaan agar aplikasi mengambil versi terbaru.</p>
-</div>
-
-<!-- ================= H ================= -->
-<div class="page">
-  <h1>H. PENUTUP DAN CARA MENGATASI MASALAH</h1>
-  <p>Buku panduan ini disusun mengikuti urutan pemakaian aplikasi SESDIAN yang sebenarnya: mulai dari akses umum, aktivasi akun pegawai, meminjam dan mengembalikan barang, pemeriksaan berlapis, sampai pengelolaan barang dan laporan oleh admin.</p>
-
-  <h2>Cara Mengatasi Masalah Umum</h2>
-  <table>
-    <tr><th style="width:40%">Kalau Terjadi</th><th>Yang Bisa Dilakukan</th></tr>
-    <tr><td>Halaman tidak memuat data atau berputar terus</td><td>Periksa koneksi internet, lalu muat ulang halaman. Coba peramban lain jika masih bermasalah.</td></tr>
-    <tr><td>Tampilan tidak berubah padahal sudah ada pembaruan</td><td>Tekan tombol Ctrl, Shift, dan R secara bersamaan agar versi terbaru terunduh.</td></tr>
-    <tr><td>Tidak bisa masuk padahal kata sandi benar</td><td>Pastikan NIP tepat 18 angka tanpa spasi. Jika akun baru dibuatkan, aktifkan akun dulu (lihat bagian D.1).</td></tr>
-    <tr><td>Tombol admin tidak muncul</td><td>Jenis akun Anda bukan admin. Hubungi admin untuk penyesuaian.</td></tr>
-    <tr><td>QR Code sulit terbaca</td><td>Bersihkan lensa kamera, tambah cahaya, dan jaga jarak pindai sekitar 10 sampai 15 cm.</td></tr>
-  </table>
-
-  <p style="margin-top:18px">Dengan pencatatan barang yang tertata lewat aplikasi ini, diharapkan pemantauan barang kantor menjadi lebih tertib, terbuka, dan rapi.</p>
-
-  <table class="kotak noprint" style="margin-top:24px">
-    <tr><td class="kepala">Menyimpan Panduan Ini sebagai PDF</td></tr>
-    <tr><td class="badan">Buku ini juga tersedia sebagai file Word dan PDF di folder yang sama. Kalau ingin membuat PDF sendiri dari halaman ini, buka di peramban, tekan tombol Ctrl dan P secara bersamaan, pilih tujuan "Save as PDF", ukuran kertas A4, lalu simpan.</td></tr>
-  </table>
+  <h1>Bab VII &nbsp; Penutup</h1>
+  <p>Uraian pada bab-bab sebelumnya mengikuti urutan pemakaian yang sebenarnya, dari hal yang terbuka bagi umum, pengaktifan akun oleh pegawai, peminjaman dan pengembalian barang, pemeriksaan berlapis oleh verifikator, hingga pengelolaan menyeluruh oleh administrator. Susunan seperti ini diharapkan memudahkan pembaca menempatkan dirinya sesuai peran yang dipegang dan menemukan langkah yang dibutuhkan tanpa harus membaca seluruh dokumen.</p>
+  <p>Beberapa kendala yang lazim ditemui sebenarnya dapat diselesaikan dengan langkah sederhana. Halaman yang tidak kunjung menampilkan data biasanya cukup diatasi dengan memeriksa sambungan internet lalu memuat ulang halaman, dan bila tampilan terasa belum berubah setelah ada pembaruan, memuat ulang secara menyeluruh dengan menekan tombol Ctrl, Shift, dan R secara bersamaan umumnya menyegarkan berkas ke versi terbaru. Kegagalan masuk meski kata sandi diyakini benar sering berpangkal pada NIP yang tidak tepat delapan belas angka atau pada akun yang belum melewati proses pengaktifan. Sementara itu, tidak munculnya menu-menu administrator menandakan bahwa peran akun yang bersangkutan memang bukan administrator, sehingga penyesuaian peran perlu diminta kepada administrator yang berwenang.</p>
+  <p>Dengan pencatatan yang tertata melalui aplikasi ini, pemantauan barang milik negara diharapkan berlangsung lebih tertib, lebih terbuka, dan lebih mudah dipertanggungjawabkan dibanding cara manual yang selama ini dijalankan.</p>
 </div>
 
 </body>
