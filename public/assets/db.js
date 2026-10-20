@@ -42,7 +42,7 @@
     seq: 100,
     categories: [['Elektronik', 'monitor'], ['Furnitur', 'chair'], ['Kendaraan', 'car'], ['Peralatan', 'wrench'], ['Dokumen', 'file'], ['Lain-lain', 'package']].map(function (c, i) { return { id: i + 1, name: c[0], icon: c[1] }; }),
     rooms: [['Ruang Kepala', 'RK-01'], ['Ruang Tata Usaha', 'TU-01'], ['Ruang Rapat', 'RR-01'], ['Ruang Pelayanan', 'RP-01'], ['Gudang', 'GD-01'], ['Laboratorium', 'LB-01']].map(function (r, i) { return { id: i + 1, name: r[0], code: r[1], pic: '' }; }),
-    assets: [{ id: 1, code: '123', name: 'Laptop', category_id: 1, brand: 'Acer', room_id: 2, year: 2024, condition: 'Baik', type: 'BMN', asset_type: 'Fixed Asset', stock_total: 14, stock_available: 9, stock_borrowed: 5, image: null, qr_code: 'QR000001' }],
+    assets: [{ id: 1, code: '123', name: 'Laptop', category_id: 1, brand: 'Acer', room_id: 2, year: 2024, condition: 'Baik', type: 'BMN', asset_type: 'Fixed Asset', stock_total: 14, stock_available: 9, stock_borrowed: 5, image: null, qr_code: 'QR000001', status: 'tersedia' }],
     borrowings: [{ id: 1, asset_id: 1, borrower_name: 'Adi Septriansyah', qty: 1, status: 'pending', due_date: '2026-06-18', created_at: '2026-06-15T08:00:00Z' }],
     users: [{ id: 1, nip: '123456789012345678', name: 'Adi Septriansyah', role: 'admin' }, { id: 2, nip: '987654321098765432', name: 'Budi Santoso', role: 'user' }],
     settings: { wa_number: '' },
@@ -125,7 +125,22 @@
     }
     return req('assets', { method: 'POST', body: { jenis_image: { name: String(name || '') + ' ' + String(brand || ''), image: image } } });
   }
-  async function assets() { return demo ? P(DEMO.assets.map(demoAsset).map(fillAssetImage)) : (await req('assets')).assets.map(fillAssetImage); }
+  // In-memory cache for assets — avoids redundant round-trips when opening the
+  // edit form (categories + rooms + assets fire in parallel now, but the assets
+  // call was the slowest). A write (create/update/delete) invalidates the cache.
+  var _assetsCache = null;
+  var _assetsCacheTs = 0;
+  var ASSETS_CACHE_TTL = 30000; // 30 seconds
+  function invalidateAssetsCache() { _assetsCache = null; _assetsCacheTs = 0; }
+  async function assets() {
+    if (demo) return P(DEMO.assets.map(demoAsset).map(fillAssetImage));
+    var now = Date.now();
+    if (_assetsCache && (now - _assetsCacheTs < ASSETS_CACHE_TTL)) return _assetsCache.slice();
+    var data = (await req('assets')).assets.map(fillAssetImage);
+    _assetsCache = data;
+    _assetsCacheTs = now;
+    return data.slice();
+  }
 
   function fmtBorrow(b) {
     var d = b.created_at ? new Date(b.created_at) : null;
@@ -185,7 +200,7 @@
       var bs = await borrowings();
       return P({
         assets: as.map(publicAsset), categories: DEMO.categories.slice(), rooms: DEMO.rooms.slice(),
-        stats: { total_assets: as.length, total_stock: sum('stock_total'), stock_available: sum('stock_available'), stock_borrowed: sum('stock_borrowed'), pending: bs.filter(function (b) { return b.status === 'pending'; }).length }
+        stats: { total_assets: as.length, total_stock: sum('stock_total'), stock_available: sum('stock_available'), stock_borrowed: sum('stock_borrowed'), pending: bs.filter(function (b) { return b.status === 'pending'; }).length, maintenance: as.filter(function (a) { return a.status === 'maintenance'; }).length }
       });
     }
     var data = await req('public?resource=catalog');
@@ -279,14 +294,17 @@
 
   /* ====================== admin: assets ====================== */
   async function createAsset(d) {
-    if (demo) { var a = Object.assign({ id: ++DEMO.seq, stock_borrowed: 0 }, d); a.stock_total = parseInt(d.stock_total || 1, 10); a.stock_available = a.stock_total; DEMO.assets.push(a); return P(a); }
+    invalidateAssetsCache();
+    if (demo) { var a = Object.assign({ id: ++DEMO.seq, stock_borrowed: 0 }, d); a.stock_total = parseInt(d.stock_total || 1, 10); a.stock_available = a.stock_total; a.status = d.status || 'tersedia'; DEMO.assets.push(a); return P(a); }
     return req('assets', { method: 'POST', body: d });
   }
   async function updateAsset(id, d) {
-    if (demo) { var a = DEMO.assets.filter(function (x) { return x.id == id; })[0]; if (a) { Object.assign(a, d); a.stock_total = parseInt(d.stock_total != null ? d.stock_total : a.stock_total, 10); a.stock_available = Math.max(0, a.stock_total - a.stock_borrowed); } return P(a); }
+    invalidateAssetsCache();
+    if (demo) { var a = DEMO.assets.filter(function (x) { return x.id == id; })[0]; if (a) { Object.assign(a, d); a.stock_total = parseInt(d.stock_total != null ? d.stock_total : a.stock_total, 10); a.stock_available = Math.max(0, a.stock_total - a.stock_borrowed); if (d.status) a.status = d.status; } return P(a); }
     return req('assets', { method: 'PATCH', body: Object.assign({ id: id }, d) });
   }
   async function deleteAsset(id) {
+    invalidateAssetsCache();
     if (demo) { DEMO.assets = DEMO.assets.filter(function (x) { return x.id != id; }); return P({ ok: true }); }
     return req('assets', { method: 'DELETE', body: { id: id } });
   }

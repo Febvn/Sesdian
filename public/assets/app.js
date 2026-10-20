@@ -391,7 +391,7 @@
         var groups = groupAssets(assets);                        // collapse identical items into tidy cards
         renderAssetGrid(groups);                                 // clean Notion cards (#6 empty chips, #7 stock X/Y, #8 status badge)
         var sum = function (k) { return assets.reduce(function (t, a) { return t + (a[k] || 0); }, 0); };
-        var aStats = { total_assets: assets.length, total_stock: sum('stock_total'), stock_available: sum('stock_available'), stock_borrowed: sum('stock_borrowed'), maintenance: 0 };
+        var aStats = { total_assets: assets.length, total_stock: sum('stock_total'), stock_available: sum('stock_available'), stock_borrowed: sum('stock_borrowed'), maintenance: assets.filter(function (a) { return a.status === 'maintenance'; }).length };
         Object.keys(aStats).forEach(function (k) { var e = $('[data-stat="' + k + '"]'); if (e) e.textContent = aStats[k]; });
         var sub = $('[data-asset-subtitle]'); if (sub) sub.textContent = groups.length + ' jenis · ' + assets.length + ' unit · ' + aStats.total_stock + ' total stok';
       } else if (p === 'kategoriaset') {
@@ -852,7 +852,10 @@
     ov.addEventListener('click', function (e) { if (e.target === ov) close(); });
 
     var cats = [], rms = [], allAssets = [];
-    try { cats = await DB.categories(); rms = await DB.rooms(); allAssets = await DB.assets(); } catch (e) {}
+    try {
+      var results = await Promise.all([DB.categories(), DB.rooms(), DB.assets()]);
+      cats = results[0]; rms = results[1]; allAssets = results[2];
+    } catch (e) {}
     loader.remove();
     var nameMap = {};
     allAssets.forEach(function (a) { if (a.name) { var k = a.name.trim().toLowerCase(); if (!nameMap[k]) nameMap[k] = a.name.trim(); } });
@@ -888,6 +891,8 @@
     m.appendChild(field('Kondisi', kondisiDD.wrap));
     var imgCrop = buildImageCropper((rec && rec.image) || null);   // drag & drop + crop/zoom
     m.appendChild(field('Gambar jenis ini (opsional, berlaku untuk semua unit senama)', imgCrop.wrap));
+    var statusDD = buildDropdown({ value: (rec && rec.status) || 'tersedia', options: [{ value: 'tersedia', label: 'Tersedia' }, { value: 'maintenance', label: 'Maintenance' }] });
+    m.appendChild(field('Status Unit', statusDD.wrap));
 
     var foot = el('div', { style: 'display:flex;gap:8px;margin-top:1rem' });
     var save = el('button', { class: 'sesd-btn sesd-btn-primary', style: 'flex:1' }, rec ? 'Simpan' : 'Tambah');
@@ -907,7 +912,7 @@
           room_id: roomDD.get() ? parseInt(roomDD.get(), 10) : null,
           brand: (brandInput.value || '').trim() || null,
           type: jenisDD.get() || 'BMN', condition: kondisiDD.get() || 'Baik',
-          stock_total: 1,
+          stock_total: 1, status: statusDD.get() || 'tersedia',
         };
         if (rec) await DB.updateAsset(rec.id, payload); else await DB.createAsset(payload);
         // image is stored once per jenis (nama + merk), not per unit — a fresh
@@ -1035,8 +1040,9 @@
       if (!g) { g = map[key] = { name: a.name, category: a.category, brand: a.brand, room: a.room, type: a.type, condition: a.condition, image: a.image, units: [], stock_total: 0, stock_available: 0, stock_borrowed: 0 }; order.push(key); }
       g.units.push(a);
       g.stock_total += (a.stock_total != null ? a.stock_total : 1);
-      g.stock_available += (a.stock_available || 0);
+      g.stock_available += (a.status === 'maintenance' ? 0 : (a.stock_available || 0));
       g.stock_borrowed += (a.stock_borrowed || 0);
+      if (a.status === 'maintenance') g.maintenance = (g.maintenance || 0) + 1;
       if (!g.image && a.image) g.image = a.image;
       if (g.category && a.category && g.category !== a.category) g.category = 'Beragam';
       if (g.room && a.room && g.room !== a.room) g.room = 'Beberapa ruangan';
@@ -1059,7 +1065,9 @@
     }
     m.appendChild(el('div', { style: 'color:var(--text-muted);font-size:.82rem;margin:-2px 0 12px' }, g.category || '-'));
     var sum = el('div', { style: 'display:flex;gap:.6rem;margin-bottom:1rem' });
-    [['Total', g.stock_total, 'var(--text)'], ['Tersedia', g.stock_available, 'rgb(16,185,129)'], ['Dipinjam', g.stock_borrowed, 'rgb(245,158,11)']].forEach(function (s) {
+    var sumItems = [['Total', g.stock_total, 'var(--text)'], ['Tersedia', g.stock_available, 'rgb(16,185,129)'], ['Dipinjam', g.stock_borrowed, 'rgb(245,158,11)']];
+    if (g.maintenance) sumItems.push(['Maintenance', g.maintenance, 'rgb(234,138,0)']);
+    sumItems.forEach(function (s) {
       var b = el('div', { style: 'flex:1;text-align:center;background:var(--bg);border-radius:10px;padding:.6rem' });
       b.appendChild(el('div', { style: 'font-size:1.2rem;font-weight:800;color:' + s[2] }, String(s[1] != null ? s[1] : 0)));
       b.appendChild(el('div', { style: 'font-size:.7rem;color:var(--text-muted)' }, s[0]));
@@ -1092,8 +1100,9 @@
     }
     var listWrap = el('div', { style: 'max-height:280px;overflow:auto;border:1px solid var(--border);border-radius:12px' });
     g.units.forEach(function (u) {
-      var avail = (u.stock_available || 0) > 0;
-      var row = el('div', { style: 'display:flex;align-items:center;gap:8px;padding:.55rem .75rem;border-top:1px solid var(--border)' + (avail ? ';cursor:pointer' : '') });
+      var avail = (u.stock_available || 0) > 0 && (u.status !== 'maintenance');
+      var isMaint = (u.status === 'maintenance');
+      var row = el('div', { style: 'display:flex;align-items:center;gap:8px;padding:.55rem .75rem;border-top:1px solid var(--border)' + (avail ? ';cursor:pointer' : '') + (isMaint ? ';opacity:0.6' : '') });
       if (avail) {
         var box = el('div', { style: 'width:20px;height:20px;border-radius:6px;border:2px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#fff' });
         var toggle = function () {
@@ -1110,7 +1119,7 @@
       line1.appendChild(el('span', { style: 'font-family:"JetBrains Mono",monospace;font-size:.75rem;font-weight:700' }, u.code || '-'));
       if (u.brand) line1.appendChild(el('span', { style: 'font-size:.78rem;font-weight:600;color:var(--text)' }, u.brand));
       info.appendChild(line1);
-      info.appendChild(el('div', { style: 'font-size:.7rem;color:var(--text-muted)' }, (u.condition || 'Baik') + ' · ' + (avail ? 'Tersedia' : 'Dipinjam') + (u.qr_code ? (' · ' + u.qr_code) : '')));
+      info.appendChild(el('div', { style: 'font-size:.7rem;color:var(--text-muted)' }, (u.condition || 'Baik') + ' · ' + (isMaint ? 'Maintenance' : (avail ? 'Tersedia' : 'Dipinjam')) + (u.qr_code ? (' · ' + u.qr_code) : '')));
       row.appendChild(info);
       var qrBtn = el('button', { class: 'sesd-btn sesd-btn-sm sesd-btn-ghost', html: ic('tag') + ' QR' });
       qrBtn.addEventListener('click', function (e) { e.stopPropagation(); if (window.SESDIAN_QR) { ov.remove(); window.SESDIAN_QR.showFor(u); } else { toast('Modul QR belum siap', 'error'); } });
@@ -2002,7 +2011,7 @@
       var card = el('div', {
         'data-search-item': 'assets',
         'data-type': isNon ? 'non-bmn' : 'bmn',
-        'data-status': avail > 0 ? 'available' : 'borrowed',
+        'data-status': (g.maintenance && g.maintenance === g.units.length) ? 'maintenance' : (avail > 0 ? 'available' : 'borrowed'),
         class: 'sesd-aset-card' + (index < 16 ? ' animate-fade-up' : ''),
       });
       card.addEventListener('click', function (ev) { if (ev.target.closest('.sesd-admin-actions')) return; openGroupDetail(g); });
@@ -2018,9 +2027,10 @@
       var body = el('div', { class: 'sesd-aset-body' });
       var top = el('div', { class: 'sesd-aset-top' });
       top.appendChild(el('span', { class: 'sesd-aset-type ' + (isNon ? 'is-non' : 'is-bmn') }, isNon ? 'Non-BMN' : 'BMN'));
-      var availBadge = el('span', { class: 'sesd-aset-avail ' + (avail > 0 ? 'is-ok' : 'is-out') });
-      availBadge.innerHTML = ic(avail > 0 ? 'check_circle' : 'x');   // #8 — clear status, no stray "-"
-      availBadge.appendChild(el('span', {}, avail > 0 ? ('Tersedia ' + avail) : 'Habis'));
+      var allMaint = (g.maintenance && g.maintenance === g.units.length);
+      var availBadge = el('span', { class: 'sesd-aset-avail ' + (allMaint ? 'is-maint' : (avail > 0 ? 'is-ok' : 'is-out')) });
+      availBadge.innerHTML = ic(allMaint ? 'wrench' : (avail > 0 ? 'check_circle' : 'x'));
+      availBadge.appendChild(el('span', {}, allMaint ? 'Maintenance' : (avail > 0 ? ('Tersedia ' + avail) : 'Habis')));
       top.appendChild(availBadge);
       body.appendChild(top);
       if (g.code) body.appendChild(el('div', { class: 'sesd-aset-code' }, g.code));

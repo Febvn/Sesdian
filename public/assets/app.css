@@ -1346,8 +1346,10 @@ main[style*="overflow: auto"] {
 .sesd-aset-avail .ic svg { width: 0.82rem; height: 0.82rem; }
 .sesd-aset-avail.is-ok  { background: rgba(26,174,57,0.13);  color: var(--success); }
 .sesd-aset-avail.is-out { background: rgba(224,62,62,0.12);  color: var(--danger); }
+.sesd-aset-avail.is-maint { background: rgba(221,91,0,0.12); color: var(--warning); }
 [data-theme="dark"] .sesd-aset-avail.is-ok  { background: rgba(26,174,57,0.2); color: #6ee7a0; }
 [data-theme="dark"] .sesd-aset-avail.is-out { background: rgba(224,62,62,0.2); color: #f6a5a5; }
+[data-theme="dark"] .sesd-aset-avail.is-maint { background: rgba(221,91,0,0.2); color: #fbbf24; }
 .sesd-aset-code { font-family: "JetBrains Mono", monospace; font-size: 0.66rem; color: var(--text-muted); }
 .sesd-aset-name { font-weight: 700; font-size: 0.95rem; letter-spacing: -0.01em; line-height: 1.25; color: var(--text); }
 /* Merk berdiri sendiri sebagai badge di bawah nama — bukan bagian teks nama —
