@@ -6,127 +6,147 @@
 <title>Buku Panduan SESDIAN</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body {
-    font-family: "Times New Roman", Georgia, serif;
-    font-size: 12pt; line-height: 1.5; color: #111;
-    background: #eceae8;
+
+  :root {
+    --navy: #16365c;
+    --navy2: #1d4677;
+    --blue: #2f6fb5;
+    --ink: #17222f;
   }
-  .page {
-    background: #fff; max-width: 210mm; margin: 12px auto;
-    padding: 40mm 30mm 30mm 40mm;   /* preview: T4 L4 B3 R3 */
-    box-shadow: 0 2px 12px rgba(0,0,0,0.12);
-  }
-  @media print {
-    body { background: #fff; }
-    .page { box-shadow: none; margin: 0; max-width: none; padding: 0; }
-  }
+
+  body { font-family: "Times New Roman", Georgia, serif; color: var(--ink); background: #d9dde2; }
   @page { size: A4; margin: 0; }
 
-  p { text-align: justify; text-indent: 1.1cm; margin-bottom: 6pt; }
-  p.noindent, li p { text-indent: 0; }
-
-  h1 {
-    font-size: 14pt; font-weight: bold; text-align: center;
-    text-transform: uppercase; margin: 0 0 14pt; letter-spacing: 0.3px;
-    break-before: page;
+  /* ---- Satu lembar = satu halaman cetak ---- */
+  .sheet {
+    position: relative; width: 210mm; height: 297mm; overflow: hidden;
+    background: #fff; break-after: page; page-break-after: always;
+    margin: 0 auto;
   }
-  h2 { font-size: 12pt; font-weight: bold; margin: 14pt 0 6pt; }
-  h1 + h2 { margin-top: 0; }
+  .sheet:last-child { break-after: auto; page-break-after: auto; }
+  @media screen { .sheet { margin: 10px auto; box-shadow: 0 2px 12px rgba(0,0,0,.18); } }
 
-  figure { margin: 12pt auto; text-align: center; break-inside: avoid; }
-  figure img { max-width: 84%; border: 1px solid #cfccc8; }
-  figcaption { font-size: 10.5pt; margin-top: 5pt; }
+  .bg { position: absolute; inset: 0; z-index: 0; }
+  .bg svg { width: 100%; height: 100%; display: block; }
 
-  ul, ol { margin: 4pt 0 8pt 1.6cm; }
-  li { margin-bottom: 3pt; text-align: justify; }
+  .hd {
+    position: absolute; top: 0; left: 0; right: 0; height: 28mm; z-index: 3;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 6.5mm 16mm 0;
+  }
+  .hd .kiri { display: flex; align-items: center; gap: 7mm; }
+  .hd img.kkp { height: 14mm; width: auto; }
+  .hd img.bppmhkp { height: 13mm; width: auto; }
+  .hd img.sesd { height: 8mm; width: auto; }
+  .hd .rule { position: absolute; left: 16mm; right: 16mm; bottom: 3.5mm; border-bottom: 1.4pt solid var(--navy); }
+  .hd .rule::after { content: ""; position: absolute; left: 0; right: 0; top: 1.6pt; border-bottom: 0.7pt solid var(--blue); }
 
-  table.data { width: 100%; border-collapse: collapse; margin: 8pt 0 12pt; font-size: 11pt; }
-  table.data th, table.data td { border: 1px solid #333; padding: 4pt 8pt; text-align: left; vertical-align: top; }
-  table.data th { background: #f0eeec; font-weight: bold; }
+  .body { position: absolute; top: 32mm; left: 26mm; right: 20mm; bottom: 26mm; z-index: 1; overflow: hidden; }
 
-  /* Kop surat / letterhead */
-  .kop { display: flex; align-items: center; gap: 10px; padding-bottom: 6px; }
-  .kop .kiri { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; }
-  .kop .kiri img { height: 17mm; width: auto; }
-  .kop .tengah { flex: 1; text-align: center; line-height: 1.22; padding: 0 4px; }
-  .kop .tengah .l1 { font-size: 10pt; font-weight: bold; letter-spacing: 0.2px; }
-  .kop .tengah .l2 { font-size: 11pt; font-weight: bold; }
-  .kop .tengah .l3 { font-size: 8.5pt; margin-top: 2px; }
-  .kop .kanan img { height: 12mm; width: auto; }
-  .kop-rule { border: none; border-top: 3px solid #111; margin: 2px 0 0; }
-  .kop-rule.thin { border-top: 1px solid #111; margin-top: 2px; }
+  /* ---- Isi ---- */
+  .body { font-size: 12pt; line-height: 1.55; }
+  p { text-align: justify; text-indent: 1.1cm; margin-bottom: 6pt; }
+  h1 {
+    font-size: 14.5pt; font-weight: bold; color: var(--navy);
+    text-transform: uppercase; letter-spacing: 0.4px;
+    padding-bottom: 4pt; margin: 0 0 12pt; border-bottom: 2.4pt solid var(--blue);
+  }
+  figure { margin: 11pt auto 13pt; text-align: center; }
+  figure img {
+    max-width: 82%; border: 1px solid #b9cfe6;
+    box-shadow: 0 1px 5px rgba(22,54,92,.14); border-radius: 3px;
+  }
+  figcaption { font-size: 10.5pt; color: #33475c; margin-top: 6pt; font-style: italic; }
 
-  .judul-utama { text-align: center; margin: 46mm 0 0; }
-  .judul-utama .t1 { font-size: 15pt; letter-spacing: 1px; }
-  .judul-utama .t2 { font-size: 22pt; font-weight: bold; margin: 8px 0; line-height: 1.2; }
-  .judul-utama .t3 { font-size: 13pt; }
-  .judul-utama .sesd { margin: 40px auto 0; height: 26mm; }
-  .judul-utama .alamat { margin-top: 30mm; font-size: 12pt; }
+  /* ---- Halaman judul ---- */
+  .cover .kicker { font-size: 14pt; font-weight: bold; letter-spacing: 1.6px; color: var(--navy); margin-top: 1mm; }
+  .cover .big { font-size: 31pt; font-weight: 800; line-height: 1.05; color: var(--blue); letter-spacing: .5px; margin: 3mm 0 1mm; }
+  .cover .big .dark { color: var(--navy); }
+  .cover .manual { font-size: 15pt; font-weight: bold; color: var(--navy); letter-spacing: 1px; margin-bottom: 9mm; }
+  .cover .brand { font-size: 30pt; font-weight: 800; color: var(--navy); letter-spacing: 1px; }
+  .cover .brand-sub { font-size: 12.5pt; color: #2b435c; margin: 1mm 0 7mm; }
+  .cover .urlline { font-size: 11pt; color: #33475c; margin-bottom: 2.5mm; }
+  .cover .pill { display: inline-block; background: var(--blue); color: #fff; font-size: 12pt; font-weight: 600; letter-spacing: .4px; padding: 3mm 7mm; border-radius: 30px; }
+  .cover .tujuan { margin-top: 10mm; border: 1px solid #c7dbf0; border-radius: 10px; background: rgba(255,255,255,.72); overflow: hidden; }
+  .cover .tujuan .th { background: var(--navy); color: #fff; font-weight: bold; font-size: 12pt; padding: 3mm 6mm; letter-spacing: .3px; }
+  .cover .tujuan .rw { display: flex; gap: 5mm; padding: 3mm 6mm; border-top: 1px solid #dbe7f4; font-size: 11pt; text-align: justify; }
+  .cover .tujuan .rw:first-of-type { border-top: none; }
+  .cover .tujuan .no { flex: 0 0 7.5mm; height: 7.5mm; border-radius: 50%; background: var(--blue); color: #fff; font-weight: bold; display: flex; align-items: center; justify-content: center; font-size: 11pt; }
+  .cover .tujuan .rw b { color: var(--navy); }
+
+  /* ---- Daftar isi ---- */
+  h1.tochead { text-align: center; border: none; font-size: 20pt; letter-spacing: 2px; margin-bottom: 16pt; }
+  .toc-row { display: flex; align-items: flex-end; gap: 6px; font-size: 12pt; margin: 8pt 0; }
+  .toc-row .t { font-weight: 600; color: var(--navy2); white-space: nowrap; }
+  .toc-row .dots { flex: 1; border-bottom: 1.4px dotted #6f89a4; transform: translateY(-3px); }
+  .toc-row .pg { font-weight: 600; color: var(--navy2); }
+
+  #source { display: none; }
 </style>
 </head>
 <body>
 
-<!-- ============ HALAMAN JUDUL / KOP ============ -->
-<div class="page">
-  <div class="kop">
-    <div class="kiri">
-      <img src="manual-img/logo-kkp.png" alt="Kementerian Kelautan dan Perikanan" />
-      <img src="manual-img/logo-bppmhkp.png" alt="BPPMHKP" />
-    </div>
-    <div class="tengah">
-      <div class="l1">KEMENTERIAN KELAUTAN DAN PERIKANAN</div>
-      <div class="l2">BADAN PENGENDALIAN DAN PENGUJIAN MUTU<br/>HASIL KELAUTAN DAN PERIKANAN</div>
-      <div class="l3">Sistem Digital Inventarisasi Aset Negara</div>
-    </div>
-    <div class="kanan">
-      <img src="manual-img/logo-sesdian.png" alt="SESDIAN" />
+<div id="sheets"></div>
+
+<!-- ================= SUMBER ISI (dipaginasi oleh skrip) ================= -->
+<div id="source">
+
+  <!-- Halaman judul -->
+  <div class="cover fullsheet">
+    <div class="kicker">BUKU PETUNJUK PENGGUNAAN APLIKASI</div>
+    <div class="big"><span class="dark">SISTEM</span> DIGITAL<br/>INVENTARISASI ASET</div>
+    <div class="manual">( MANUAL BOOK )</div>
+    <div class="brand">SESDIAN</div>
+    <div class="brand-sub">Sistem Digital Inventarisasi Aset Negara</div>
+    <div class="urlline">Situs resmi sistem:</div>
+    <div class="pill">https://sesdianppmhkp.vercel.app</div>
+    <div class="tujuan">
+      <div class="th">Buku Panduan Ini Ditujukan Untuk</div>
+      <div class="rw"><div class="no">1</div><div><b>Pengguna Umum.</b> Melihat data barang melalui katalog terbuka dan pemindaian kode QR tanpa perlu masuk akun.</div></div>
+      <div class="rw"><div class="no">2</div><div><b>Pegawai.</b> Menelusuri barang, mengajukan peminjaman, memantau statusnya, serta mengembalikan barang secara mandiri.</div></div>
+      <div class="rw"><div class="no">3</div><div><b>Verifikator.</b> Memeriksa kembali peminjaman dan pengembalian yang telah disetujui administrator sebagai pemeriksa lapis kedua.</div></div>
+      <div class="rw"><div class="no">4</div><div><b>Administrator.</b> Mengelola data barang, ruangan, kategori, pengguna, persetujuan peminjaman, hingga penyusunan laporan.</div></div>
     </div>
   </div>
-  <hr class="kop-rule" />
-  <hr class="kop-rule thin" />
 
-  <div class="judul-utama">
-    <div class="t1">BUKU PANDUAN PENGGUNAAN</div>
-    <div class="t2">SISTEM DIGITAL INVENTARISASI<br/>ASET NEGARA (SESDIAN)</div>
-    <div class="t3">Panduan bagi Pengguna Umum, Pegawai, Verifikator, dan Administrator</div>
-    <img class="sesd" src="manual-img/logo-sesdian.png" alt="SESDIAN" />
-    <div class="alamat">Dapat diakses melalui https://sesdian.vercel.app</div>
+  <!-- Daftar isi -->
+  <div class="fullsheet">
+    <h1 class="tochead">Daftar Isi</h1>
+    <div class="toc-row"><span class="t">Bab I&nbsp;&nbsp;Gambaran Umum Sistem</span><span class="dots"></span><span class="pg" data-ref="bab1">-</span></div>
+    <div class="toc-row"><span class="t">Bab II&nbsp;&nbsp;Hak Akses dan Cara Masuk</span><span class="dots"></span><span class="pg" data-ref="bab2">-</span></div>
+    <div class="toc-row"><span class="t">Bab III&nbsp;&nbsp;Penggunaan bagi Pengguna Umum</span><span class="dots"></span><span class="pg" data-ref="bab3">-</span></div>
+    <div class="toc-row"><span class="t">Bab IV&nbsp;&nbsp;Penggunaan bagi Pegawai</span><span class="dots"></span><span class="pg" data-ref="bab4">-</span></div>
+    <div class="toc-row"><span class="t">Bab V&nbsp;&nbsp;Penggunaan bagi Verifikator</span><span class="dots"></span><span class="pg" data-ref="bab5">-</span></div>
+    <div class="toc-row"><span class="t">Bab VI&nbsp;&nbsp;Penggunaan bagi Administrator</span><span class="dots"></span><span class="pg" data-ref="bab6">-</span></div>
+    <div class="toc-row"><span class="t">Bab VII&nbsp;&nbsp;Penutup</span><span class="dots"></span><span class="pg" data-ref="bab7">-</span></div>
   </div>
-</div>
 
-<!-- ============ BAB I ============ -->
-<div class="page">
-  <h1>Bab I &nbsp; Gambaran Umum Sistem</h1>
+  <!-- Bab I -->
+  <h1 class="pgbreak" id="bab1">Bab I &nbsp; Gambaran Umum Sistem</h1>
   <p>SESDIAN, kependekan dari Sistem Digital Inventarisasi Aset Negara, merupakan aplikasi berbasis web yang dibangun untuk menata pencatatan dan peminjaman barang milik kantor di lingkungan instansi. Aplikasi ini menggantikan pencatatan yang sebelumnya dikerjakan secara manual di atas kertas dengan sebuah sistem yang menyimpan seluruh data barang beserta riwayat pemakaiannya dalam satu tempat, sehingga jumlah, lokasi, kondisi, maupun status setiap barang dapat diketahui sewaktu-waktu tanpa harus membuka arsip fisik.</p>
   <p>Persoalan yang ingin dijawab cukup jelas. Pada pengelolaan yang masih mengandalkan formulir kertas, permohonan pinjam pakai barang sering tertahan di meja, catatan ketersediaan mudah tertinggal dari keadaan sebenarnya, dan rekapitulasi untuk laporan harus disusun ulang setiap kali dibutuhkan. Dengan memindahkan seluruh proses tersebut ke dalam aplikasi, pegawai dapat mengajukan peminjaman dari perangkatnya masing-masing, petugas dapat menyetujui langsung dari layar, dan angka stok ikut menyesuaikan begitu barang berpindah tangan.</p>
   <p>Ada beberapa hal pokok yang ditawarkan sistem ini. Peminjaman barang diajukan secara daring tanpa perlu mengisi kertas, sementara ketersediaan setiap barang ditampilkan apa adanya agar tidak terjadi rebutan pemakaian. Setiap permohonan melewati dua kali pemeriksaan, yakni oleh administrator terlebih dahulu lalu oleh verifikator, sebelum barang benar-benar boleh digunakan. Di samping itu, sistem menyiapkan pemberitahuan melalui WhatsApp pada tahap-tahap penting, menyediakan laporan yang dapat diunduh dalam bentuk berkas Excel maupun dicetak sebagai PDF, dan membuka sebagian data barang kepada masyarakat umum melalui katalog terbuka serta kode QR yang ditempel pada barang dan ruangan.</p>
-  <p>Aplikasi dijalankan sepenuhnya melalui peramban web, baik dari komputer maupun telepon genggam, dan dapat dibuka pada alamat https://sesdian.vercel.app. Karena berjalan di peramban, tidak ada perangkat lunak tambahan yang perlu dipasang; pengguna cukup mengetikkan alamat tersebut pada Google Chrome, Mozilla Firefox, Microsoft Edge, atau Safari. Bagian-bagian berikut menjelaskan cara memakainya, dimulai dari hal yang dapat dilakukan tanpa masuk akun, kemudian diperinci menurut peran masing-masing pengguna.</p>
-</div>
+  <p>Aplikasi dijalankan sepenuhnya melalui peramban web, baik dari komputer maupun telepon genggam, dan dapat dibuka pada alamat https://sesdianppmhkp.vercel.app. Karena berjalan di peramban, tidak ada perangkat lunak tambahan yang perlu dipasang; pengguna cukup mengetikkan alamat tersebut pada Google Chrome, Mozilla Firefox, Microsoft Edge, atau Safari. Bagian-bagian berikut menjelaskan cara memakainya, dimulai dari hal yang dapat dilakukan tanpa masuk akun, kemudian diperinci menurut peran masing-masing pengguna.</p>
 
-<!-- ============ BAB II ============ -->
-<div class="page">
-  <h1>Bab II &nbsp; Hak Akses dan Cara Masuk</h1>
+  <!-- Bab II -->
+  <h1 class="pgbreak" id="bab2">Bab II &nbsp; Hak Akses dan Cara Masuk</h1>
   <p>Sistem membedakan penggunanya ke dalam empat kelompok yang memiliki kewenangan berbeda. Kelompok pertama adalah pengguna umum atau publik, yang tidak perlu masuk akun dan hanya dapat melihat data barang. Kelompok kedua adalah pegawai, yang setelah masuk dapat menelusuri barang, mengajukan peminjaman, serta mengembalikannya. Kelompok ketiga adalah verifikator, yang bertugas memeriksa kembali peminjaman yang sudah disetujui administrator. Kelompok keempat adalah administrator, yang memegang kendali atas data barang, ruangan, kategori, pengguna, persetujuan peminjaman, dan penyusunan laporan. Ketiga kelompok yang terakhir masuk melalui halaman yang sama dan dibedakan oleh peran yang melekat pada akunnya, bukan oleh halaman masuk yang berbeda.</p>
   <p>Hal yang membedakan SESDIAN dari kebanyakan aplikasi serupa terletak pada cara akun dibuat. Tidak ada pendaftaran mandiri. Seorang administrator mendaftarkan akun baru cukup dengan mengisi Nomor Induk Pegawai sepanjang delapan belas angka, tanpa menetapkan nama maupun kata sandi. Nama dan kata sandi justru diatur sendiri oleh pemilik NIP ketika ia masuk untuk pertama kali. Dengan begitu, kata sandi tidak pernah diketahui oleh pihak lain, termasuk administrator yang mendaftarkannya.</p>
   <p>Proses masuk berlangsung bertahap. Pengguna mula-mula mengetikkan NIP-nya dan menekan tombol Lanjutkan. Apabila NIP tersebut sudah terdaftar tetapi belum pernah diberi kata sandi, tampilan berpindah ke halaman Aktifkan Akun, tempat pengguna mengisi nama lengkap dan membuat kata sandi minimal delapan karakter yang diketik ulang untuk memastikan tidak ada salah ketik. Setelah disimpan, akun langsung aktif dan pengguna dibawa ke halaman beranda tanpa perlu masuk ulang. Bila NIP sudah memiliki kata sandi, yang muncul adalah kolom kata sandi biasa. Halaman masuk juga memuat keterangan singkat yang mengingatkan pengguna baru untuk memasukkan NIP terlebih dahulu, sebagaimana terlihat pada Gambar 1, dan langkah pengaktifan akun ditunjukkan pada Gambar 2.</p>
   <figure><img src="manual-img/r-login.webp" alt="Halaman masuk" /><figcaption>Gambar 1. Halaman masuk yang meminta NIP terlebih dahulu</figcaption></figure>
   <figure><img src="manual-img/r-aktivasi.webp" alt="Aktifkan akun" /><figcaption>Gambar 2. Halaman pengaktifan akun bagi NIP yang belum memiliki kata sandi</figcaption></figure>
   <p>Sesi yang terbentuk setelah masuk berlaku selama tujuh hari pada perangkat yang sama, sehingga pengguna tidak perlu memasukkan NIP dan kata sandi setiap kali membuka aplikasi. Sesi berakhir ketika masa itu habis atau ketika pengguna menekan tombol Keluar. Apabila seorang pegawai lupa kata sandinya, penyelesaiannya ditempuh melalui administrator, yang dapat menghapus akun lama lalu mendaftarkan ulang NIP yang sama agar pemiliknya kembali melewati proses pengaktifan dan menetapkan kata sandi yang baru.</p>
-</div>
 
-<!-- ============ BAB III ============ -->
-<div class="page">
-  <h1>Bab III &nbsp; Penggunaan bagi Pengguna Umum</h1>
-  <p>Bagian ini ditujukan bagi siapa saja yang ingin melihat data barang tanpa memiliki akun, termasuk tamu, pengawas dari luar, maupun pegawai yang akunnya belum aktif. Titik masuk yang paling mudah adalah halaman katalog pada alamat https://sesdian.vercel.app/katalog, yang juga dapat dicapai melalui tautan Lihat katalog di halaman masuk. Halaman ini menyajikan ringkasan angka di bagian atas berupa jumlah seluruh barang, total stok, stok yang tersedia, stok yang sedang dipinjam, dan jumlah pengajuan yang masih menunggu, diikuti kolom pencarian serta sederet tombol kategori untuk menyaring tampilan. Di bawahnya, barang ditampilkan dalam bentuk kartu yang memuat foto, penanda BMN atau Non-BMN, jumlah unit, nama barang, mereknya, serta kategori dan ruangannya. Tampilan katalog dengan data sebenarnya dapat dilihat pada Gambar 3.</p>
+  <!-- Bab III -->
+  <h1 class="pgbreak" id="bab3">Bab III &nbsp; Penggunaan bagi Pengguna Umum</h1>
+  <p>Bagian ini ditujukan bagi siapa saja yang ingin melihat data barang tanpa memiliki akun, termasuk tamu, pengawas dari luar, maupun pegawai yang akunnya belum aktif. Titik masuk yang paling mudah adalah halaman katalog pada alamat https://sesdianppmhkp.vercel.app/katalog, yang juga dapat dicapai melalui tautan Lihat katalog di halaman masuk. Halaman ini menyajikan ringkasan angka di bagian atas berupa jumlah seluruh barang, total stok, stok yang tersedia, stok yang sedang dipinjam, dan jumlah pengajuan yang masih menunggu, diikuti kolom pencarian serta sederet tombol kategori untuk menyaring tampilan. Di bawahnya, barang ditampilkan dalam bentuk kartu yang memuat foto, penanda BMN atau Non-BMN, jumlah unit, nama barang, mereknya, serta kategori dan ruangannya. Tampilan katalog dengan data sebenarnya dapat dilihat pada Gambar 3.</p>
   <figure><img src="manual-img/r-katalog.webp" alt="Katalog publik" /><figcaption>Gambar 3. Halaman katalog yang dapat dibuka tanpa masuk akun</figcaption></figure>
   <p>Barang yang serupa, yakni yang memiliki nama dan merek sama, digabungkan menjadi satu kartu agar daftar tidak menjadi terlalu panjang, sedangkan jumlah unit yang tergabung tetap tertera pada kartunya. Ketika salah satu foto pada kartu diklik, gambar barang terbuka dalam ukuran besar dan dapat ditutup kembali dengan menekan di mana saja atau menekan tombol Esc. Bila yang diklik adalah bagian kartu selain foto, aplikasi membuka halaman rincian barang yang memuat kode, nama, merek, kategori, ruangan, tahun, kondisi, jenis, dan tipe barang seperti tampak pada Gambar 4. Pada halaman rincian ini, jumlah stok maupun tombol untuk meminjam baru muncul setelah pengguna masuk akun, sehingga pengunjung umum yang menekan tombol pinjam akan diarahkan ke halaman masuk.</p>
   <figure><img src="manual-img/r-aset-detail.webp" alt="Rincian barang" /><figcaption>Gambar 4. Halaman rincian barang untuk pengguna umum</figcaption></figure>
   <p>Selain penelusuran melalui katalog, rincian barang juga dapat dibuka dengan memindai kode QR yang ditempel pada barang. Pengguna cukup mengarahkan kamera telepon ke stiker QR dari jarak sekitar sepuluh hingga lima belas sentimeter, lalu menekan tautan yang muncul, dan halaman rincian barang tersebut langsung terbuka. Cara serupa berlaku untuk kode QR yang dipasang di dekat pintu ruangan; memindainya menampilkan daftar barang yang tercatat berada di ruangan itu, lengkap dengan kondisi dan jumlah stoknya. Sebagai pelengkap, pada pojok kanan atas setiap halaman tersedia tombol untuk mengganti tampilan menjadi terang atau gelap serta tombol pengatur ukuran tulisan, dan kedua pilihan itu tersimpan pada perangkat sehingga tetap berlaku ketika pengguna berpindah halaman.</p>
-</div>
 
-<!-- ============ BAB IV ============ -->
-<div class="page">
-  <h1>Bab IV &nbsp; Penggunaan bagi Pegawai</h1>
+  <!-- Bab IV -->
+  <h1 class="pgbreak" id="bab4">Bab IV &nbsp; Penggunaan bagi Pegawai</h1>
   <p>Setelah akunnya aktif dan berhasil masuk, seorang pegawai disambut oleh halaman beranda yang menyajikan sapaan sesuai waktu, lima kotak ringkasan berisi total aset, total stok, stok tersedia, stok dipinjam, dan jumlah pengajuan yang menunggu, serta sebuah tabel peminjaman terbaru yang dilengkapi kolom pencarian dan penyaring status. Tampilan beranda ini, sebagaimana terlihat pada Gambar 5, memberi gambaran cepat mengenai keadaan barang tanpa perlu membuka menu satu per satu.</p>
   <figure><img src="manual-img/r-dashboard-user.webp" alt="Beranda pegawai" /><figcaption>Gambar 5. Halaman beranda bagi pegawai</figcaption></figure>
   <p>Untuk menelusuri barang, pegawai membuka menu Data Aset pada bilah sisi kiri. Sama seperti di katalog, unit yang bernama dan bermerek sama dikelompokkan menjadi satu kartu, dengan merek ditampilkan sebagai label tersendiri di bawah nama agar barang yang namanya kebetulan sama tetap mudah dibedakan. Setiap kartu memuat foto, penanda jenis, jumlah yang tersedia, kode atau jumlah unit, kondisi, serta bilah kecil yang menggambarkan perbandingan stok tersedia terhadap total. Pencarian menurut nama atau kode, penyaring BMN dan Non-BMN, serta penyaring status tersedia untuk mempersempit tampilan. Keseluruhan halaman Data Aset dengan data nyata diperlihatkan pada Gambar 6.</p>
@@ -142,20 +162,16 @@
   <figure><img src="manual-img/r-dipinjam.webp" alt="Sedang dipinjam" /><figcaption>Gambar 10. Halaman Sedang Dipinjam</figcaption></figure>
   <p>Sepanjang proses tersebut, pegawai memperoleh dua jalur pemberitahuan. Ikon lonceng di pojok kanan atas menampilkan kabar terbaru yang relevan, seperti pengajuan yang disetujui, ditolak, atau telah dikembalikan, beserta jumlah yang belum dibaca. Di samping itu, pesan WhatsApp dikirim pada tahap-tahap penting, baik ketika administrator mengambil keputusan maupun ketika permintaan pengembalian diajukan. Terakhir, melalui menu Detail Profil pegawai dapat memperbarui foto profil yang otomatis dipotong menjadi persegi, menyunting data akun, dan mengganti kata sandinya secara berkala. Halaman profil ditunjukkan pada Gambar 11.</p>
   <figure><img src="manual-img/r-profil.webp" alt="Profil" /><figcaption>Gambar 11. Halaman Detail Profil</figcaption></figure>
-</div>
 
-<!-- ============ BAB V ============ -->
-<div class="page">
-  <h1>Bab V &nbsp; Penggunaan bagi Verifikator</h1>
+  <!-- Bab V -->
+  <h1 class="pgbreak" id="bab5">Bab V &nbsp; Penggunaan bagi Verifikator</h1>
   <p>Verifikator menempati posisi sebagai pemeriksa lapis kedua. Sebuah peminjaman yang telah disetujui administrator belum boleh langsung digunakan sebelum verifikator memeriksanya kembali, sehingga setiap transaksi melewati dua tahap penilaian yang saling melengkapi. Pemisahan tugas ini dimaksudkan agar keputusan tidak bertumpu pada satu orang dan agar catatan peminjaman lebih dapat dipertanggungjawabkan.</p>
   <p>Pekerjaan verifikator terpusat pada menu Verifikasi. Antrean yang ditampilkan berisi pengajuan yang sudah berstatus Disetujui Admin dan menunggu pemeriksaan kedua, serta permintaan pengembalian yang berstatus Menunggu Verifikasi Kembali. Setiap baris memuat foto dan nama peminjam, barang yang diminta, tanggal, dan status. Verifikator menyetujui sebuah pengajuan sehingga menjadi Terverifikasi, atau menolaknya, dan setiap tindakan selalu meminta konfirmasi ulang untuk mencegah kekeliruan menekan tombol. Untuk pengembalian, tombol Verifikasi Dikembalikan menutup transaksi sekaligus memulihkan stok. Di samping tabel antrean terdapat sebuah grafik lingkaran yang meringkas sebaran status seluruh peminjaman, seperti terlihat pada Gambar 12, yang pada data contoh menunjukkan dua peminjaman yang keduanya telah dikembalikan.</p>
   <figure><img src="manual-img/r-verifikasi.webp" alt="Verifikasi" /><figcaption>Gambar 12. Halaman Verifikasi beserta ringkasan sebaran status</figcaption></figure>
   <p>Di luar tugas pemeriksaan tersebut, akun verifikator tetap dapat memakai seluruh fasilitas yang tersedia bagi pegawai biasa, mulai dari menelusuri barang, mengajukan peminjaman, hingga melihat laporan, sehingga perannya bersifat menambah kewenangan dan bukan menggantikan fungsi keseharian sebagai pengguna.</p>
-</div>
 
-<!-- ============ BAB VI ============ -->
-<div class="page">
-  <h1>Bab VI &nbsp; Penggunaan bagi Administrator</h1>
+  <!-- Bab VI -->
+  <h1 class="pgbreak" id="bab6">Bab VI &nbsp; Penggunaan bagi Administrator</h1>
   <p>Administrator memegang porsi pengelolaan yang paling luas. Halaman berandanya menyerupai milik pegawai, tetapi angka-angka yang ditampilkan mencakup keseluruhan data organisasi, dan tabel peminjaman terbarunya memuat transaksi dari semua pengguna. Beranda administrator diperlihatkan pada Gambar 13.</p>
   <figure><img src="manual-img/r-dashboard-admin.webp" alt="Beranda admin" /><figcaption>Gambar 13. Halaman beranda administrator</figcaption></figure>
   <p>Pengelolaan barang dilakukan melalui menu Data Aset, yang pada tampilan administrator dilengkapi tombol Tambah Aset dan Import Excel di sudut kanan atas seperti terlihat pada Gambar 14. Ketika Tambah Aset dibuka, muncul formulir yang meminta nama barang dengan bantuan saran otomatis dari nama yang sudah ada agar penulisan seragam, kode yang harus unik untuk setiap unit, kategori yang dipilih dari daftar dan dapat ditambah langsung dari daftar itu juga, merek, ruangan, jenis BMN atau Non-BMN, kondisi, status unit, serta foto yang dapat digeser dan diperbesar melalui alat pemotong gambar sebelum disimpan. Formulir penambahan barang ini ditunjukkan pada Gambar 15.</p>
@@ -172,15 +188,99 @@
   <figure><img src="manual-img/r-users.webp" alt="Kelola user" /><figcaption>Gambar 19. Halaman pengelolaan pengguna</figcaption></figure>
   <p>Bagian terakhir yang menjadi tanggung jawab administrator adalah penyusunan laporan melalui menu Laporan yang diperlihatkan pada Gambar 20. Periode laporan dapat dipilih secara harian dengan menentukan tanggal, atau bulanan dengan menentukan bulan, dan seluruh ringkasan serta tabel menyesuaikan pilihan itu. Tabel laporan memuat nama peminjam, barang, tanggal pinjam, tanggal kembali, tanggal pengembalian, administrator, dan verifikator, disertai penyaring status di atasnya. Rekapitulasi dapat diunduh sebagai berkas Excel melalui tombol Export CSV atau dicetak sebagai berkas PDF berupa lembar Daftar Peminjaman Barang Inventaris yang siap ditandatangani. Di bagian bawah halaman tersedia grafik garis yang menggambarkan jumlah pengajuan pada tiap periode, yang angkanya dapat dibaca dengan mengarahkan tetikus ke titik-titik grafik. Adapun pemberitahuan WhatsApp yang menyertai seluruh alur ini bersandar pada nomor administrator yang diatur di Detail Profil; tanpa layanan pengirim otomatis, aplikasi menyiapkan pesan yang tinggal dikirim satu kali klik, sedangkan bila layanan pengirim otomatis telah diatur, pesan terkirim dengan sendirinya, termasuk kabar keputusan kepada peminjam.</p>
   <figure><img src="manual-img/r-laporan.webp" alt="Laporan" /><figcaption>Gambar 20. Halaman Laporan Peminjaman</figcaption></figure>
-</div>
 
-<!-- ============ BAB VII ============ -->
-<div class="page">
-  <h1>Bab VII &nbsp; Penutup</h1>
+  <!-- Bab VII -->
+  <h1 class="pgbreak" id="bab7">Bab VII &nbsp; Penutup</h1>
   <p>Uraian pada bab-bab sebelumnya mengikuti urutan pemakaian yang sebenarnya, dari hal yang terbuka bagi umum, pengaktifan akun oleh pegawai, peminjaman dan pengembalian barang, pemeriksaan berlapis oleh verifikator, hingga pengelolaan menyeluruh oleh administrator. Susunan seperti ini diharapkan memudahkan pembaca menempatkan dirinya sesuai peran yang dipegang dan menemukan langkah yang dibutuhkan tanpa harus membaca seluruh dokumen.</p>
   <p>Beberapa kendala yang lazim ditemui sebenarnya dapat diselesaikan dengan langkah sederhana. Halaman yang tidak kunjung menampilkan data biasanya cukup diatasi dengan memeriksa sambungan internet lalu memuat ulang halaman, dan bila tampilan terasa belum berubah setelah ada pembaruan, memuat ulang secara menyeluruh dengan menekan tombol Ctrl, Shift, dan R secara bersamaan umumnya menyegarkan berkas ke versi terbaru. Kegagalan masuk meski kata sandi diyakini benar sering berpangkal pada NIP yang tidak tepat delapan belas angka atau pada akun yang belum melewati proses pengaktifan. Sementara itu, tidak munculnya menu-menu administrator menandakan bahwa peran akun yang bersangkutan memang bukan administrator, sehingga penyesuaian peran perlu diminta kepada administrator yang berwenang.</p>
   <p>Dengan pencatatan yang tertata melalui aplikasi ini, pemantauan barang milik negara diharapkan berlangsung lebih tertib, lebih terbuka, dan lebih mudah dipertanggungjawabkan dibanding cara manual yang selama ini dijalankan.</p>
+
 </div>
+
+<!-- ================= TEMPLATE LATAR & KEPALA ================= -->
+<template id="tpl-bg">
+  <div class="bg" aria-hidden="true">
+    <svg viewBox="0 0 210 297" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+      <rect width="210" height="297" fill="#ffffff"/>
+      <rect width="210" height="297" fill="#f4f8fd"/>
+      <path d="M210,0 L210,64 C158,58 120,26 132,0 Z" fill="#e0edfa"/>
+      <path d="M210,0 L210,40 C172,36 146,14 156,0 Z" fill="#d0e3f7"/>
+      <path d="M0,0 L60,0 C40,10 26,26 0,26 Z" fill="#e4eef9"/>
+      <path d="M0,272 C40,262 78,290 120,282 C158,275 188,294 210,286 L210,297 L0,297 Z" fill="#c3d9f0"/>
+      <path d="M0,281 C44,273 84,294 126,287 C165,281 192,296 210,291 L210,297 L0,297 Z" fill="#6e9ed0"/>
+      <path d="M0,289 C46,283 88,296 132,291 C170,287 196,297 210,294 L210,297 L0,297 Z" fill="#264f80"/>
+    </svg>
+  </div>
+</template>
+<template id="tpl-hd">
+  <div class="hd" aria-hidden="true">
+    <div class="kiri">
+      <img class="kkp" src="manual-img/logo-kkp.png" alt="" />
+      <img class="bppmhkp" src="manual-img/logo-bppmhkp.png" alt="" />
+    </div>
+    <img class="sesd" src="manual-img/logo-sesdian.png" alt="" />
+    <div class="rule"></div>
+  </div>
+</template>
+
+<script>
+window.paginate = function () {
+  var sheetsRoot = document.getElementById('sheets');
+  var source = document.getElementById('source');
+  var blocks = Array.prototype.slice.call(source.children);
+  var bgTpl = document.getElementById('tpl-bg');
+  var hdTpl = document.getElementById('tpl-hd');
+
+  function newSheet() {
+    var s = document.createElement('div'); s.className = 'sheet';
+    s.appendChild(bgTpl.content.cloneNode(true));
+    s.appendChild(hdTpl.content.cloneNode(true));
+    var body = document.createElement('div'); body.className = 'body';
+    s.appendChild(body);
+    sheetsRoot.appendChild(s);
+    return body;
+  }
+
+  var body = newSheet();
+  var isEmpty = function (b) { return b.children.length === 0; };
+
+  for (var i = 0; i < blocks.length; i++) {
+    var blk = blocks[i];
+    if (blk.classList.contains('fullsheet')) {
+      if (!isEmpty(body)) body = newSheet();
+      body.appendChild(blk);
+      body = newSheet();
+      continue;
+    }
+    if (blk.classList.contains('pgbreak') && !isEmpty(body)) {
+      body = newSheet();
+    }
+    body.appendChild(blk);
+    if (body.scrollHeight > body.clientHeight + 1) {
+      body.removeChild(blk);
+      if (isEmpty(body)) { body.appendChild(blk); }   // block terlalu tinggi: biarkan
+      else { body = newSheet(); body.appendChild(blk); }
+    }
+  }
+  // buang lembar kosong di akhir bila ada
+  var sheets = Array.prototype.slice.call(sheetsRoot.children);
+  for (var j = sheets.length - 1; j >= 0; j--) {
+    if (sheets[j].querySelector('.body').children.length === 0) sheetsRoot.removeChild(sheets[j]);
+  }
+  source.remove();
+
+  // isi nomor halaman pada daftar isi
+  var allSheets = Array.prototype.slice.call(sheetsRoot.querySelectorAll('.sheet'));
+  document.querySelectorAll('.pg[data-ref]').forEach(function (span) {
+    var target = document.getElementById(span.getAttribute('data-ref'));
+    if (!target) return;
+    var sheet = target.closest('.sheet');
+    var idx = allSheets.indexOf(sheet);
+    span.textContent = idx >= 0 ? String(idx + 1) : '-';
+  });
+  return sheetsRoot.querySelectorAll('.sheet').length;
+};
+</script>
 
 </body>
 </html>
