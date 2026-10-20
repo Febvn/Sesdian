@@ -676,7 +676,9 @@
     input.addEventListener('focus', drawMenu);
     input.addEventListener('blur', function () { setTimeout(function () { wrap.classList.remove('is-open'); }, 150); });
     updateStatus();
-    return { wrap: wrap, get: function () { return input.value; } };
+    // refresh lets the caller re-evaluate the status badge after the async name
+    // list arrives (the edit form renders before the asset list finishes loading).
+    return { wrap: wrap, get: function () { return input.value; }, refresh: updateStatus };
   }
 
   // Image picker WITH cropping: drag & drop / click to browse, then pan (drag)
@@ -851,15 +853,25 @@
     function close() { ov.remove(); }
     ov.addEventListener('click', function (e) { if (e.target === ov) close(); });
 
-    var cats = [], rms = [], allAssets = [];
+    // Only categories + rooms are needed to render the form; both are tiny and
+    // usually cached, so the modal appears instantly. The full asset list (can be
+    // hundreds of rows) loads in the BACKGROUND and only feeds the name
+    // autocomplete + the code-uniqueness check — it must never block the form.
+    var cats = [], rms = [];
     try {
-      var results = await Promise.all([DB.categories(), DB.rooms(), DB.assets()]);
-      cats = results[0]; rms = results[1]; allAssets = results[2];
+      var results = await Promise.all([DB.categories(), DB.rooms()]);
+      cats = results[0]; rms = results[1];
     } catch (e) {}
     loader.remove();
-    var nameMap = {};
-    allAssets.forEach(function (a) { if (a.name) { var k = a.name.trim().toLowerCase(); if (!nameMap[k]) nameMap[k] = a.name.trim(); } });
-    var names = Object.keys(nameMap).map(function (k) { return nameMap[k]; }).sort();
+    // names/nameMap are filled IN PLACE once assets arrive; buildNameField reads
+    // them by closure, so the autocomplete lights up as soon as the data is ready.
+    var allAssets = [], names = [], nameMap = {};
+    var assetsReady = DB.assets().then(function (a) {
+      allAssets = a;
+      a.forEach(function (x) { if (x.name) { var k = x.name.trim().toLowerCase(); if (!nameMap[k]) nameMap[k] = x.name.trim(); } });
+      Object.keys(nameMap).map(function (k) { return nameMap[k]; }).sort().forEach(function (n) { names.push(n); });
+      if (nameW && nameW.refresh) nameW.refresh();   // update badge "Sudah ada" once list is ready
+    }).catch(function () {});
     function field(labelText, control) { var w = el('div', { class: 'sesd-field' }); w.appendChild(el('label', {}, labelText)); w.appendChild(control); return w; }
 
     var nameW = buildNameField(rec && rec.name, names, nameMap);          // #6 — autocomplete + status icon
@@ -902,9 +914,10 @@
     save.addEventListener('click', async function () {
       var name = (nameW.get() || '').trim(), code = (codeInput.value || '').trim();
       if (!name || !code) { toast('Nama dan kode wajib diisi', 'error'); return; }
-      var codeK = code.toLowerCase();
-      if (allAssets.some(function (a) { return (!rec || a.id !== rec.id) && (a.code || '').trim().toLowerCase() === codeK; })) { toast('Kode "' + code + '" sudah dipakai barang lain', 'error'); return; }
       save.disabled = true; save.textContent = 'Menyimpan...';
+      await assetsReady;   // pastikan daftar aset siap untuk cek kode unik
+      var codeK = code.toLowerCase();
+      if (allAssets.some(function (a) { return (!rec || a.id !== rec.id) && (a.code || '').trim().toLowerCase() === codeK; })) { toast('Kode "' + code + '" sudah dipakai barang lain', 'error'); save.disabled = false; save.textContent = rec ? 'Simpan' : 'Tambah'; return; }
       try {
         var payload = {
           name: name, code: code,

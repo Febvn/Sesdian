@@ -117,7 +117,7 @@
     var assets = data.assets || [], cats = data.categories || [];
     // populate stat cards from the API stats object
     var stats = data.stats || {};
-    ['total_assets', 'total_stock', 'stock_available', 'stock_borrowed', 'pending', 'maintenance'].forEach(function (k, i) {
+    ['total_assets', 'total_stock', 'stock_available', 'stock_borrowed', 'pending'].forEach(function (k, i) {
       var numEl = $('[data-cat-stat-num="' + k + '"]');
       if (numEl) {
         var loadingSpan = numEl.querySelector('.sesd-loading-inline');
