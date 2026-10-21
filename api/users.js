@@ -53,9 +53,27 @@ export default async function handler(req, res) {
 
   if (req.method === 'PATCH') {
     try {
-      const { id, role } = await readJson(req);
-      const uid = parseInt(id, 10);
-      if (!uid || ROLES.indexOf(role) === -1) return send(res, 400, { error: 'Data tidak valid' });
+      const b = await readJson(req);
+      const uid = parseInt(b.id, 10);
+      if (!uid) return send(res, 400, { error: 'Data tidak valid' });
+
+      // ---- nonaktifkan akun ----
+      // NIP tetap tersimpan, tetapi nama dan password dikosongkan sehingga
+      // pemilik NIP harus mengaktifkan ulang (mengatur nama & password sendiri)
+      // seperti saat NIP baru didaftarkan. Baris akun tidak dihapus, jadi seluruh
+      // riwayat peminjaman tetap tertaut pada akun ini.
+      if (b.action === 'deactivate') {
+        if (String(uid) === String(admin.sub)) return send(res, 400, { error: 'Tidak dapat menonaktifkan akun sendiri' });
+        const rows = await sql`update users set name = '', password_hash = '', avatar = null
+          where id = ${uid}
+          returning id, nip, name, coalesce(phone,'') as phone, role, created_at, false as claimed`;
+        if (!rows.length) return send(res, 404, { error: 'User tidak ditemukan' });
+        return send(res, 200, { user: rows[0] });
+      }
+
+      // ---- ubah peran ----
+      const role = b.role;
+      if (ROLES.indexOf(role) === -1) return send(res, 400, { error: 'Data tidak valid' });
       if (String(uid) === String(admin.sub) && role !== 'admin') return send(res, 400, { error: 'Tidak dapat menurunkan akun sendiri' });
       const rows = await sql`update users set role = ${role} where id = ${uid} returning id, nip, name, role`;
       if (!rows.length) return send(res, 404, { error: 'User tidak ditemukan' });
@@ -73,6 +91,12 @@ export default async function handler(req, res) {
       // borrower could never confirm the return; settle the loans first.
       const active = await sql`select count(*)::int as n from borrowings where user_id = ${uid} and status in ('pending','approved','verified','borrowed','return_pending')`;
       if (active[0].n > 0) return send(res, 409, { error: 'User masih memiliki peminjaman aktif, selesaikan dulu sebelum menghapus' });
+      // pertahankan riwayat laporan: salin nama pemohon ke baris peminjaman yang
+      // belum punya nama sebelum akun dihapus. Dengan begitu laporan tetap
+      // menampilkan siapa peminjamnya walau user_id menjadi null (on delete set null).
+      const urow = await sql`select name from users where id = ${uid}`;
+      const uname = urow.length ? (urow[0].name || '') : '';
+      if (uname) await sql`update borrowings set borrower_name = ${uname} where user_id = ${uid} and (borrower_name is null or borrower_name = '')`;
       await sql`delete from users where id = ${uid}`;
       return send(res, 200, { ok: true });
     } catch (e) { return send(res, 500, { error: e.message }); }

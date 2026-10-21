@@ -1545,9 +1545,22 @@
       var sel = el('select', { class: 'sesd-role-select', 'aria-label': 'Ubah peran ' + u.name, style: 'border-radius:12px!important;-webkit-appearance:none!important;appearance:none!important' });
       ['user', 'verifikator', 'admin'].forEach(function (r) { var o = el('option', { value: r }, ROLE_META[r][0]); if (u.role === r) o.selected = true; sel.appendChild(o); });
       sel.addEventListener('change', async function () { sel.disabled = true; try { await DB.setUserRole(u.id, sel.value); toast('Role diperbarui', 'success'); renderUsers(); } catch (e) { toast((e && e.message) || 'Gagal', 'error'); renderUsers(); } });
+      wrap.appendChild(sel);
+      // nonaktifkan: hanya untuk akun yang sudah aktif (punya nama & password)
+      if (u.claimed !== false) {
+        var off = el('button', { class: 'sesd-btn sesd-btn-sm sesd-btn-warning sesd-role-del', title: 'Nonaktifkan akun (NIP tetap, reset nama & password)', html: ic('refresh') });
+        off.addEventListener('click', function () {
+          confirmAction({
+            title: 'Nonaktifkan akun ini?',
+            message: 'NIP ' + u.nip + ' tetap tersimpan, tetapi nama dan password direset. Pemilik NIP harus mengaktifkan ulang dengan mengatur nama dan password sendiri, seperti saat NIP baru didaftarkan. Riwayat peminjaman akun ini tetap tersimpan.',
+            variant: 'warning', confirmLabel: 'Ya, nonaktifkan', cancelLabel: 'Batal'
+          }, async function () { await DB.deactivateUser(u.id); toast('Akun dinonaktifkan, pemilik NIP diminta mengaktifkan ulang', 'success'); renderUsers(); });
+        });
+        wrap.appendChild(off);
+      }
       var del = el('button', { class: 'sesd-btn sesd-btn-sm sesd-btn-danger sesd-role-del', html: ic('trash') });
       del.addEventListener('click', function () { confirmDelete('user "' + (u.name || ('NIP ' + u.nip)) + '"', async function () { await DB.deleteUser(u.id); toast('User dihapus', 'success'); renderUsers(); }); });
-      wrap.appendChild(sel); wrap.appendChild(del);
+      wrap.appendChild(del);
       actTd.appendChild(wrap); tr.appendChild(actTd);
       list.appendChild(tr);
     });

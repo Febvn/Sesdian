@@ -278,6 +278,12 @@
     if (demo) { DEMO.users = DEMO.users.filter(function (x) { return x.id != id; }); return P({ ok: true }); }
     return req('users', { method: 'DELETE', body: { id: id } });
   }
+  // nonaktifkan: NIP tetap, nama & password direset agar pemilik NIP mengaktifkan
+  // ulang seperti akun baru; baris akun (dan riwayat peminjamannya) tidak dihapus.
+  async function deactivateUser(id) {
+    if (demo) { var u = DEMO.users.filter(function (x) { return x.id == id; })[0]; if (u) { u.name = ''; u.claimed = false; } return P(u); }
+    return (await req('users', { method: 'PATCH', body: { id: id, action: 'deactivate' } })).user;
+  }
   /* ====================== self-service profile ====================== */
   async function profile() {
     if (demo) { var p = currentUserRaw() || {}; return P({ nip: p.nip || '123456789012345678', name: p.name || 'Pengguna Demo', phone: '', role: p.role || 'admin' }); }
@@ -353,7 +359,7 @@
     auth: auth,
     categories: categories, rooms: rooms, assets: assets, borrowings: borrowings, dashboard: dashboard, requestBorrowing: requestBorrowing,
     catalog: catalog, assetDetail: assetDetail, reports: reports, importAssets: importAssets,
-    users: users, usersFresh: usersFresh, setUserRole: setUserRole, createUser: createUser, deleteUser: deleteUser,
+    users: users, usersFresh: usersFresh, setUserRole: setUserRole, createUser: createUser, deleteUser: deleteUser, deactivateUser: deactivateUser,
     profile: profile, updateProfile: updateProfile, changePassword: changePassword,
     createAsset: createAsset, updateAsset: updateAsset, deleteAsset: deleteAsset, setJenisImage: setJenisImage,
     createCategory: createCategory, updateCategory: updateCategory, deleteCategory: deleteCategory,
