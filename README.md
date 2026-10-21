@@ -95,3 +95,6 @@ vercel.json         outputDirectory: public, clean URLs
   statement; status changes adjust stock in one statement with a re-reserve guard.
 - Asset images are downscaled client-side (max 800px, JPEG) and stored as a data
   URL in `assets.image`; keep uploads modest (Vercel request body limit ~4.5 MB).
+
+## Project Management & Sprints
+Rincian linimasa Work Breakdown Structure (WBS), pembagian Sprint (M1 s/d M6), serta penanggung jawab modul dapat dilihat di dokumen [docs/WBS-SPRINT.md](docs/WBS-SPRINT.md).
