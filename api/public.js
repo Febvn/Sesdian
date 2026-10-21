@@ -99,12 +99,14 @@ export default async function handler(req, res) {
              coalesce(sum(stock_borrowed),0)::int as stock_borrowed
       from assets`;
     const pendingRows = await sql`select count(*)::int as cnt from borrowings where status = 'pending'`;
+    const maintRows = await sql`select count(*)::int as cnt from assets where status = 'maintenance'`;
     const stats = {
       total_assets: aggRows[0].total_assets,
       total_stock: aggRows[0].total_stock,
       stock_available: aggRows[0].stock_available,
       stock_borrowed: aggRows[0].stock_borrowed,
       pending: pendingRows[0].cnt,
+      maintenance: maintRows[0].cnt,
     };
     return send(res, 200, { assets, categories, rooms, stats });
   } catch (e) { return send(res, 500, { error: e.message }); }

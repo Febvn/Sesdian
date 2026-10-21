@@ -10,11 +10,29 @@ export async function ensureSchema(sql) {
     await sql`alter table users add column if not exists avatar text`;   // data-URL profile photo (syncs across devices)
     await sql`alter table assets add column if not exists qr_code text`;
     await sql`alter table assets add column if not exists qr_generated_at timestamptz`;
+    await sql`alter table assets add column if not exists status text default 'tersedia'`;
     await sql`alter table borrowings add column if not exists approved_by  bigint`;
     await sql`alter table borrowings add column if not exists approved_at  timestamptz`;
     await sql`alter table borrowings add column if not exists verified_by  bigint`;
     await sql`alter table borrowings add column if not exists verified_at  timestamptz`;
     await sql`alter table borrowings add column if not exists returned_at  timestamptz`;
+    // Keep loan history when a staff account is deleted: the approver/verifier
+    // columns must be ON DELETE SET NULL so the borrowing row survives (only the
+    // processor name goes blank). Older deployments created these as NO ACTION,
+    // which would make deleting such an account fail. Normalize once per instance.
+    const fks = await sql`select con.conname, con.confdeltype from pg_constraint con
+      join pg_class c on c.oid = con.conrelid
+      where c.relname = 'borrowings' and con.contype = 'f'
+        and con.conname in ('borrowings_approved_by_fkey','borrowings_verified_by_fkey')`;
+    const byName = {}; fks.forEach((r) => { byName[r.conname] = r.confdeltype; });
+    if (byName['borrowings_approved_by_fkey'] !== 'n') {
+      await sql`alter table borrowings drop constraint if exists borrowings_approved_by_fkey`;
+      await sql`alter table borrowings add constraint borrowings_approved_by_fkey foreign key (approved_by) references users(id) on delete set null`;
+    }
+    if (byName['borrowings_verified_by_fkey'] !== 'n') {
+      await sql`alter table borrowings drop constraint if exists borrowings_verified_by_fkey`;
+      await sql`alter table borrowings add constraint borrowings_verified_by_fkey foreign key (verified_by) references users(id) on delete set null`;
+    }
     // one image per asset NAME (jenis) — changing it is a single upsert instead of
     // patching every unit; served as binary via /api/public?resource=img&key=...
     await sql`create table if not exists asset_images (
