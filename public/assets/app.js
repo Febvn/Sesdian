@@ -1337,6 +1337,10 @@
 
     var actions = el('div', { style: 'display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap' });
     actions.appendChild(el('a', { href: roomCatalogUrl(room), class: 'sesd-btn sesd-btn-sm sesd-btn-ghost', html: ic('search') + ' Katalog Ruangan' }));
+    /* [KUNCI]: Inventarisasi ruangan berbasis pemindaian (kamera scanner) belum aktif,
+     * alur menggunakan QR statis cetak / tampilan manual.
+     * // var scanInventarisBtn = el('button', { class: 'sesd-btn sesd-btn-sm sesd-btn-ghost', html: ic('camera') + ' Scan Inventaris' });
+     */
     var qrBtn = el('button', { class: 'sesd-btn sesd-btn-sm sesd-btn-ghost', html: ic('tag') + ' QR Ruangan' });
     qrBtn.addEventListener('click', function () { showRoomQR(room); });
     actions.appendChild(qrBtn);
@@ -1452,6 +1456,10 @@
   }
   var STATUS_CONFIRM = {
     approved:       { title: 'Setujui Peminjaman',      message: 'Apakah Anda yakin menyetujui peminjaman ini? (Verifikasi 1)', variant: 'success', confirmLabel: 'Ya, setujui' },
+    /* [KUNCI]: Pemindaian serah terima & pengembalian via kamera langsung belum aktif.
+     * Validasi saat ini menggunakan konfirmasi verifikasi manual dua tahap.
+     * // scanHandover: { title: 'Scan Serah Terima QR', note: 'Fitur pemindaian serah terima dikunci' }
+     */
     borrowed:       { title: 'Verifikasi & Serah Terima', message: 'Verifikasi kedua dan serahkan barang ke peminjam?',            variant: 'success', confirmLabel: 'Ya, verifikasi' },
     returned:       { title: 'Verifikasi Pengembalian',  message: 'Konfirmasi bahwa barang sudah benar-benar dikembalikan?',       variant: 'success', confirmLabel: 'Ya, sudah kembali' },
     return_pending: { title: 'Konfirmasi Pengembalian',  message: 'Ajukan pengembalian barang ini ke admin?',                     variant: 'primary', confirmLabel: 'Ya, kembalikan' },
@@ -1774,6 +1782,21 @@
     sec.appendChild(makeNavLink('laporan.html', 'chart', 'Laporan', 'Harian · bulanan'));
     sec.appendChild(makeNavLink('verifikasi.html', 'check_circle', 'Verifikasi', 'Persetujuan ke-2'));
     if (IS_ADMIN) sec.appendChild(makeNavLink('users.html', 'users', 'Kelola User', 'User & admin'));
+    /* =========================================================================
+     * FITUR TAHAP LANJUTAN (KUNCI / STATUS DITANGGUHKAN):
+     * - Pemindaian Serah Terima dan Pengembalian (Kamera barcode/QR scanner)
+     * - Inventarisasi Ruangan Berbasis Pemindaian
+     * - Notifikasi dan Tugas Terjadwal (Cron Job / Worker Otomatis)
+     * - Jejak Audit Detail (Audit Trail Log)
+     * - Pengujian Sistem Otomatis & BAST Digital
+     * Item di bawah ini dikomentari/dikunci agar alur peminjaman dasar tetap bersih.
+     * =========================================================================
+     * // sec.appendChild(makeNavLink('#', 'camera', 'Scan Serah Terima', 'Segera hadir'));
+     * // sec.appendChild(makeNavLink('#', 'clipboard', 'Inventarisasi Ruangan', 'Segera hadir'));
+     * // sec.appendChild(makeNavLink('#', 'clock', 'Tugas Terjadwal', 'Segera hadir'));
+     * // sec.appendChild(makeNavLink('#', 'shield', 'Jejak Audit', 'Segera hadir'));
+     * // sec.appendChild(makeNavLink('#', 'file-text', 'Cetak BAST', 'Segera hadir'));
+     */
     navContainer.appendChild(sec);
   }
 

@@ -129,7 +129,12 @@
     var now = new Date();
     var inpStyle = 'padding:0.6rem 0.7rem;border:1.5px solid var(--border);border-radius:10px;font-size:0.875rem;outline:none;background:#fff;cursor:pointer;min-width:200px';
     var lbl = el('label', { style: 'font-size:0.72rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;display:block;margin-bottom:5px' });
-    if (state.period === 'daily') {
+    /* [KUNCI]: Jejak audit detail (Audit Trail) & Berita Acara Serah Terima (BAST) digital
+   * ditangguhkan agar rekap berfokus pada ringkasan peminjaman harian/bulanan.
+   * // function renderAuditTrail() { ... }
+   * // function generateBAST() { ... }
+   */
+  if (state.period === 'daily') {
       lbl.innerHTML = '<span class="ic" style="vertical-align:-0.12em"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="1em" height="1em" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg></span> Tanggal';
       var di = el('input', { type: 'date', value: state.day, max: localIso(now), style: inpStyle });
       di.addEventListener('change', function () { if (di.value) { state.day = di.value; load(); } });

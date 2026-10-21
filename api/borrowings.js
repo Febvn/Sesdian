@@ -21,7 +21,11 @@ function transitionError(prevStatus, target, role, isOwner) {
   if (target === 'approved') rule = { from: ['pending'], ok: role === 'admin', msg: 'Persetujuan awal hanya oleh admin.' };
   else if (target === 'borrowed') {
     // verifikator's 2nd verification hands the item over; staff may re-activate a rejected return
-    if (prevStatus === 'approved') rule = { from: ['approved'], ok: role === 'verifikator', msg: 'Verifikasi kedua (serah terima) hanya oleh verifikator.' };
+    /* [KUNCI]: Pemindaian serah terima (kamera QR) & notifikasi terjadwal (cron) belum diaktifkan.
+       * Alur serah terima tetap mengandalkan verifikasi akun berwenang (admin / verifikator).
+       * // TODO: Validasi kode token fisik via scan kamera sebelum serah terima
+       */
+      if (prevStatus === 'approved') rule = { from: ['approved'], ok: role === 'verifikator', msg: 'Verifikasi kedua (serah terima) hanya oleh verifikator.' };
     else rule = { from: ['verified', 'return_pending'], ok: staff, msg: 'Hanya admin/verifikator.' };
   }
   else if (target === 'return_pending') rule = { from: ['borrowed', 'verified'], ok: staff || isOwner, msg: 'Hanya peminjam atau admin yang dapat mengonfirmasi pengembalian.' };
