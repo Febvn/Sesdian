@@ -1,9 +1,6 @@
 # SESDIAN - Asset Management
 
-Lightweight asset-management app: a static, zero-build frontend (vanilla
-HTML/CSS/JS) backed by a Neon Postgres database through small Vercel serverless
-functions. The frontend stays instant; the backend gives real auth, roles, and
-data persistence.
+Lightweight asset-management app: a static, zero-build frontend (vanilla HTML/CSS/JS) backed by a Neon Postgres database through small Vercel serverless functions. The frontend stays instant; the backend gives real auth, roles, and data persistence.
 
 > Replaces the original Laravel + React build that shipped a ~1.1 MB JS bundle per page.
 
@@ -15,38 +12,25 @@ Browser  -->  /api/* (Vercel serverless, Node)  -->  Neon Postgres
  assets/app.js  borrowings (list/create/approve)     assets, borrowings
  assets/db.js   users (list/role)
 ```
-- Auth: JWT (HS256) signed server-side; passwords hashed with scrypt; token in
-  localStorage, sent as a Bearer header. `JWT_SECRET` is required (no fallback).
-- The Neon connection string lives only in the Vercel env var `DATABASE_URL`,
-  never in the browser. Every data endpoint checks the token; writes check admin.
-- DB-first: pages render entirely from the database (or an in-memory demo set);
-  the static templates are hidden, so no seed data flashes before the DB loads.
+- Auth: JWT (HS256) signed server-side; passwords hashed with scrypt; token in localStorage, sent as a Bearer header. `JWT_SECRET` is required (no fallback).
+- The Neon connection string lives only in the Vercel env var `DATABASE_URL`, never in the browser. Every data endpoint checks the token; writes check admin.
+- DB-first: pages render entirely from the database (or an in-memory demo set); the static templates are hidden, so no seed data flashes before the DB loads.
 
 ## Roles
-- First account to log in (when no admin exists yet) becomes the admin; everyone
-  else is a normal user. Admins can promote/demote others on the Kelola User page.
+- First account to log in (when no admin exists yet) becomes the admin; everyone else is a normal user. Admins can promote/demote others on the Kelola User page.
 - User: browse assets/categories/rooms, submit borrowing requests.
-- Admin: approve / reject / lend / return borrowings (stock adjusts automatically),
-  add/edit/delete assets (with image upload), categories and rooms, manage users,
-  and set the WhatsApp notification number.
+- Admin: approve / reject / lend / return borrowings (stock adjusts automatically), add/edit/delete assets (with image upload), categories and rooms, manage users, and set the WhatsApp notification number.
 
 ## WhatsApp notifications
-- An admin sets the notification number on the Kelola User page (`settings` table,
-  created automatically on first use - no manual migration needed).
+- An admin sets the notification number on the Kelola User page (`settings` table, created automatically on first use - no manual migration needed).
 - New borrowing request -> the admin is notified.
-- Overdue item (past due date, not returned) -> admin can press "Ingatkan WA" on
-  that row to remind the borrower.
-- On return, the borrower gets a confirmation; a borrower can also press
-  "Konfirmasi Pengembalian" to tell the admin they have returned an item.
-- Delivery: if `FONNTE_TOKEN` (https://fonnte.com gateway) is set, messages are
-  auto-sent server-side. Otherwise the app opens a `wa.me` click-to-send link.
-  Borrower reminders need the user's phone (captured at registration / `users.phone`).
+- Overdue item (past due date, not returned) -> admin can press "Ingatkan WA" on that row to remind the borrower.
+- On return, the borrower gets a confirmation; a borrower can also press "Konfirmasi Pengembalian" to tell the admin they have returned an item.
+- Delivery: if `FONNTE_TOKEN` (https://fonnte.com gateway) is set, messages are auto-sent server-side. Otherwise the app opens a `wa.me` click-to-send link. Borrower reminders need the user's phone (captured at registration / `users.phone`).
 
 ## UI
-- Loading: protected pages show a spinner until the database data is rendered,
-  so no hardcoded/placeholder content flashes first.
-- Icons: the interface uses inline SVG icons (no emoji); `public/assets/icons.js`
-  holds the set and `applyBinds` maps category icons by name.
+- Loading: protected pages show a spinner until the database data is rendered, so no hardcoded/placeholder content flashes first.
+- Icons: the interface uses inline SVG icons (no emoji); `public/assets/icons.js` holds the set and `applyBinds` maps category icons by name.
 
 ## Project layout
 ```
@@ -87,8 +71,8 @@ vercel.json         outputDirectory: public, clean URLs
 ## Local development
 - Full stack: `vercel dev` (set `DATABASE_URL` and `JWT_SECRET` locally).
 - UI only (no backend): set `BACKEND: 'demo'` in `public/assets/config.js`, then
-  open `public/index.html` or run `npx serve public`. Demo signs you in as an
-  admin so every feature is previewable; data lives in memory for the session.
+   open `public/index.html` or run `npx serve public`. Demo signs you in as an
+   admin so every feature is previewable; data lives in memory for the session.
 
 ## Notes
 - Borrowing is atomic: stock is reserved and the record inserted in a single SQL
@@ -98,3 +82,11 @@ vercel.json         outputDirectory: public, clean URLs
 
 ## Project Management & Sprints
 Rincian linimasa Work Breakdown Structure (WBS), pembagian Sprint (M1 s/d M6), serta penanggung jawab modul dapat dilihat di dokumen [docs/WBS-SPRINT.md](docs/WBS-SPRINT.md).
+
+### Ringkasan Pembagian Sprint
+- Sprint M1 (Inisiasi & Perencanaan): Rapat pembuka, penetapan ruang lingkup, penyusunan jadwal, anggaran, dan manajemen risiko.
+- Sprint M2 (Analisis Kebutuhan): Wawancara stakeholder, evaluasi sistem sebelumnya, analisis kebutuhan kode QR, serta penyusunan dokumen spesifikasi.
+- Sprint M3 (Perancangan Sistem): Perancangan skema basis data, pemodelan relasi tabel, pembuatan wireframe antarmuka, serta perancangan format label QR.
+- Sprint M4 (Pembangunan Sistem): Implementasi fitur akun dan data aset (Sub-Sprint 4.1), aturan siklus peminjaman dua tahap (Sub-Sprint 4.2), serta modul inventarisasi, notifikasi, dan pelaporan (Sub-Sprint 4.3).
+- Sprint M5 (Pengujian & Penerapan): Pengujian integrasi modul, pengujian keamanan sistem, migrasi data aset, penerapan server produksi, serta uji coba pengguna (UAT).
+- Sprint M6 (Penutupan Proyek): Sosialisasi kepada pengguna, penyusunan dokumentasi teknis akhir, dan penyerahan hasil pekerjaan.

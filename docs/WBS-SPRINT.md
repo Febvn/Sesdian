@@ -1,10 +1,10 @@
 # Dokumentasi Sprint & Rencana Kerja (WBS) SESDIAN
 
-Dokumen ini merangkum pembagian kerja, tahapan Sprint, dan pemetaan nomor tiket (Issue/Task ID) berdasarkan Work Breakdown Structure (WBS) proyek **SESDIAN (Sistem Digital Inventarisasi Aset Negara)**.
+Dokumen ini merangkum pembagian kerja, tahapan Sprint, dan pemetaan nomor tiket (Issue/Task ID) berdasarkan Work Breakdown Structure (WBS) proyek SESDIAN (Sistem Digital Inventarisasi Aset Negara).
 
 ---
 
-## 👥 Tim & Peran Pengembang
+## Tim & Peran Pengembang
 
 | Nama Anggota | Peran Proyek | Fokus Tanggung Jawab |
 | :--- | :--- | :--- |
@@ -14,12 +14,12 @@ Dokumen ini merangkum pembagian kerja, tahapan Sprint, dan pemetaan nomor tiket 
 
 ---
 
-## 🏃 Pembagian Siklus Sprint Proyek
+## Pembagian Siklus Sprint Proyek
 
-Proyek ini dibagi ke dalam siklus kerja berurutan (**M1** s/d **M6**) dengan rincian Sprint sebagai berikut:
+Proyek ini dibagi ke dalam siklus kerja berurutan (M1 s/d M6) dengan rincian Sprint sebagai berikut:
 
-### 📍 M1: Sprint Inisiasi & Perencanaan (31/08/2026 – 18/09/2026)
-*Fokus: Pembagian peran, penetapan ruang lingkup, jadwal, anggaran, dan daftar risiko.*
+### M1: Sprint Inisiasi & Perencanaan (31/08/2026 – 18/09/2026)
+Fokus: Pembagian peran, penetapan ruang lingkup, jadwal, anggaran, dan daftar risiko.
 
 | WBS | ID Tiket | Aktivitas Pekerjaan | Penanggung Jawab | Peran | Status |
 | :--- | :---: | :--- | :--- | :--- | :---: |
@@ -33,8 +33,8 @@ Proyek ini dibagi ke dalam siklus kerja berurutan (**M1** s/d **M6**) dengan rin
 
 ---
 
-### 📍 M2: Sprint Analisis Kebutuhan (07/09/2026 – 02/10/2026)
-*Fokus: Wawancara stakeholder BMN, audit kelemahan sistem v1, analisis QR code, dan penyusunan dokumen SKPL.*
+### M2: Sprint Analisis Kebutuhan (07/09/2026 – 02/10/2026)
+Fokus: Wawancara stakeholder BMN, audit kelemahan sistem v1, analisis QR code, dan penyusunan dokumen SKPL.
 
 | WBS | ID Tiket | Aktivitas Pekerjaan | Penanggung Jawab | Peran | Status |
 | :--- | :---: | :--- | :--- | :--- | :---: |
@@ -48,8 +48,8 @@ Proyek ini dibagi ke dalam siklus kerja berurutan (**M1** s/d **M6**) dengan rin
 
 ---
 
-### 📍 M3: Sprint Perancangan Sistem (28/09/2026 – 23/10/2026)
-*Fokus: Diagram E-R, skema basis data PostgreSQL, wireframe antarmuka, dan standarisasi tata letak label QR.*
+### M3: Sprint Perancangan Sistem (28/09/2026 – 23/10/2026)
+Fokus: Diagram E-R, skema basis data PostgreSQL, wireframe antarmuka, dan standarisasi tata letak label QR.
 
 | WBS | ID Tiket | Aktivitas Pekerjaan | Penanggung Jawab | Peran | Status |
 | :--- | :---: | :--- | :--- | :--- | :---: |
@@ -65,22 +65,22 @@ Proyek ini dibagi ke dalam siklus kerja berurutan (**M1** s/d **M6**) dengan rin
 
 ---
 
-### 📍 M4: Sprint Pembangunan Sistem (12/10/2026 – 20/11/2026)
-*Fokus: Implementasi kode program aplikasi (Frontend, Backend Serverless, dan Database).*
+### M4: Sprint Pembangunan Sistem (12/10/2026 – 20/11/2026)
+Fokus: Implementasi kode program aplikasi (Frontend, Backend Serverless, dan Database).
 
-#### 🔹 Sub-Sprint 4.1: Akun, Data Aset, Katalog, dan Label QR
+#### Sub-Sprint 4.1: Akun, Data Aset, Katalog, dan Label QR
 | WBS | ID Tiket | Aktivitas Pekerjaan | Tipe | Penanggung Jawab | Peran | Status |
 | :--- | :---: | :--- | :---: | :--- | :--- | :---: |
 | SES-4.1.1 | `F-01` | Akun, hak akses, dan aktivasi mandiri berbasis NIP | Live | Adi Septriansyah | Back-End Developer | Selesai |
 | SES-4.1.2 | `F-02` | Data aset, katalog publik, dan pembuatan kode QR | Live | Anselmus Herpin Hasugian | Front-End Developer | Selesai |
 
-#### 🔹 Sub-Sprint 4.2: Peminjaman Dua Lapis dan Pemindaian
+#### Sub-Sprint 4.2: Peminjaman Dua Lapis dan Pemindaian
 | WBS | ID Tiket | Aktivitas Pekerjaan | Tipe | Penanggung Jawab | Peran | Status |
 | :--- | :---: | :--- | :---: | :--- | :--- | :---: |
 | SES-4.2.1 | `F-03` | Siklus peminjaman dan aturan transisi status (Admin & Verifikator) | Live | Adi Septriansyah | Back-End Developer | Selesai |
 | SES-4.2.2 | `F-04` | Pemindaian serah terima dan pengembalian barang | Live | Anselmus Herpin Hasugian | Front-End Developer | Terkunci* |
 
-#### 🔹 Sub-Sprint 4.3: Inventarisasi, Notifikasi, dan Laporan
+#### Sub-Sprint 4.3: Inventarisasi, Notifikasi, dan Laporan
 | WBS | ID Tiket | Aktivitas Pekerjaan | Tipe | Penanggung Jawab | Peran | Status |
 | :--- | :---: | :--- | :---: | :--- | :--- | :---: |
 | SES-4.3.1 | `F-05` | Inventarisasi ruangan berbasis pemindaian | Live | Anselmus Herpin Hasugian | Front-End Developer | Terkunci* |
@@ -91,8 +91,8 @@ Proyek ini dibagi ke dalam siklus kerja berurutan (**M1** s/d **M6**) dengan rin
 
 ---
 
-### 📍 M5: Sprint Pengujian & Penerapan (16/11/2026 – 04/12/2026)
-*Fokus: Uji integrasi, pengujian keamanan, migrasi data ril aset, penerapan ke hosting/Vercel, dan penempelan label QR.*
+### M5: Sprint Pengujian & Penerapan (16/11/2026 – 04/12/2026)
+Fokus: Uji integrasi, pengujian keamanan, migrasi data ril aset, penerapan ke hosting/Vercel, dan penempelan label QR.
 
 | WBS | ID Tiket | Aktivitas Pekerjaan | Penanggung Jawab | Peran | Status |
 | :--- | :---: | :--- | :--- | :--- | :---: |
@@ -108,8 +108,8 @@ Proyek ini dibagi ke dalam siklus kerja berurutan (**M1** s/d **M6**) dengan rin
 
 ---
 
-### 📍 M6: Sprint Penutupan Proyek (01/12/2026 – 11/12/2026)
-*Fokus: Sosialisasi penggunaan aplikasi kepada staf/pegawai, finalisasi buku petunjuk teknis, dan serah terima hasil proyek.*
+### M6: Sprint Penutupan Proyek (01/12/2026 – 11/12/2026)
+Fokus: Sosialisasi penggunaan aplikasi kepada staf/pegawai, finalisasi buku petunjuk teknis, dan serah terima hasil pekerjaan.
 
 | WBS | ID Tiket | Aktivitas Pekerjaan | Penanggung Jawab | Peran | Status |
 | :--- | :---: | :--- | :--- | :--- | :---: |
