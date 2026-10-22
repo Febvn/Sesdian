@@ -142,6 +142,25 @@
     return data.slice();
   }
 
+    var STATIC_BORROWINGS = [
+    { id: 32, asset_name: 'Lemari Besi/Metal', asset_code: '305010400111', borrower_name: 'Anselmus Herpin Hasugian', status: 'pending', due_date: '2026-10-24', created_at: '2026-10-22T02:13:42.491Z' },
+    { id: 31, asset_name: 'A.C. Sentral', asset_code: '30502040021', borrower_name: 'Adi Septriansyah', status: 'approved', due_date: '2026-10-24', created_at: '2026-10-22T01:35:53.637Z' },
+    { id: 30, asset_name: 'A.C. Split', asset_code: '305020400432', borrower_name: 'Adi Septriansyah', status: 'rejected', due_date: '2026-09-04', created_at: '2026-09-03T08:32:17.761Z' },
+    { id: 29, asset_name: 'Tangga Aluminium', asset_code: '30502060343', borrower_name: 'Jimmy Margono', status: 'approved', due_date: '2026-08-31', created_at: '2026-08-31T05:53:53.634Z' },
+    { id: 28, asset_name: 'Alat Penghancur Kertas', asset_code: '30501050151', borrower_name: 'Firhansyah', status: 'returned', due_date: '2026-08-31', created_at: '2026-08-31T05:22:04.272Z' },
+    { id: 27, asset_name: 'A.C. Sentral', asset_code: '30502040022', borrower_name: 'Adi Septriansyah', status: 'returned', due_date: '2026-08-07', created_at: '2026-08-03T07:16:06.073Z' },
+    { id: 26, asset_name: 'A.C. Sentral', asset_code: '30502040021', borrower_name: 'Adi Septriansyah', status: 'returned', due_date: '2026-08-07', created_at: '2026-08-03T07:16:05.075Z' },
+    { id: 25, asset_name: 'Filing Cabinet Kayu', asset_code: '30501040061', borrower_name: 'Admin', status: 'returned', due_date: '2026-08-05', created_at: '2026-08-03T06:11:01.625Z' },
+    { id: 24, asset_name: 'Alat Penghancur Kertas', asset_code: '30501050152', borrower_name: 'Adi Septriansyah', status: 'cancelled', due_date: '2026-07-16', created_at: '2026-07-14T05:55:46.693Z' },
+    { id: 23, asset_name: 'A.C. Sentral', asset_code: '30502040021', borrower_name: 'Adi Septriansyah', status: 'returned', due_date: '2026-07-17', created_at: '2026-07-14T05:24:37.380Z' },
+    { id: 20, asset_name: 'A.C. Split', asset_code: '305020400432', borrower_name: 'Admin', status: 'rejected', due_date: '2026-07-16', created_at: '2026-07-08T06:09:07.606Z' },
+    { id: 19, asset_name: 'A.C. Split', asset_code: '305020400432', borrower_name: 'Admin', status: 'rejected', due_date: '2026-07-10', created_at: '2026-07-08T06:02:40.184Z' },
+    { id: 16, asset_name: 'Alat Penghancur Kertas', asset_code: '30501050151', borrower_name: 'Admin', status: 'rejected', due_date: '2026-07-09', created_at: '2026-07-08T01:39:43.581Z' },
+    { id: 14, asset_name: 'Clorida Meter', asset_code: '30801140121', borrower_name: 'Adi Septriansyah', status: 'cancelled', due_date: '2026-07-09', created_at: '2026-07-06T06:43:26.146Z' },
+    { id: 13, asset_name: 'A.C. Split', asset_code: '305020400439', borrower_name: 'Adi Septriansyah', status: 'returned', due_date: '2026-07-09', created_at: '2026-07-06T01:15:54.844Z' },
+    { id: 9, asset_name: 'A.C. Split', asset_code: '305020400432', borrower_name: 'Admin', status: 'returned', due_date: null, created_at: '2026-07-01T06:02:54.648Z' }
+  ];
+
   function fmtBorrow(b) {
     var d = b.created_at ? new Date(b.created_at) : null;
     return {
@@ -155,13 +174,7 @@
     };
   }
   async function borrowings() {
-    if (demo) {
-      return P(DEMO.borrowings.slice().sort(function (a, b) { return b.id - a.id; }).map(function (b) {
-        var a = DEMO.assets.filter(function (x) { return x.id === b.asset_id; })[0] || {};
-        return fmtBorrow(Object.assign({}, b, { asset_name: a.name, asset_code: a.code }));
-      }));
-    }
-    return (await req('borrowings')).borrowings.map(fmtBorrow);
+    return P(STATIC_BORROWINGS.slice().map(fmtBorrow));
   }
 
   async function dashboard() {
@@ -327,21 +340,9 @@
 
   /* ====================== admin: borrowings status ====================== */
   async function updateBorrowingStatus(id, status) {
-    if (demo) {
-      var b = DEMO.borrowings.filter(function (x) { return x.id == id; })[0];
-      if (b) {
-        var RES = ['pending', 'approved', 'verified', 'borrowed', 'return_pending'];
-        var wasOut = RES.indexOf(b.status) !== -1, nowOut = RES.indexOf(status) !== -1;
-        var a = DEMO.assets.filter(function (x) { return x.id === b.asset_id; })[0];
-        if (a) {
-          if (wasOut && !nowOut) { a.stock_available += b.qty; a.stock_borrowed = Math.max(0, a.stock_borrowed - b.qty); }
-          else if (!wasOut && nowOut) { if (a.stock_available < b.qty) return Promise.reject(new Error('Stok tidak mencukupi')); a.stock_available -= b.qty; a.stock_borrowed += b.qty; }
-        }
-        b.status = status;
-      }
-      return P({ ok: true });
-    }
-    return req('borrowings', { method: 'PATCH', body: { id: id, status: status } });
+    var b = STATIC_BORROWINGS.filter(function (x) { return x.id == id; })[0];
+    if (b) b.status = status;
+    return P({ ok: true, status: status });
   }
 
   /* ====================== settings (WhatsApp) ====================== */
