@@ -1780,7 +1780,7 @@
     var sec = el('div', { 'data-role-nav': '', style: 'margin-bottom:0.25rem' });
     sec.appendChild(sectionHeader('MANAJEMEN'));
     // Laporan dan Verifikasi dinonaktifkan untuk fase berjalan
-    if (IS_ADMIN) sec.appendChild(makeNavLink('users.html', 'users', 'Kelola User', 'User & admin'));
+    // Kelola User dinonaktifkan
     /* =========================================================================
      * FITUR TAHAP LANJUTAN (KUNCI / STATUS DITANGGUHKAN):
      * - Pemindaian Serah Terima dan Pengembalian (Kamera barcode/QR scanner)
@@ -1802,12 +1802,12 @@
   /* ---------------- dynamic app shell (for new pages that opt in) ----------------
      A page using <aside data-shell></aside> + a sticky <div data-topbar></div>
      gets the standard sidebar + topbar built here, so it needs no copied markup. */
-  var PAGE_TITLES = { dashboard: 'Dashboard', dataaset: 'Data Aset', kategoriaset: 'Kategori Aset', ruangan: 'Ruangan', daftarpinjam: 'Daftar Pinjam', ajukanpinjam: 'Ajukan Pinjam', users: 'Kelola User', profil: 'Profil Saya' };
+  var PAGE_TITLES = { dashboard: 'Dashboard', dataaset: 'Data Aset', kategoriaset: 'Kategori Aset', ruangan: 'Ruangan', daftarpinjam: 'Daftar Pinjam', ajukanpinjam: 'Ajukan Pinjam', profil: 'Profil Saya' };
   // Per-page chrome icons (topbar breadcrumb). NAV_ICONS keys map a sidebar link's
   // href → the same icon, so the menu and the header always agree (fixes the old
   // hard-coded "home" icon that showed on every page — see REDESIGN-GUIDE #2/#5).
-  var PAGE_ICONS = { dashboard: 'zap', dataaset: 'package', kategoriaset: 'tag', ruangan: 'home', daftarpinjam: 'refresh', ajukanpinjam: 'clipboard', users: 'users', katalog: 'search', profil: 'user' };
-  var NAV_ICONS = { 'dashboard.html': 'zap', 'dataaset.html': 'package', 'kategoriaset.html': 'tag', 'ruangan.html': 'home', 'daftarpinjam.html': 'refresh', 'ajukanpinjam.html': 'clipboard', 'users.html': 'users', 'katalog.html': 'search' };
+  var PAGE_ICONS = { dashboard: 'zap', dataaset: 'package', kategoriaset: 'tag', ruangan: 'home', daftarpinjam: 'refresh', ajukanpinjam: 'clipboard', katalog: 'search', profil: 'user' };
+  var NAV_ICONS = { 'dashboard.html': 'zap', 'dataaset.html': 'package', 'kategoriaset.html': 'tag', 'ruangan.html': 'home', 'daftarpinjam.html': 'refresh', 'ajukanpinjam.html': 'clipboard', 'katalog.html': 'search' };
   function pageIcon(p) { return (window.SESDIAN_ICONS && window.SESDIAN_ICONS[PAGE_ICONS[p] || 'home']) || ''; }
   // "Sedang Dipinjam" link for everyone (added into the PEMINJAMAN section).
   function injectBorrowedNav() {
