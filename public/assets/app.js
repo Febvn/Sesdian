@@ -1446,13 +1446,12 @@
   }
   function todayISO() { var d = new Date(); var p = function (n) { return (n < 10 ? '0' : '') + n; }; return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()); }
   function isOverdue(rec) { return ['pending', 'approved', 'borrowed'].indexOf(rec.status) !== -1 && rec.due_date && rec.due_date < todayISO(); }
-  function openWaLink(wa, text) { if (wa) window.open('https://wa.me/' + wa + '?text=' + encodeURIComponent(text || ''), '_blank'); }
+  function openWaLink(wa, text) {
+    // WhatsApp dinonaktifkan
+    return;
+  }
   async function doNotify(rec, kind, okMsg) {
-    try {
-      var r = await DB.notify(rec.id, kind);
-      if (r && !r.auto) { if (r.wa) openWaLink(r.wa, r.text); else { toast('Nomor WhatsApp tujuan belum tersedia', 'error'); return; } }
-      toast(okMsg, 'success');
-    } catch (e) { toast((e && e.message) || 'Gagal mengirim notifikasi', 'error'); }
+    toast(okMsg || 'Notifikasi dicatat', 'success');
   }
   var STATUS_CONFIRM = {
     approved:       { title: 'Setujui Peminjaman',      message: 'Apakah Anda yakin menyetujui peminjaman ini? (Verifikasi 1)', variant: 'success', confirmLabel: 'Ya, setujui' },

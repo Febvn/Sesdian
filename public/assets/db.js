@@ -192,16 +192,25 @@
     return data;
   }
 
-  async function requestBorrowing(o) {
-    if (demo) {
-      var q = Math.max(1, parseInt(o.qty || 1, 10));
-      var a = DEMO.assets.filter(function (x) { return x.id == o.assetId; })[0];
-      if (!a || a.stock_available < q) return Promise.reject(new Error('Stok tidak mencukupi'));
-      a.stock_available -= q; a.stock_borrowed += q;
-      var b = { id: ++DEMO.seq, asset_id: a.id, borrower_name: 'Pengguna Demo', qty: q, status: 'pending', due_date: o.dueDate || null, created_at: new Date(2026, 5, 18).toISOString() };
-      DEMO.borrowings.push(b); return P(b);
-    }
-    return (await req('borrowings', { method: 'POST', body: { assetId: o.assetId, qty: o.qty || 1, dueDate: o.dueDate || null, notes: o.notes || null } })).borrowing;
+    async function requestBorrowing(o) {
+    var cur = (typeof STATIC_BORROWINGS !== 'undefined' ? STATIC_BORROWINGS : []);
+    var a = (typeof _assetsCache !== 'undefined' && _assetsCache ? _assetsCache.filter(function (x) { return x.id == o.assetId; })[0] : null);
+    var assetName = a ? a.name : 'Aset';
+    var assetCode = a ? a.code : '';
+    var user = (typeof auth !== 'undefined' && auth.currentUser && auth.currentUser()) || {};
+    var userName = user.name || 'Pengguna';
+    var newId = cur.length ? Math.max.apply(null, cur.map(function(x) { return x.id; })) + 1 : 101;
+    var b = {
+      id: newId,
+      asset_name: assetName,
+      asset_code: assetCode,
+      borrower_name: userName,
+      status: 'pending',
+      due_date: o.dueDate || null,
+      created_at: new Date().toISOString()
+    };
+    cur.unshift(b);
+    return P(b);
   }
 
   /* ====================== public catalog / detail (guest) ====================== */
