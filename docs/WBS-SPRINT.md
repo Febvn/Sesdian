@@ -77,17 +77,17 @@ Fokus: Implementasi kode program aplikasi (Frontend, Backend Serverless, dan Dat
 #### Sub-Sprint 4.2: Peminjaman Dua Lapis dan Pemindaian
 | WBS | ID Tiket | Aktivitas Pekerjaan | Tipe | Penanggung Jawab | Peran | Status |
 | :--- | :---: | :--- | :---: | :--- | :--- | :---: |
-| SES-4.2.1 | `F-03` | Siklus peminjaman dan aturan transisi status (Admin & Verifikator) | Live | Adi Septriansyah | Back-End Developer | Selesai |
-| SES-4.2.2 | `F-04` | Pemindaian serah terima dan pengembalian barang | Live | Anselmus Herpin Hasugian | Front-End Developer | Terkunci* |
+| SES-4.2.1 | F-03 | Siklus peminjaman dan aturan transisi status | Live | Adi Septriansyah | Back-End Developer | Direncanakan (02/11/2026) |
+| SES-4.2.2 | F-04 | Pemindaian serah terima dan pengembalian | Live | Anselmus Herpin Hasugian | Front-End Developer | Direncanakan (06/11/2026) |
 
 #### Sub-Sprint 4.3: Inventarisasi, Notifikasi, dan Laporan
 | WBS | ID Tiket | Aktivitas Pekerjaan | Tipe | Penanggung Jawab | Peran | Status |
 | :--- | :---: | :--- | :---: | :--- | :--- | :---: |
-| SES-4.3.1 | `F-05` | Inventarisasi ruangan berbasis pemindaian | Live | Anselmus Herpin Hasugian | Front-End Developer | Terkunci* |
-| SES-4.3.2 | `F-06` | Notifikasi WhatsApp dan tugas pengingat | Live | Adi Septriansyah | Back-End Developer | Selesai |
-| SES-4.3.3 | `F-07` | Dashboard ringkasan, laporan ekspor (PDF/CSV), dan jejak riwayat | Live | Febrian Valentino Nugroho | Front-End Developer | Selesai |
+| SES-4.3.1 | F-05 | Inventarisasi ruangan berbasis pemindaian | Live | Anselmus Herpin Hasugian | Front-End Developer | Direncanakan (09/11/2026) |
+| SES-4.3.2 | F-06 | Notifikasi dan tugas terjadwal | Live | Adi Septriansyah | Back-End Developer | Direncanakan (13/11/2026) |
+| SES-4.3.3 | F-07 | Dashboard, laporan, dan jejak audit | Live | Febrian Valentino Nugroho | Front-End Developer | Direncanakan (16/11/2026) |
 
-*\*Catatan Teknis: Fitur F-04 dan F-05 dikunci/dikomentari pada antarmuka untuk menjaga kesederhanaan alur operasional dasar peminjaman barang.*
+| SES-6.3 | D-05 | Serah Terima (BAST) dan Pemaparan Hasil Akhir | Febrian Valentino Nugroho | Project Manager | Direncanakan (10/12/2026) |
 
 ---
 
@@ -97,14 +97,14 @@ Fokus: Uji integrasi, pengujian keamanan, migrasi data ril aset, penerapan ke ho
 | WBS | ID Tiket | Aktivitas Pekerjaan | Penanggung Jawab | Peran | Status |
 | :--- | :---: | :--- | :--- | :--- | :---: |
 | **SES-5.1** | - | **Pengujian Sistem** | Anselmus Herpin Hasugian | Quality Assurance | Selesai |
-| SES-5.1.1 | `T-01` | Pengujian modul dan integrasi | Anselmus Herpin Hasugian | Quality Assurance | Selesai |
-| SES-5.1.2 | `T-02` | Pengujian keamanan dan perbaikan cacat | Adi Septriansyah | Back-End Developer | Selesai |
+| SES-5.1.1 | T-01 | Pengujian modul dan integrasi | Anselmus Herpin Hasugian | Quality Assurance | Direncanakan (16/11/2026) |
+| SES-5.1.2 | T-02 | Pengujian keamanan dan perbaikan cacat | Adi Septriansyah | Back-End Developer | Direncanakan (23/11/2026) |
 | **SES-5.2** | - | **Penerapan Sistem** | Adi Septriansyah | Back-End Developer | Selesai |
-| SES-5.2.1 | `D-01` | Pemindahan data dari SESDIAN v1 | Adi Septriansyah | Back-End Developer | Selesai |
-| SES-5.2.2 | `D-02` | Penerapan ke server dan domain resmi | Adi Septriansyah | Back-End Developer | Selesai |
+| SES-5.2.1 | D-01 | Pemindahan data dari SESDIAN v1 | Adi Septriansyah | Back-End Developer | Direncanakan (23/11/2026) |
+| SES-5.2.2 | D-02 | Penerapan ke server dan domain resmi | Adi Septriansyah | Back-End Developer | Direncanakan (27/11/2026) |
 | **SES-5.3** | - | **UAT dan Pemasangan Label** | Anselmus Herpin Hasugian | Quality Assurance | Selesai |
-| SES-5.3.1 | `U-01` | UAT bersama instansi dan perbaikan | Anselmus Herpin Hasugian | Quality Assurance | Selesai |
-| SES-5.3.2 | `U-02` | Pencetakan dan penempelan label QR | Febrian Valentino Nugroho | Project Manager | Selesai |
+| SES-5.3.1 | U-01 | UAT bersama instansi dan perbaikan | Anselmus Herpin Hasugian | Quality Assurance | Direncanakan (30/11/2026) |
+| SES-5.3.2 | U-02 | Pencetakan dan penempelan label QR | Febrian Valentino Nugroho | Project Manager | Direncanakan (01/12/2026) |
 
 ---
 
@@ -113,6 +113,6 @@ Fokus: Sosialisasi penggunaan aplikasi kepada staf/pegawai, finalisasi buku petu
 
 | WBS | ID Tiket | Aktivitas Pekerjaan | Penanggung Jawab | Peran | Status |
 | :--- | :---: | :--- | :--- | :--- | :---: |
-| SES-6.1 | `D-03` | Sosialisasi dan Pelatihan Pengguna | Febrian Valentino Nugroho | Project Manager | Selesai |
-| SES-6.2 | `D-04` | Dokumentasi Akhir (Manual Book & Arsitektur) | Febrian Valentino Nugroho | Project Manager | Selesai |
-| SES-6.3 | `D-05` | Serah Terima (BAST) dan Pemaparan Hasil Akhir | Febrian Valentino Nugroho | Project Manager | Selesai |
+| SES-6.1 | D-03 | Sosialisasi dan Pelatihan Pengguna | Febrian Valentino Nugroho | Project Manager | Direncanakan (01/12/2026) |
+| SES-6.2 | D-04 | Dokumentasi Akhir | Febrian Valentino Nugroho | Project Manager | Direncanakan (04/12/2026) |
+| SES-6.3 | D-05 | Serah Terima (BAST) dan Pemaparan Hasil Akhir | Febrian Valentino Nugroho | Project Manager | Direncanakan (10/12/2026) |

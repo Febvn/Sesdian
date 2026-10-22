@@ -1779,8 +1779,7 @@
     var navContainer = ref.parentNode.parentNode;
     var sec = el('div', { 'data-role-nav': '', style: 'margin-bottom:0.25rem' });
     sec.appendChild(sectionHeader('MANAJEMEN'));
-    sec.appendChild(makeNavLink('laporan.html', 'chart', 'Laporan', 'Harian · bulanan'));
-    sec.appendChild(makeNavLink('verifikasi.html', 'check_circle', 'Verifikasi', 'Persetujuan ke-2'));
+    // Laporan dan Verifikasi dinonaktifkan untuk fase berjalan
     if (IS_ADMIN) sec.appendChild(makeNavLink('users.html', 'users', 'Kelola User', 'User & admin'));
     /* =========================================================================
      * FITUR TAHAP LANJUTAN (KUNCI / STATUS DITANGGUHKAN):
@@ -1803,18 +1802,16 @@
   /* ---------------- dynamic app shell (for new pages that opt in) ----------------
      A page using <aside data-shell></aside> + a sticky <div data-topbar></div>
      gets the standard sidebar + topbar built here, so it needs no copied markup. */
-  var PAGE_TITLES = { dashboard: 'Dashboard', dataaset: 'Data Aset', kategoriaset: 'Kategori Aset', ruangan: 'Ruangan', daftarpinjam: 'Daftar Pinjam', ajukanpinjam: 'Ajukan Pinjam', dipinjam: 'Sedang Dipinjam', users: 'Kelola User', verifikasi: 'Verifikasi', laporan: 'Laporan', profil: 'Profil Saya' };
+  var PAGE_TITLES = { dashboard: 'Dashboard', dataaset: 'Data Aset', kategoriaset: 'Kategori Aset', ruangan: 'Ruangan', daftarpinjam: 'Daftar Pinjam', ajukanpinjam: 'Ajukan Pinjam', users: 'Kelola User', profil: 'Profil Saya' };
   // Per-page chrome icons (topbar breadcrumb). NAV_ICONS keys map a sidebar link's
   // href → the same icon, so the menu and the header always agree (fixes the old
   // hard-coded "home" icon that showed on every page — see REDESIGN-GUIDE #2/#5).
-  var PAGE_ICONS = { dashboard: 'zap', dataaset: 'package', kategoriaset: 'tag', ruangan: 'home', daftarpinjam: 'refresh', ajukanpinjam: 'clipboard', dipinjam: 'clock', users: 'users', verifikasi: 'check_circle', laporan: 'chart', katalog: 'search', profil: 'user' };
-  var NAV_ICONS = { 'dashboard.html': 'zap', 'dataaset.html': 'package', 'kategoriaset.html': 'tag', 'ruangan.html': 'home', 'daftarpinjam.html': 'refresh', 'ajukanpinjam.html': 'clipboard', 'dipinjam.html': 'clock', 'users.html': 'users', 'verifikasi.html': 'check_circle', 'laporan.html': 'chart', 'katalog.html': 'search' };
+  var PAGE_ICONS = { dashboard: 'zap', dataaset: 'package', kategoriaset: 'tag', ruangan: 'home', daftarpinjam: 'refresh', ajukanpinjam: 'clipboard', users: 'users', katalog: 'search', profil: 'user' };
+  var NAV_ICONS = { 'dashboard.html': 'zap', 'dataaset.html': 'package', 'kategoriaset.html': 'tag', 'ruangan.html': 'home', 'daftarpinjam.html': 'refresh', 'ajukanpinjam.html': 'clipboard', 'users.html': 'users', 'katalog.html': 'search' };
   function pageIcon(p) { return (window.SESDIAN_ICONS && window.SESDIAN_ICONS[PAGE_ICONS[p] || 'home']) || ''; }
   // "Sedang Dipinjam" link for everyone (added into the PEMINJAMAN section).
   function injectBorrowedNav() {
-    if ($('aside a[href="dipinjam.html"]')) return;
-    var ref = $('aside a[href="daftarpinjam.html"]'); if (!ref) return;
-    ref.parentNode.insertBefore(makeNavLink('dipinjam.html', 'clock', 'Sedang Dipinjam', 'Barang belum kembali'), ref.nextSibling);
+    // Tautan sedang dipinjam dinonaktifkan
   }
   function navSection(label, links) { var d = el('div', { style: 'margin-bottom:0.25rem' }); d.appendChild(sectionHeader(label)); links.forEach(function (l) { d.appendChild(l); }); return d; }
   function buildShell() {
@@ -2481,8 +2478,8 @@
       rows.forEach(function (b) {
         if (IS_STAFF) {
           if (b.status === 'pending') list.push(notifItem(b.created_at, 'clipboard', (b.borrower || 'Seseorang') + ' mengajukan peminjaman ' + (b.asset_name || ''), 'daftarpinjam.html'));
-          else if (b.status === 'approved' && IS_VERIFIKATOR) list.push(notifItem(b.approved_at || b.created_at, 'check_circle', 'Peminjaman ' + (b.asset_name || '') + ' menunggu verifikasi kedua', 'verifikasi.html'));
-          else if (b.status === 'return_pending') list.push(notifItem(b.created_at, 'refresh', (b.borrower || 'Seseorang') + ' mengajukan pengembalian ' + (b.asset_name || ''), 'dipinjam.html'));
+          else if (b.status === 'approved' && IS_VERIFIKATOR) list.push(notifItem(b.approved_at || b.created_at, 'check_circle', 'Peminjaman ' + (b.asset_name || '') + ' menunggu verifikasi kedua', 'daftarpinjam.html'));
+          else if (b.status === 'return_pending') list.push(notifItem(b.created_at, 'refresh', (b.borrower || 'Seseorang') + ' mengajukan pengembalian ' + (b.asset_name || ''), 'daftarpinjam.html'));
         } else {
           if (b.status === 'pending') list.push(notifItem(b.created_at, 'clock', 'Pengajuan ' + (b.asset_name || '') + ' terkirim, menunggu persetujuan admin', 'daftarpinjam.html'));
           else if (b.status === 'approved') list.push(notifItem(b.approved_at || b.created_at, 'check_circle', 'Peminjaman ' + (b.asset_name || '') + ' disetujui admin', 'daftarpinjam.html'));

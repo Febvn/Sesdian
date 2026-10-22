@@ -349,8 +349,7 @@
   async function getSettings() { return demo ? P({ wa_number: DEMO.settings.wa_number, wa_auto: false }) : req('settings'); }
   async function setWaNumber(n) { if (demo) { DEMO.settings.wa_number = normWa(n); return P({ wa_number: DEMO.settings.wa_number, wa_auto: false }); } return req('settings', { method: 'PATCH', body: { wa_number: n } }); }
   async function notify(borrowingId, kind) {
-    if (demo) { return P({ auto: false, wa: kind === 'return-request' ? DEMO.settings.wa_number : '', text: 'Notifikasi demo (' + kind + ')' }); }
-    return req('notify', { method: 'POST', body: { borrowingId: borrowingId, kind: kind } });
+    return P({ auto: false, wa: '', text: '' });
   }
 
   window.SESDIAN_DB = {

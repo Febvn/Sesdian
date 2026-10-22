@@ -90,3 +90,6 @@ Rincian linimasa Work Breakdown Structure (WBS), pembagian Sprint (M1 s/d M6), s
 - Sprint M4 (Pembangunan Sistem): Implementasi fitur akun dan data aset (Sub-Sprint 4.1), aturan siklus peminjaman dua tahap (Sub-Sprint 4.2), serta modul inventarisasi, notifikasi, dan pelaporan (Sub-Sprint 4.3).
 - Sprint M5 (Pengujian & Penerapan): Pengujian integrasi modul, pengujian keamanan sistem, migrasi data aset, penerapan server produksi, serta uji coba pengguna (UAT).
 - Sprint M6 (Penutupan Proyek): Sosialisasi kepada pengguna, penyusunan dokumentasi teknis akhir, dan penyerahan hasil pekerjaan.
+
+### Status Rilis Berjalan (Sprint 1)
+Saat ini sistem berada pada fase SES-4.1 (Sprint 1: Akun, Data Aset, Katalog, dan Label QR). Modul lanjutan seperti verifikasi bertingkat SES-4.2, pemindaian inventarisasi, pengingat otomatis SES-4.3, serta pengujian dan penutupan SES-5 s/d SES-6 dijadwalkan pada siklus rilis berikutnya sesuai linimasa proyek.
