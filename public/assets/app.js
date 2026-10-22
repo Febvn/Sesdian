@@ -2024,13 +2024,8 @@
   /* ---------------- ajukan pinjam submit ---------------- */
   function nameOf(node) { var e = node && node.querySelector ? node.querySelector('[data-bind="name"]') : null; return e ? e.textContent : ''; }
   async function notifyWa(names, date) {
-    try {
-      var s = await DB.getSettings();
-      if (!s || !s.wa_number || s.wa_auto) return;     // server auto-sends, or no number set
-      var who = (USER && USER.name) || 'pengguna';
-      var msg = 'Halo Admin, saya ' + who + ' mengajukan peminjaman: ' + names.join(', ') + (date ? ('. Jatuh tempo ' + date) : '') + '.';
-      window.open('https://wa.me/' + s.wa_number + '?text=' + encodeURIComponent(msg), '_blank');
-    } catch (e) {}
+    // Fitur notifikasi WA otomatis dinonaktifkan
+    return;
   }
   /* ajukan pinjam: grouped by item type (like Data Aset), pick a quantity per
      type. Each unit is still a separate borrowing in the DB. */
