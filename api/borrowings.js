@@ -5,35 +5,52 @@ import { ensureSchema } from './_schema.js';
 
 // Stock is counted as "out" while a borrowing is in any of these states.
 const RESERVED = ['pending', 'approved', 'verified', 'borrowed', 'return_pending'];
-const STATUSES = ['pending', 'approved', 'verified', 'borrowed', 'return_pending', 'returned', 'rejected', 'cancelled'];
+const STATUSES = ['pending', 'approved', 'verified', 'borrowed', 'return_pending', 'returned', 'rejected', 'cancelled', 'expired'];
 const STAFF = ['admin', 'verifikator'];
 
-// Workflow (2 verifications, then the item is out — no separate "lend" step):
+// Workflow (two-tier verification, then item is physically handed over):
 //   pending --(admin approve = verif 1)--> approved
-//        --(verifikator verify = verif 2, serah terima)--> borrowed  (= sedang dipinjam)
+//        --(verifikator verify = verif 2, serah terima)--> borrowed (= sedang dipinjam)
 //        --(peminjam: konfirmasi kembali)--> return_pending
-//        --(admin verifikasi pengembalian)--> returned
-//   pending --(peminjam batalkan sendiri, tanpa admin)--> cancelled  (stok dikembalikan)
-//   'verified' is kept only for legacy data and treated like 'borrowed' (out).
+//        --(admin/verifikator verifikasi pengembalian)--> returned
+//   pending / approved --(peminjam/admin batalkan sebelum serah terima)--> cancelled (stok kembali)
 function transitionError(prevStatus, target, role, isOwner) {
   const staff = STAFF.indexOf(role) !== -1;
-  let rule;
-  if (target === 'approved') rule = { from: ['pending'], ok: role === 'admin', msg: 'Persetujuan awal hanya oleh admin.' };
-  else if (target === 'borrowed') {
-    // verifikator's 2nd verification hands the item over; staff may re-activate a rejected return
-    /* [KUNCI]: Pemindaian serah terima (kamera QR) & notifikasi terjadwal (cron) belum diaktifkan.
-       * Alur serah terima tetap mengandalkan verifikasi akun berwenang (admin / verifikator).
-       * // TODO: Validasi kode token fisik via scan kamera sebelum serah terima
-       */
-      if (prevStatus === 'approved') rule = { from: ['approved'], ok: role === 'verifikator', msg: 'Verifikasi kedua (serah terima) hanya oleh verifikator.' };
-    else rule = { from: ['verified', 'return_pending'], ok: staff, msg: 'Hanya admin/verifikator.' };
+
+  // Larangan memproses pengajuan sendiri (SKPL):
+  // Admin dan Verifikator dilarang menyetujui, memverifikasi serah terima,
+  // menyelesaikan pengembalian, atau menolak peminjaman atas nama dirinya sendiri.
+  if (isOwner && staff) {
+    if (target === 'approved') return 'Tidak dapat menyetujui pengajuan milik sendiri.';
+    if (target === 'borrowed') return 'Tidak dapat memverifikasi serah terima pengajuan milik sendiri.';
+    if (target === 'returned') return 'Tidak dapat memverifikasi pengembalian pengajuan milik sendiri.';
+    if (target === 'rejected') return 'Tidak dapat menolak pengajuan sendiri, gunakan opsi batalkan.';
   }
-  else if (target === 'return_pending') rule = { from: ['borrowed', 'verified'], ok: staff || isOwner, msg: 'Hanya peminjam atau admin yang dapat mengonfirmasi pengembalian.' };
-  else if (target === 'returned') rule = { from: ['borrowed', 'verified', 'return_pending'], ok: staff, msg: 'Verifikasi pengembalian hanya oleh admin/verifikator.' };
-  else if (target === 'rejected') rule = { from: ['pending', 'approved', 'verified'], ok: staff, msg: 'Peminjaman ini tidak bisa ditolak.' };
-  // Peminjam boleh membatalkan pengajuannya sendiri selama masih menunggu persetujuan admin.
-  else if (target === 'cancelled') rule = { from: ['pending'], ok: isOwner, msg: 'Hanya peminjam yang dapat membatalkan, dan hanya selagi menunggu persetujuan admin.' };
-  else return 'Status tidak valid';
+
+  let rule;
+  if (target === 'approved') {
+    rule = { from: ['pending'], ok: role === 'admin', msg: 'Persetujuan awal hanya oleh admin.' };
+  } else if (target === 'borrowed') {
+    if (prevStatus === 'approved') {
+      rule = { from: ['approved'], ok: role === 'verifikator', msg: 'Verifikasi kedua (serah terima) hanya oleh verifikator.' };
+    } else {
+      rule = { from: ['verified', 'return_pending'], ok: staff, msg: 'Hanya admin/verifikator.' };
+    }
+  } else if (target === 'return_pending') {
+    rule = { from: ['borrowed', 'verified'], ok: staff || isOwner, msg: 'Hanya peminjam atau admin yang dapat mengonfirmasi pengembalian.' };
+  } else if (target === 'returned') {
+    rule = { from: ['borrowed', 'verified', 'return_pending'], ok: staff, msg: 'Verifikasi pengembalian hanya oleh admin/verifikator.' };
+  } else if (target === 'rejected') {
+    rule = { from: ['pending', 'approved', 'verified'], ok: staff, msg: 'Peminjaman ini tidak bisa ditolak.' };
+  } else if (target === 'cancelled') {
+    // Peminjam atau admin berhak membatalkan pengajuan sebelum barang diserahterimakan (baik selagi pending maupun setelah approved)
+    rule = { from: ['pending', 'approved'], ok: isOwner || staff, msg: 'Hanya peminjam atau admin yang dapat membatalkan pengajuan sebelum serah terima.' };
+  } else if (target === 'expired') {
+    rule = { from: ['pending', 'approved', 'borrowed', 'verified', 'return_pending'], ok: staff, msg: 'Penetapan status kedaluwarsa hanya oleh staf.' };
+  } else {
+    return 'Status tidak valid';
+  }
+
   if (!rule.ok) return rule.msg;
   if (rule.from.indexOf(prevStatus) === -1) return rule.msg;
   return null;
@@ -57,7 +74,9 @@ export default async function handler(req, res) {
         ? await sql`select b.id, b.borrower_name, b.qty, b.status, b.due_date, b.created_at,
                b.approved_at, b.verified_at, b.returned_at,
                coalesce(a.name,'-') as asset_name, coalesce(a.code,'') as asset_code,
+               coalesce(a.qr_code,'') as asset_qr_code,
                coalesce(u.avatar,'') as borrower_avatar,
+               case when b.due_date is not null and b.due_date < current_date and b.status in ('borrowed', 'verified', 'return_pending', 'approved') then true else false end as is_overdue,
                count(*) over() as total_count
             from borrowings b left join assets a on a.id = b.asset_id
             left join users u on u.id = b.user_id
@@ -65,6 +84,8 @@ export default async function handler(req, res) {
         : await sql`select b.id, b.borrower_name, b.qty, b.status, b.due_date, b.created_at,
                b.approved_at, b.verified_at, b.returned_at,
                coalesce(a.name,'-') as asset_name, coalesce(a.code,'') as asset_code,
+               coalesce(a.qr_code,'') as asset_qr_code,
+               case when b.due_date is not null and b.due_date < current_date and b.status in ('borrowed', 'verified', 'return_pending', 'approved') then true else false end as is_overdue,
                count(*) over() as total_count
             from borrowings b left join assets a on a.id = b.asset_id
             where b.user_id = ${auth.sub}
@@ -86,8 +107,7 @@ export default async function handler(req, res) {
       const notes = body.notes || null;
       if (!assetId) return send(res, 400, { error: 'Aset tidak valid' });
       if (!dueDate) return send(res, 400, { error: 'Tanggal jatuh tempo kembali wajib diisi' });
-      // clean 400 instead of a raw DB cast error, and no due dates in the past
-      // (compared against UTC "today" so WIB/WITA/WIT users are never blocked early)
+
       if (!/^\d{4}-\d{2}-\d{2}$/.test(String(dueDate)) || isNaN(new Date(dueDate + 'T00:00:00Z').getTime()))
         return send(res, 400, { error: 'Format tanggal jatuh tempo tidak valid' });
       if (String(dueDate) < new Date().toISOString().slice(0, 10))
@@ -111,12 +131,12 @@ export default async function handler(req, res) {
       if (!rows.length) return send(res, 400, { error: 'Stok tidak mencukupi' });
       const arows = await sql`select name from assets where id = ${assetId}`;
       const assetName = arows.length ? arows[0].name : 'Aset';
-      await notifyAdminBorrow({ assetName: assetName, borrower: borrower, qty: qty, due: dueDate }); // best-effort WA
+      await notifyAdminBorrow({ assetName: assetName, borrower: borrower, qty: qty, due: dueDate });
       return send(res, 200, { borrowing: rows[0], asset_name: assetName });
     } catch (e) { return send(res, 500, { error: e.message }); }
   }
 
-  // ---------- change status (role-gated per transition; owner may confirm return) ----------
+  // ---------- change status (role-gated per transition; owner may cancel or confirm return) ----------
   if (req.method === 'PATCH') {
     const auth = requireAuth(req, res); if (!auth) return;
     try {
@@ -133,9 +153,33 @@ export default async function handler(req, res) {
       const err = transitionError(prev.status, status, auth.role, isOwner);
       if (err) return send(res, 403, { error: err });
 
+      // Verifikasi pencocokan unit fisik hasil pemindaian (F-18 & F-20)
+      if ((status === 'borrowed' || status === 'returned') && (body.scanned_code || body.asset_code || body.qr_code)) {
+        const rawScanned = String(body.scanned_code || body.asset_code || body.qr_code).trim();
+        if (rawScanned && prev.asset_id) {
+          let code = rawScanned;
+          if (code.indexOf('qr=') !== -1) {
+            const m = code.match(/[?&]qr=([^&#]+)/);
+            if (m && m[1]) code = decodeURIComponent(m[1]).trim();
+          }
+          const arows = await sql`select code, qr_code, name from assets where id = ${prev.asset_id}`;
+          if (arows.length) {
+            const ast = arows[0];
+            const c1 = String(ast.code || '').trim().toLowerCase();
+            const q1 = String(ast.qr_code || '').trim().toLowerCase();
+            const s1 = code.toLowerCase();
+            if (s1 !== c1 && s1 !== q1 && rawScanned.toLowerCase() !== c1 && rawScanned.toLowerCase() !== q1) {
+              return send(res, 400, {
+                error: `Unit yang dipindai (${rawScanned}) tidak cocok dengan unit aset yang disetujui (${ast.name} - ${ast.code || ast.qr_code}).`
+              });
+            }
+          }
+        }
+      }
+
       const wasOut = RESERVED.indexOf(prev.status) !== -1;
       const nowOut = RESERVED.indexOf(status) !== -1;
-      const releasing = wasOut && !nowOut;     // returned/rejected -> give stock back
+      const releasing = wasOut && !nowOut;     // returned/rejected/cancelled/expired -> give stock back
       const reserving = !wasOut && nowOut;     // (re)activate -> take stock again
 
       if (reserving && prev.asset_id) {
@@ -145,7 +189,7 @@ export default async function handler(req, res) {
 
       const dAvail = releasing ? prev.qty : (reserving ? -prev.qty : 0);
       const dBorrow = releasing ? -prev.qty : (reserving ? prev.qty : 0);
-      // status + audit stamps + stock adjustment in ONE statement -> can't desync
+      // Status update + audit stamps + stock adjustment in ONE statement
       await sql`
         with b as (
           update borrowings set
