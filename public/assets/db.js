@@ -142,39 +142,26 @@
     return data.slice();
   }
 
-    var STATIC_BORROWINGS = [
-    { id: 32, asset_name: 'Lemari Besi/Metal', asset_code: '305010400111', borrower_name: 'Anselmus Herpin Hasugian', status: 'pending', due_date: '2026-10-24', created_at: '2026-10-22T02:13:42.491Z' },
-    { id: 31, asset_name: 'A.C. Sentral', asset_code: '30502040021', borrower_name: 'Adi Septriansyah', status: 'approved', due_date: '2026-10-24', created_at: '2026-10-22T01:35:53.637Z' },
-    { id: 30, asset_name: 'A.C. Split', asset_code: '305020400432', borrower_name: 'Adi Septriansyah', status: 'rejected', due_date: '2026-09-04', created_at: '2026-09-03T08:32:17.761Z' },
-    { id: 29, asset_name: 'Tangga Aluminium', asset_code: '30502060343', borrower_name: 'Jimmy Margono', status: 'approved', due_date: '2026-08-31', created_at: '2026-08-31T05:53:53.634Z' },
-    { id: 28, asset_name: 'Alat Penghancur Kertas', asset_code: '30501050151', borrower_name: 'Firhansyah', status: 'returned', due_date: '2026-08-31', created_at: '2026-08-31T05:22:04.272Z' },
-    { id: 27, asset_name: 'A.C. Sentral', asset_code: '30502040022', borrower_name: 'Adi Septriansyah', status: 'returned', due_date: '2026-08-07', created_at: '2026-08-03T07:16:06.073Z' },
-    { id: 26, asset_name: 'A.C. Sentral', asset_code: '30502040021', borrower_name: 'Adi Septriansyah', status: 'returned', due_date: '2026-08-07', created_at: '2026-08-03T07:16:05.075Z' },
-    { id: 25, asset_name: 'Filing Cabinet Kayu', asset_code: '30501040061', borrower_name: 'Admin', status: 'returned', due_date: '2026-08-05', created_at: '2026-08-03T06:11:01.625Z' },
-    { id: 24, asset_name: 'Alat Penghancur Kertas', asset_code: '30501050152', borrower_name: 'Adi Septriansyah', status: 'cancelled', due_date: '2026-07-16', created_at: '2026-07-14T05:55:46.693Z' },
-    { id: 23, asset_name: 'A.C. Sentral', asset_code: '30502040021', borrower_name: 'Adi Septriansyah', status: 'returned', due_date: '2026-07-17', created_at: '2026-07-14T05:24:37.380Z' },
-    { id: 20, asset_name: 'A.C. Split', asset_code: '305020400432', borrower_name: 'Admin', status: 'rejected', due_date: '2026-07-16', created_at: '2026-07-08T06:09:07.606Z' },
-    { id: 19, asset_name: 'A.C. Split', asset_code: '305020400432', borrower_name: 'Admin', status: 'rejected', due_date: '2026-07-10', created_at: '2026-07-08T06:02:40.184Z' },
-    { id: 16, asset_name: 'Alat Penghancur Kertas', asset_code: '30501050151', borrower_name: 'Admin', status: 'rejected', due_date: '2026-07-09', created_at: '2026-07-08T01:39:43.581Z' },
-    { id: 14, asset_name: 'Clorida Meter', asset_code: '30801140121', borrower_name: 'Adi Septriansyah', status: 'cancelled', due_date: '2026-07-09', created_at: '2026-07-06T06:43:26.146Z' },
-    { id: 13, asset_name: 'A.C. Split', asset_code: '305020400439', borrower_name: 'Adi Septriansyah', status: 'returned', due_date: '2026-07-09', created_at: '2026-07-06T01:15:54.844Z' },
-    { id: 9, asset_name: 'A.C. Split', asset_code: '305020400432', borrower_name: 'Admin', status: 'returned', due_date: null, created_at: '2026-07-01T06:02:54.648Z' }
-  ];
-
   function fmtBorrow(b) {
     var d = b.created_at ? new Date(b.created_at) : null;
     return {
       id: b.id, asset_name: b.asset_name || '-', asset_code: b.asset_code || '',
-      borrower: b.borrower_name || '-', borrower_avatar: b.borrower_avatar || '', qty: b.qty, status: b.status,
+      asset_qr_code: b.asset_qr_code || '',
+      borrower: b.borrower_name || '-', borrower_avatar: b.borrower_avatar || '',
+      qty: b.qty, status: b.status,
       due_date: b.due_date ? String(b.due_date).slice(0, 10) : '',
       request_date: d ? (d.getDate() + '/' + (d.getMonth() + 1) + '/' + d.getFullYear()) : '',
       // raw timestamps for the notification bell (event time per status)
       created_at: b.created_at || null, approved_at: b.approved_at || null,
       verified_at: b.verified_at || null, returned_at: b.returned_at || null,
+      is_overdue: !!b.is_overdue,
     };
   }
+
   async function borrowings() {
-    return P(STATIC_BORROWINGS.slice().map(fmtBorrow));
+    if (demo) return P(DEMO.borrowings.slice().map(fmtBorrow));
+    var res = await req('borrowings');
+    return (res.borrowings || []).map(fmtBorrow);
   }
 
   async function dashboard() {
@@ -192,25 +179,36 @@
     return data;
   }
 
-    async function requestBorrowing(o) {
-    var cur = (typeof STATIC_BORROWINGS !== 'undefined' ? STATIC_BORROWINGS : []);
-    var a = (typeof _assetsCache !== 'undefined' && _assetsCache ? _assetsCache.filter(function (x) { return x.id == o.assetId; })[0] : null);
-    var assetName = a ? a.name : 'Aset';
-    var assetCode = a ? a.code : '';
-    var user = (typeof auth !== 'undefined' && auth.currentUser && auth.currentUser()) || {};
-    var userName = user.name || 'Pengguna';
-    var newId = cur.length ? Math.max.apply(null, cur.map(function(x) { return x.id; })) + 1 : 101;
-    var b = {
-      id: newId,
-      asset_name: assetName,
-      asset_code: assetCode,
-      borrower_name: userName,
-      status: 'pending',
-      due_date: o.dueDate || null,
-      created_at: new Date().toISOString()
-    };
-    cur.unshift(b);
-    return P(b);
+  async function requestBorrowing(o) {
+    if (demo) {
+      var a = (DEMO.assets || []).filter(function (x) { return x.id == o.assetId; })[0];
+      var assetName = a ? a.name : 'Aset';
+      var assetCode = a ? a.code : '';
+      var user = (typeof auth !== 'undefined' && auth.currentUser && auth.currentUser()) || {};
+      var userName = user.name || 'Pengguna Demo';
+      var qty = Math.max(1, parseInt(o.qty || 1, 10));
+      var b = {
+        id: ++DEMO.seq,
+        asset_id: o.assetId,
+        asset_name: assetName,
+        asset_code: assetCode,
+        asset_qr_code: a ? (a.qr_code || '') : '',
+        borrower_name: userName,
+        qty: qty,
+        status: 'pending',
+        due_date: o.dueDate || null,
+        notes: o.notes || null,
+        created_at: new Date().toISOString()
+      };
+      if (a && a.stock_available >= qty) {
+        a.stock_available -= qty;
+        a.stock_borrowed = (a.stock_borrowed || 0) + qty;
+      }
+      DEMO.borrowings.unshift(b);
+      return P(b);
+    }
+    var res = await req('borrowings', { method: 'POST', body: o });
+    return res.borrowing;
   }
 
   /* ====================== public catalog / detail (guest) ====================== */
@@ -348,10 +346,20 @@
   async function deleteRoom(id) { if (demo) { DEMO.rooms = DEMO.rooms.filter(function (x) { return x.id != id; }); return P({ ok: true }); } return req('rooms', { method: 'DELETE', body: { id: id } }); }
 
   /* ====================== admin: borrowings status ====================== */
-  async function updateBorrowingStatus(id, status) {
-    var b = STATIC_BORROWINGS.filter(function (x) { return x.id == id; })[0];
-    if (b) b.status = status;
-    return P({ ok: true, status: status });
+  async function updateBorrowingStatus(id, status, extra) {
+    if (demo) {
+      var b = (DEMO.borrowings || []).filter(function (x) { return x.id == id; })[0];
+      var now = new Date().toISOString();
+      if (b) {
+        b.status = status;
+        if (status === 'approved') b.approved_at = now;
+        if (status === 'borrowed' || status === 'verified') b.verified_at = now;
+        if (status === 'returned') b.returned_at = now;
+      }
+      return P({ ok: true, status: status });
+    }
+    var body = Object.assign({ id: id, status: status }, extra || {});
+    return await req('borrowings', { method: 'PATCH', body: body });
   }
 
   /* ====================== settings (WhatsApp) ====================== */

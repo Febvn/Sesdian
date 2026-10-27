@@ -46,6 +46,7 @@
     returned: { label: 'Kembali', bg: '#e2f6e7', fg: '#127a2b' },
     rejected: { label: 'Ditolak', bg: '#fbe4e4', fg: '#a02020' },
     cancelled: { label: 'Dibatalkan', bg: '#eceff3', fg: '#5b6472' },
+    expired: { label: 'Kedaluwarsa', bg: '#fee2e2', fg: '#991b1b' },
   };
 
   /* ---------------- toast ---------------- */
@@ -1278,7 +1279,9 @@
   }
   function roomCatalogUrl(room) {
     var origin = location.origin + location.pathname.replace(/[^/]*$/, '');
-    return origin + 'katalog.html?room=' + encodeURIComponent(room.name || '');
+    if (room && room.code) return origin + 'katalog.html?room_code=' + encodeURIComponent(room.code);
+    if (room && room.id) return origin + 'katalog.html?room_id=' + encodeURIComponent(room.id);
+    return origin + 'katalog.html?room=' + encodeURIComponent(room ? (room.name || '') : '');
   }
   // #10 — QR that opens the room's public catalog (what's inside the room).
   async function showRoomQR(room) {
@@ -1464,15 +1467,21 @@
     return_pending: { title: 'Konfirmasi Pengembalian',  message: 'Ajukan pengembalian barang ini ke admin?',                     variant: 'primary', confirmLabel: 'Ya, kembalikan' },
     rejected:       { title: 'Tolak Permintaan',         message: 'Apakah Anda yakin menolak permintaan ini?',                    variant: 'danger',  confirmLabel: 'Ya, tolak' },
     cancelled:      { title: 'Batalkan Pengajuan',       message: 'Batalkan pengajuan peminjaman ini? Stok akan dikembalikan dan pengajuan tidak dapat dilanjutkan.', variant: 'danger', confirmLabel: 'Ya, batalkan' },
+    expired:        { title: 'Tandai Kedaluwarsa',       message: 'Tandai peminjaman ini sebagai kedaluwarsa?',                                   variant: 'danger',  confirmLabel: 'Ya, tandai' },
   };
   // #8 — every status change asks for a second confirmation before it runs.
   function changeStatus(rec, status) {
     var c = STATUS_CONFIRM[status] || { title: 'Konfirmasi', message: 'Apakah Anda yakin ingin melanjutkan?' };
     confirmAction(c, async function () {
-      await DB.updateBorrowingStatus(rec.id, status); toast('Status diperbarui', 'success');
-      if (status === 'returned') { DB.notify(rec.id, 'returned').then(function (r) { if (r && !r.auto && r.wa) openWaLink(r.wa, r.text); }).catch(function () {}); } // best-effort, silent
-      else if (status === 'return_pending') { DB.notify(rec.id, 'return-request').catch(function () {}); }                                                                  // notify admin (auto-send if gateway set)
-      reloadData();
+      try {
+        await DB.updateBorrowingStatus(rec.id, status);
+        toast('Status diperbarui', 'success');
+        if (status === 'returned') { DB.notify(rec.id, 'returned').then(function (r) { if (r && !r.auto && r.wa) openWaLink(r.wa, r.text); }).catch(function () {}); }
+        else if (status === 'return_pending') { DB.notify(rec.id, 'return-request').catch(function () {}); }
+        reloadData();
+      } catch (err) {
+        toast((err && err.message) || 'Gagal memperbarui status', 'error');
+      }
     });
   }
   function enhanceBorrowingRow(row, rec) {
@@ -1491,8 +1500,8 @@
       else if (rec.status === 'return_pending') { btns.push(['Verifikasi Pengembalian', 'success', function () { changeStatus(rec, 'returned'); }], ['Tolak', 'danger', function () { changeStatus(rec, 'borrowed'); }]); }
       else if (IS_ADMIN && rec.status === 'approved') { cell._note = 'Menunggu verifikator'; }
       if (isOverdue(rec) && (rec.status === 'borrowed' || rec.status === 'verified')) btns.unshift(['Ingatkan WA', 'warning', function () { return doNotify(rec, 'remind', 'Pengingat dikirim ke peminjam'); }]);
-    } else if (rec.status === 'pending') {
-      // peminjam bisa membatalkan sendiri selagi masih menunggu persetujuan admin (tanpa lewat admin)
+    } else if (rec.status === 'pending' || rec.status === 'approved') {
+      // peminjam dapat membatalkan pengajuan sendiri sebelum serah terima dilakukan
       btns.push(['Batalkan', 'danger', function () { changeStatus(rec, 'cancelled'); }]);
     } else if (rec.status === 'borrowed' || rec.status === 'verified') {
       btns.push(['Konfirmasi Pengembalian', 'primary', function () { changeStatus(rec, 'return_pending'); }]);
@@ -1778,7 +1787,7 @@
     var navContainer = ref.parentNode.parentNode;
     var sec = el('div', { 'data-role-nav': '', style: 'margin-bottom:0.25rem' });
     sec.appendChild(sectionHeader('MANAJEMEN'));
-    // Laporan dan Verifikasi dinonaktifkan untuk fase berjalan
+    sec.appendChild(makeNavLink('verifikasi.html', 'check_circle', 'Verifikasi', 'Persetujuan ke-2'));
     // Kelola User dinonaktifkan
     /* =========================================================================
      * FITUR TAHAP LANJUTAN (KUNCI / STATUS DITANGGUHKAN):
@@ -1801,16 +1810,18 @@
   /* ---------------- dynamic app shell (for new pages that opt in) ----------------
      A page using <aside data-shell></aside> + a sticky <div data-topbar></div>
      gets the standard sidebar + topbar built here, so it needs no copied markup. */
-  var PAGE_TITLES = { dashboard: 'Dashboard', dataaset: 'Data Aset', kategoriaset: 'Kategori Aset', ruangan: 'Ruangan', daftarpinjam: 'Daftar Pinjam', ajukanpinjam: 'Ajukan Pinjam', profil: 'Profil Saya' };
+  var PAGE_TITLES = { dashboard: 'Dashboard', dataaset: 'Data Aset', kategoriaset: 'Kategori Aset', ruangan: 'Ruangan', daftarpinjam: 'Daftar Pinjam', dipinjam: 'Sedang Dipinjam', ajukanpinjam: 'Ajukan Pinjam', verifikasi: 'Verifikasi', profil: 'Profil Saya' };
   // Per-page chrome icons (topbar breadcrumb). NAV_ICONS keys map a sidebar link's
   // href → the same icon, so the menu and the header always agree (fixes the old
   // hard-coded "home" icon that showed on every page — see REDESIGN-GUIDE #2/#5).
-  var PAGE_ICONS = { dashboard: 'zap', dataaset: 'package', kategoriaset: 'tag', ruangan: 'home', daftarpinjam: 'refresh', ajukanpinjam: 'clipboard', katalog: 'search', profil: 'user' };
-  var NAV_ICONS = { 'dashboard.html': 'zap', 'dataaset.html': 'package', 'kategoriaset.html': 'tag', 'ruangan.html': 'home', 'daftarpinjam.html': 'refresh', 'ajukanpinjam.html': 'clipboard', 'katalog.html': 'search' };
+  var PAGE_ICONS = { dashboard: 'zap', dataaset: 'package', kategoriaset: 'tag', ruangan: 'home', daftarpinjam: 'refresh', dipinjam: 'clock', ajukanpinjam: 'clipboard', verifikasi: 'check_circle', katalog: 'search', profil: 'user' };
+  var NAV_ICONS = { 'dashboard.html': 'zap', 'dataaset.html': 'package', 'kategoriaset.html': 'tag', 'ruangan.html': 'home', 'daftarpinjam.html': 'refresh', 'dipinjam.html': 'clock', 'ajukanpinjam.html': 'clipboard', 'verifikasi.html': 'check_circle', 'katalog.html': 'search' };
   function pageIcon(p) { return (window.SESDIAN_ICONS && window.SESDIAN_ICONS[PAGE_ICONS[p] || 'home']) || ''; }
   // "Sedang Dipinjam" link for everyone (added into the PEMINJAMAN section).
   function injectBorrowedNav() {
-    // Tautan sedang dipinjam dinonaktifkan
+    if ($('aside a[href="dipinjam.html"]')) return;
+    var ref = $('aside a[href="daftarpinjam.html"]'); if (!ref) return;
+    ref.parentNode.insertBefore(makeNavLink('dipinjam.html', 'clock', 'Sedang Dipinjam', 'Barang belum kembali'), ref.nextSibling);
   }
   function navSection(label, links) { var d = el('div', { style: 'margin-bottom:0.25rem' }); d.appendChild(sectionHeader(label)); links.forEach(function (l) { d.appendChild(l); }); return d; }
   function buildShell() {
@@ -1925,10 +1936,60 @@
     if (p === 'dataaset') bar([
       { label: 'Tambah Aset', icon: 'package', onClick: function () { openAssetForm(null); } },
       { label: 'Import Excel', variant: 'success', icon: 'archive', onClick: function () { if (window.SESDIAN_IMPORT) window.SESDIAN_IMPORT.open(); else toast('Modul import belum siap', 'error'); } },
+      { label: 'Ekspor Data', variant: 'primary', icon: 'clipboard', onClick: function () { exportAssetsData(); } },
     ]);
     else if (p === 'kategoriaset') bar([{ label: 'Tambah Kategori', onClick: function () { openCategoryForm(null); } }]);
     else if (p === 'ruangan') bar([{ label: 'Tambah Ruangan', onClick: function () { openRoomForm(null); } }]);
     else if (p === 'users') bar([{ label: 'Tambah User', icon: 'user', onClick: function () { openUserForm(); } }]);
+  }
+
+
+  /* ---------------- export data aset (Charter SES-4.1.2) ---------------- */
+  async function exportAssetsData() {
+    try {
+      toast('Menyiapkan berkas ekspor data aset...', 'info');
+      var list = await DB.assets();
+      if (!list || !list.length) {
+        toast('Tidak ada data aset untuk diekspor', 'error');
+        return;
+      }
+      var headers = ['ID', 'Kode Barang', 'QR Code', 'Nama Aset', 'Merek', 'Kategori', 'Ruangan', 'Tahun', 'Kondisi', 'Tipe', 'Status', 'Stok Total', 'Stok Tersedia', 'Stok Dipinjam'];
+      var rows = [headers.join(',')];
+      list.forEach(function (a) {
+        var clean = function (v) {
+          var s = String(v == null ? '' : v).replace(/"/g, '""');
+          return '"' + s + '"';
+        };
+        rows.push([
+          clean(a.id),
+          clean(a.code),
+          clean(a.qr_code || ''),
+          clean(a.name),
+          clean(a.brand || ''),
+          clean(a.category || ''),
+          clean(a.room || ''),
+          clean(a.year || ''),
+          clean(a.condition || ''),
+          clean(a.type || ''),
+          clean(a.status || 'tersedia'),
+          clean(a.stock_total || 0),
+          clean(a.stock_available || 0),
+          clean(a.stock_borrowed || 0)
+        ].join(','));
+      });
+      var csvContent = '\uFEFF' + rows.join('\r\n');
+      var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      var dStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+      var aEl = document.createElement('a');
+      aEl.href = URL.createObjectURL(blob);
+      aEl.download = 'data-aset-sesdian-' + dStr + '.csv';
+      document.body.appendChild(aEl);
+      aEl.click();
+      aEl.remove();
+      toast('Data aset berhasil diekspor (' + list.length + ' baris)', 'success');
+    } catch (e) {
+      toast('Gagal mengekspor data: ' + ((e && e.message) || e), 'error');
+    }
   }
 
   /* ---------------- password toggle ---------------- */
@@ -2161,6 +2222,272 @@
     } catch (e) { if (e && e.status === 401) { location.replace('login.html'); return; } toast((e && e.message) || 'Gagal mengirim pengajuan', 'error'); }
   }
 
+  var _jsQRLoading = null;
+  function ensureJsQR() {
+    if (window.jsQR) return Promise.resolve(window.jsQR);
+    if (_jsQRLoading) return _jsQRLoading;
+    _jsQRLoading = new Promise(function (resolve, reject) {
+      var s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js';
+      s.onload = function () { resolve(window.jsQR); };
+      s.onerror = function () { reject(new Error('Gagal memuat engine pembaca QR')); };
+      document.head.appendChild(s);
+    });
+    return _jsQRLoading;
+  }
+
+  function parseScannedCode(raw) {
+    if (!raw) return '';
+    var s = String(raw).trim();
+    if (s.indexOf('qr=') !== -1) {
+      var m = s.match(/[?&]qr=([^&#]+)/);
+      if (m && m[1]) return decodeURIComponent(m[1]).trim();
+    }
+    if (s.indexOf('id=') !== -1) {
+      var m2 = s.match(/[?&]id=([^&#]+)/);
+      if (m2 && m2[1]) return decodeURIComponent(m2[1]).trim();
+    }
+    if (s.indexOf('code=') !== -1) {
+      var m3 = s.match(/[?&]code=([^&#]+)/);
+      if (m3 && m3[1]) return decodeURIComponent(m3[1]).trim();
+    }
+    return s;
+  }
+
+  /* ---------------- Pemindaian Serah Terima dan Pengembalian (SES-4.2.2) ---------------- */
+  function openScanHandoverModal() {
+    if (modalOpen()) return;
+    var ov = overlay(), m = el('div', { class: 'sesd-modal', style: 'width:520px;max-width:calc(100vw - 2rem)' });
+    var stream = null;
+    var animId = null;
+    var scanning = true;
+
+    var head = el('div', { style: 'display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem' });
+    head.appendChild(el('h3', { style: 'margin:0;font-size:1.15rem;display:flex;align-items:center;gap:8px' }, ic('camera') + ' Scan Serah Terima & Pengembalian'));
+    var closeBtn = el('button', { class: 'sesd-btn sesd-btn-ghost sesd-btn-sm', style: 'padding:4px 8px;font-size:1.1rem' }, '×');
+    head.appendChild(closeBtn);
+    m.appendChild(head);
+
+    m.appendChild(el('p', { style: 'color:var(--text-muted);font-size:0.8rem;margin:-6px 0 14px' }, 'Arahkan kamera ke QR Code label barang atau masukkan Kode Barang / QR secara manual untuk memproses serah terima dan pengembalian (F-18 & F-20).'));
+
+    var viewWrap = el('div', { style: 'position:relative;background:#0b1120;border-radius:12px;height:190px;display:flex;align-items:center;justify-content:center;overflow:hidden;margin-bottom:1rem;border:2px solid var(--border)' });
+    var video = el('video', { autoplay: 'autoplay', playsinline: 'playsinline', muted: 'muted', style: 'width:100%;height:100%;object-fit:cover;display:none' });
+    var aim = el('div', { style: 'position:absolute;width:130px;height:130px;border:2px solid #10b981;border-radius:10px;box-shadow:0 0 16px rgba(16,185,129,0.35);pointer-events:none;transition:border-color 0.2s, box-shadow 0.2s' });
+    aim.appendChild(el('div', { style: 'width:100%;height:2px;background:#10b981;box-shadow:0 0 8px #10b981;animation:sesd-scan-laser 2s infinite ease-in-out' }));
+    var camHint = el('div', { style: 'color:rgba(255,255,255,0.7);font-size:0.75rem;text-align:center;padding:0.75rem;pointer-events:none' }, 'Mengaktifkan sensor kamera...');
+
+    viewWrap.appendChild(video);
+    viewWrap.appendChild(aim);
+    viewWrap.appendChild(camHint);
+    m.appendChild(viewWrap);
+
+    var canvas = document.createElement('canvas');
+    var ctx = canvas.getContext('2d');
+
+    function scanLoop() {
+      if (!scanning) return;
+      if (video.readyState === video.HAVE_ENOUGH_DATA) {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        if (window.jsQR) {
+          try {
+            var imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            var qrRes = window.jsQR(imgData.data, imgData.width, imgData.height, { inversionAttempts: 'dontInvert' });
+            if (qrRes && qrRes.data) {
+              var rawFound = String(qrRes.data || '').trim();
+              if (rawFound) {
+                scanning = false;
+                aim.style.borderColor = '#3b82f6';
+                aim.style.boxShadow = '0 0 20px rgba(59,130,246,0.6)';
+                input.value = rawFound;
+                checkCode(rawFound);
+                return;
+              }
+            }
+          } catch (e) {}
+        }
+      }
+      animId = requestAnimationFrame(scanLoop);
+    }
+
+    ensureJsQR().then(function () {
+      if (video.style.display === 'block') {
+        animId = requestAnimationFrame(scanLoop);
+      }
+    }).catch(function (e) {
+      console.warn('jsQR load warning:', e);
+    });
+
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } }).then(function (s) {
+        stream = s;
+        video.srcObject = s;
+        video.style.display = 'block';
+        camHint.style.display = 'none';
+        video.play().catch(function () {});
+        animId = requestAnimationFrame(scanLoop);
+      }).catch(function () {
+        camHint.textContent = 'Kamera tidak aktif atau izin ditolak. Silakan masukkan kode aset di bawah.';
+      });
+    } else {
+      camHint.textContent = 'Kamera tidak didukung peramban. Silakan ketik kode aset di bawah.';
+    }
+
+    var inputWrap = el('div', { style: 'display:flex;gap:8px;margin-bottom:1rem' });
+    var input = el('input', { type: 'text', placeholder: 'Ketik atau scan kode aset / QR (mis. 305010400111)...', style: 'flex:1;padding:0.65rem 0.85rem;border-radius:10px;border:1.5px solid var(--border);font-size:0.875rem;outline:none' });
+    var checkBtn = el('button', { class: 'sesd-btn sesd-btn-primary' }, 'Cari');
+    inputWrap.appendChild(input);
+    inputWrap.appendChild(checkBtn);
+    m.appendChild(inputWrap);
+
+    var resultBox = el('div', { style: 'min-height:96px;background:var(--bg-mid);border-radius:12px;padding:0.85rem;border:1px solid var(--border);display:flex;flex-direction:column;justify-content:center' });
+    resultBox.appendChild(el('div', { style: 'color:var(--text-muted);font-size:0.8rem;text-align:center' }, 'Arahkan QR ke kamera atau ketik kode unit untuk memverifikasi.'));
+    m.appendChild(resultBox);
+
+    async function checkCode(rawInput) {
+      var query = parseScannedCode(rawInput);
+      if (!query) {
+        resultBox.innerHTML = '';
+        resultBox.appendChild(el('div', { style: 'color:var(--danger);font-size:0.82rem;font-weight:600;text-align:center' }, 'Silakan masukkan kode aset atau pindai QR Code yang valid.'));
+        scanning = true;
+        animId = requestAnimationFrame(scanLoop);
+        return;
+      }
+
+      resultBox.innerHTML = '';
+      resultBox.appendChild(el('div', { style: 'color:var(--text-muted);font-size:0.8rem;text-align:center' }, 'Mencocokkan unit dan memeriksa transaksi peminjaman...'));
+
+      try {
+        var qLower = query.toLowerCase();
+        var allAssets = await DB.assets();
+        // Exact unit match (code, qr_code, or id)
+        var matchedAsset = allAssets.filter(function (a) {
+          var c = String(a.code || '').trim().toLowerCase();
+          var qr = String(a.qr_code || '').trim().toLowerCase();
+          var idStr = String(a.id);
+          return c === qLower || qr === qLower || idStr === qLower;
+        })[0];
+
+        var allBorrowings = await DB.borrowings();
+
+        // Find borrowings associated with the asset
+        var relatedBorrowings = allBorrowings.filter(function (b) {
+          var bc = String(b.asset_code || '').trim().toLowerCase();
+          var bqr = String(b.asset_qr_code || '').trim().toLowerCase();
+          if (matchedAsset) {
+            var mc = String(matchedAsset.code || '').trim().toLowerCase();
+            var mqr = String(matchedAsset.qr_code || '').trim().toLowerCase();
+            if (bc === mc || (mqr && bqr === mqr) || (mqr && bc === mqr)) return true;
+          }
+          return bc === qLower || bqr === qLower;
+        });
+
+        // Filter for ACTIVE actionable borrowings (approved for handover, borrowed/return_pending for return)
+        var activeMatch = relatedBorrowings.filter(function (b) {
+          return b.status === 'approved' || b.status === 'borrowed' || b.status === 'return_pending' || b.status === 'verified';
+        })[0];
+
+        resultBox.innerHTML = '';
+
+        if (!matchedAsset && !relatedBorrowings.length) {
+          resultBox.appendChild(el('div', { style: 'color:var(--danger);font-size:0.82rem;font-weight:600;text-align:center' }, 'Unit aset dengan kode atau QR "' + query + '" tidak ditemukan di sistem.'));
+          scanning = true;
+          animId = requestAnimationFrame(scanLoop);
+          return;
+        }
+
+        var assetName = (matchedAsset && matchedAsset.name) || (relatedBorrowings[0] && relatedBorrowings[0].asset_name) || 'Aset';
+        var assetCode = (matchedAsset && matchedAsset.code) || (relatedBorrowings[0] && relatedBorrowings[0].asset_code) || query;
+        var assetQr = (matchedAsset && matchedAsset.qr_code) || '';
+
+        if (!activeMatch) {
+          var lastInactive = relatedBorrowings[0];
+          var stLabel = lastInactive && STATUS[lastInactive.status] ? STATUS[lastInactive.status].label : (lastInactive ? lastInactive.status : 'Tersedia');
+          var warnCard = el('div', { style: 'text-align:center' });
+          warnCard.appendChild(el('div', { style: 'font-weight:700;font-size:0.92rem;color:var(--text)' }, assetName));
+          warnCard.appendChild(el('div', { style: 'font-size:0.75rem;color:var(--text-muted);margin:2px 0 6px' }, assetCode + (assetQr ? ' · ' + assetQr : '')));
+          warnCard.appendChild(el('div', { style: 'font-size:0.8rem;color:var(--warning);font-weight:600' }, 'Unit cocok, namun tidak ada transaksi aktif yang menunggu serah terima atau pengembalian (Status: ' + stLabel + ').'));
+          resultBox.appendChild(warnCard);
+          scanning = true;
+          animId = requestAnimationFrame(scanLoop);
+          return;
+        }
+
+        // Active match found! Display verified unit match card
+        var card = el('div');
+        var matchBadge = el('div', { style: 'display:inline-flex;align-items:center;gap:6px;background:#e8f5ec;color:#187a2f;font-weight:700;font-size:0.72rem;padding:2px 8px;border-radius:12px;margin-bottom:6px' });
+        matchBadge.innerHTML = ic('check_circle') + ' Unit Terverifikasi Cocok';
+        card.appendChild(matchBadge);
+
+        card.appendChild(el('div', { style: 'font-weight:700;font-size:0.95rem;color:var(--text)' }, assetName));
+        card.appendChild(el('div', { style: 'font-size:0.75rem;color:var(--text-muted);margin-top:2px' }, assetCode + ' · Peminjam: ' + (activeMatch.borrower || '-')));
+        var st = STATUS[activeMatch.status] ? STATUS[activeMatch.status].label : activeMatch.status;
+        card.appendChild(el('div', { style: 'font-size:0.75rem;font-weight:600;color:var(--primary);margin-top:4px' }, 'Status Transaksi: ' + st));
+
+        var actWrap = el('div', { style: 'margin-top:0.75rem;display:flex;gap:8px' });
+        if (activeMatch.status === 'approved') {
+          var btnHandover = el('button', { class: 'sesd-btn sesd-btn-sm sesd-btn-success', style: 'flex:1' }, 'Verifikasi & Serah Terima Barang');
+          btnHandover.addEventListener('click', async function () {
+            btnHandover.disabled = true;
+            btnHandover.textContent = 'Memproses...';
+            try {
+              await DB.updateBorrowingStatus(activeMatch.id, 'borrowed', { scanned_code: query });
+              toast('Barang berhasil diserahterimakan ke ' + (activeMatch.borrower || 'peminjam'), 'success');
+              cleanup();
+              reloadData();
+            } catch (err) {
+              btnHandover.disabled = false;
+              btnHandover.textContent = 'Verifikasi & Serah Terima Barang';
+              toast((err && err.message) || 'Gagal memproses serah terima', 'error');
+            }
+          });
+          actWrap.appendChild(btnHandover);
+        } else if (activeMatch.status === 'borrowed' || activeMatch.status === 'return_pending' || activeMatch.status === 'verified') {
+          var btnReturn = el('button', { class: 'sesd-btn sesd-btn-sm sesd-btn-primary', style: 'flex:1' }, 'Verifikasi Pengembalian Barang');
+          btnReturn.addEventListener('click', async function () {
+            btnReturn.disabled = true;
+            btnReturn.textContent = 'Memproses...';
+            try {
+              await DB.updateBorrowingStatus(activeMatch.id, 'returned', { scanned_code: query });
+              toast('Pengembalian barang berhasil diverifikasi', 'success');
+              cleanup();
+              reloadData();
+            } catch (err) {
+              btnReturn.disabled = false;
+              btnReturn.textContent = 'Verifikasi Pengembalian Barang';
+              toast((err && err.message) || 'Gagal memverifikasi pengembalian', 'error');
+            }
+          });
+          actWrap.appendChild(btnReturn);
+        }
+        card.appendChild(actWrap);
+        resultBox.appendChild(card);
+      } catch (e) {
+        resultBox.innerHTML = '';
+        resultBox.appendChild(el('div', { style: 'color:var(--danger);font-size:0.8rem' }, 'Gagal memeriksa transaksi: ' + (e && e.message)));
+        scanning = true;
+        animId = requestAnimationFrame(scanLoop);
+      }
+    }
+
+    checkBtn.addEventListener('click', function () { checkCode(input.value); });
+    input.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); checkCode(input.value); } });
+
+    function cleanup() {
+      scanning = false;
+      if (animId) cancelAnimationFrame(animId);
+      if (stream) { stream.getTracks().forEach(function (t) { t.stop(); }); stream = null; }
+      ov.remove();
+    }
+    closeBtn.addEventListener('click', cleanup);
+    ov.addEventListener('click', function (e) { if (e.target === ov) cleanup(); });
+
+    ov.appendChild(m);
+    document.body.appendChild(ov);
+    setTimeout(function () { input.focus(); }, 100);
+  }
+
   /* ---------------- actions ---------------- */
   async function withLoading(btnEl, fn) {
     if (!btnEl || btnEl.tagName !== 'BUTTON') return await fn();
@@ -2179,6 +2506,7 @@
         else if (act === 'register') withLoading(e, doRegister);
         else if (act === 'logout') withLoading(e, doLogout);
         else if (act === 'toggle-password') togglePassword(e);
+        else if (act === 'scan-handover') openScanHandoverModal();
         else if (act === 'submit-pinjam') withLoading(e, submitPinjam);
       });
     });
@@ -2472,8 +2800,8 @@
       rows.forEach(function (b) {
         if (IS_STAFF) {
           if (b.status === 'pending') list.push(notifItem(b.created_at, 'clipboard', (b.borrower || 'Seseorang') + ' mengajukan peminjaman ' + (b.asset_name || ''), 'daftarpinjam.html'));
-          else if (b.status === 'approved' && IS_VERIFIKATOR) list.push(notifItem(b.approved_at || b.created_at, 'check_circle', 'Peminjaman ' + (b.asset_name || '') + ' menunggu verifikasi kedua', 'daftarpinjam.html'));
-          else if (b.status === 'return_pending') list.push(notifItem(b.created_at, 'refresh', (b.borrower || 'Seseorang') + ' mengajukan pengembalian ' + (b.asset_name || ''), 'daftarpinjam.html'));
+          else if (b.status === 'approved' && IS_VERIFIKATOR) list.push(notifItem(b.approved_at || b.created_at, 'check_circle', 'Peminjaman ' + (b.asset_name || '') + ' menunggu verifikasi kedua', 'verifikasi.html'));
+          else if (b.status === 'return_pending') list.push(notifItem(b.created_at, 'refresh', (b.borrower || 'Seseorang') + ' mengajukan pengembalian ' + (b.asset_name || ''), 'dipinjam.html'));
         } else {
           if (b.status === 'pending') list.push(notifItem(b.created_at, 'clock', 'Pengajuan ' + (b.asset_name || '') + ' terkirim, menunggu persetujuan admin', 'daftarpinjam.html'));
           else if (b.status === 'approved') list.push(notifItem(b.approved_at || b.created_at, 'check_circle', 'Peminjaman ' + (b.asset_name || '') + ' disetujui admin', 'daftarpinjam.html'));

@@ -128,9 +128,23 @@
         setTimeout(function() { numEl.style.opacity = '1'; }, i * 100);
       }
     });
-    // #10 — room catalog: ?room=<name> shows only that room's items (QR target).
+    // #10 — room catalog: persistent ?room_code=<code> / ?room_id=<id> / legacy ?room=<name>
+    var roomCodeFilter = qs('room_code');
+    var roomIdFilter = qs('room_id');
     var roomFilter = qs('room');
-    if (roomFilter) {
+    if (roomCodeFilter) {
+      var rObj = (rooms || []).filter(function (r) { return (r.code || '').toLowerCase() === roomCodeFilter.toLowerCase(); })[0];
+      if (rObj) {
+        assets = assets.filter(function (a) { return (a.room || '').toLowerCase() === (rObj.name || '').toLowerCase() || a.room_id == rObj.id; });
+        document.title = 'SESDIAN - Ruangan ' + (rObj.name || rObj.code);
+      }
+    } else if (roomIdFilter) {
+      var rObj2 = (rooms || []).filter(function (r) { return String(r.id) === String(roomIdFilter); })[0];
+      if (rObj2) {
+        assets = assets.filter(function (a) { return a.room_id == rObj2.id || (a.room || '').toLowerCase() === (rObj2.name || '').toLowerCase(); });
+        document.title = 'SESDIAN - Ruangan ' + (rObj2.name || rObj2.code);
+      }
+    } else if (roomFilter) {
       assets = assets.filter(function (a) { return (a.room || '').toLowerCase() === roomFilter.toLowerCase(); });
       document.title = 'SESDIAN - Ruangan ' + roomFilter;
     }
