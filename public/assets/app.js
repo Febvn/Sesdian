@@ -1340,13 +1340,12 @@
 
     var actions = el('div', { style: 'display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap' });
     actions.appendChild(el('a', { href: roomCatalogUrl(room), class: 'sesd-btn sesd-btn-sm sesd-btn-ghost', html: ic('search') + ' Katalog Ruangan' }));
-    /* [KUNCI]: Inventarisasi ruangan berbasis pemindaian (kamera scanner) belum aktif,
-     * alur menggunakan QR statis cetak / tampilan manual.
-     * // var scanInventarisBtn = el('button', { class: 'sesd-btn sesd-btn-sm sesd-btn-ghost', html: ic('camera') + ' Scan Inventaris' });
-     */
     var qrBtn = el('button', { class: 'sesd-btn sesd-btn-sm sesd-btn-ghost', html: ic('tag') + ' QR Ruangan' });
     qrBtn.addEventListener('click', function () { showRoomQR(room); });
     actions.appendChild(qrBtn);
+    var auditBtn = el('button', { class: 'sesd-btn sesd-btn-sm sesd-btn-success', html: ic('clipboard') + ' Audit Fisik & Pindai' });
+    auditBtn.addEventListener('click', function () { close(); openRoomAuditModal(room); });
+    actions.appendChild(auditBtn);
     var editBtn = null, addBox = null, addSearch = null, poolWrap = null;
     if (IS_ADMIN) {
       editBtn = el('button', { class: 'sesd-btn sesd-btn-sm sesd-btn-primary', html: ic('pencil') + ' Edit Isi' });
@@ -1450,18 +1449,22 @@
   function todayISO() { var d = new Date(); var p = function (n) { return (n < 10 ? '0' : '') + n; }; return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()); }
   function isOverdue(rec) { return ['pending', 'approved', 'borrowed'].indexOf(rec.status) !== -1 && rec.due_date && rec.due_date < todayISO(); }
   function openWaLink(wa, text) {
-    // WhatsApp dinonaktifkan
-    return;
+    if (wa) window.open('https://wa.me/' + wa + '?text=' + encodeURIComponent(text || ''), '_blank');
   }
   async function doNotify(rec, kind, okMsg) {
-    toast(okMsg || 'Notifikasi dicatat', 'success');
+    try {
+      var r = await DB.notify(rec.id, kind);
+      if (r && !r.auto) {
+        if (r.wa) openWaLink(r.wa, r.text);
+        else { toast('Nomor WhatsApp tujuan belum tersedia', 'error'); return; }
+      }
+      toast(okMsg || 'Notifikasi dicatat', 'success');
+    } catch (e) {
+      toast((e && e.message) || 'Gagal mengirim notifikasi', 'error');
+    }
   }
   var STATUS_CONFIRM = {
     approved:       { title: 'Setujui Peminjaman',      message: 'Apakah Anda yakin menyetujui peminjaman ini? (Verifikasi 1)', variant: 'success', confirmLabel: 'Ya, setujui' },
-    /* [KUNCI]: Pemindaian serah terima & pengembalian via kamera langsung belum aktif.
-     * Validasi saat ini menggunakan konfirmasi verifikasi manual dua tahap.
-     * // scanHandover: { title: 'Scan Serah Terima QR', note: 'Fitur pemindaian serah terima dikunci' }
-     */
     borrowed:       { title: 'Verifikasi & Serah Terima', message: 'Verifikasi kedua dan serahkan barang ke peminjam?',            variant: 'success', confirmLabel: 'Ya, verifikasi' },
     returned:       { title: 'Verifikasi Pengembalian',  message: 'Konfirmasi bahwa barang sudah benar-benar dikembalikan?',       variant: 'success', confirmLabel: 'Ya, sudah kembali' },
     return_pending: { title: 'Konfirmasi Pengembalian',  message: 'Ajukan pengembalian barang ini ke admin?',                     variant: 'primary', confirmLabel: 'Ya, kembalikan' },
@@ -1788,34 +1791,36 @@
     var sec = el('div', { 'data-role-nav': '', style: 'margin-bottom:0.25rem' });
     sec.appendChild(sectionHeader('MANAJEMEN'));
     sec.appendChild(makeNavLink('verifikasi.html', 'check_circle', 'Verifikasi', 'Persetujuan ke-2'));
-    // Kelola User dinonaktifkan
-    /* =========================================================================
-     * FITUR TAHAP LANJUTAN (KUNCI / STATUS DITANGGUHKAN):
-     * - Pemindaian Serah Terima dan Pengembalian (Kamera barcode/QR scanner)
-     * - Inventarisasi Ruangan Berbasis Pemindaian
-     * - Notifikasi dan Tugas Terjadwal (Cron Job / Worker Otomatis)
-     * - Jejak Audit Detail (Audit Trail Log)
-     * - Pengujian Sistem Otomatis & BAST Digital
-     * Item di bawah ini dikomentari/dikunci agar alur peminjaman dasar tetap bersih.
-     * =========================================================================
-     * // sec.appendChild(makeNavLink('#', 'camera', 'Scan Serah Terima', 'Segera hadir'));
-     * // sec.appendChild(makeNavLink('#', 'clipboard', 'Inventarisasi Ruangan', 'Segera hadir'));
-     * // sec.appendChild(makeNavLink('#', 'clock', 'Tugas Terjadwal', 'Segera hadir'));
-     * // sec.appendChild(makeNavLink('#', 'shield', 'Jejak Audit', 'Segera hadir'));
-     * // sec.appendChild(makeNavLink('#', 'file-text', 'Cetak BAST', 'Segera hadir'));
-     */
+    sec.appendChild(makeNavLink('ruangan.html', 'clipboard', 'Inventarisasi Ruangan', 'Audit fisik & QR'));
+    sec.appendChild(makeNavLink('laporan.html', 'chart', 'Laporan', 'Harian · bulanan'));
+    var cronLink = makeNavLink('#', 'clock', 'Tugas Terjadwal', 'Cek jatuh tempo');
+    cronLink.addEventListener('click', async function (e) {
+      e.preventDefault();
+      try {
+        toast('Menjalankan pengecekan tugas terjadwal...', 'info');
+        var res = await DB.checkScheduledTasks();
+        if (res && res.count > 0) {
+          toast('Tugas terjadwal: ' + res.count + ' peminjaman melewati jatuh tempo', 'warning');
+        } else {
+          toast('Tugas terjadwal: seluruh peminjaman berjalan normal', 'success');
+        }
+      } catch (err) {
+        toast('Gagal memeriksa tugas terjadwal: ' + (err.message || err), 'error');
+      }
+    });
+    sec.appendChild(cronLink);
     navContainer.appendChild(sec);
   }
 
   /* ---------------- dynamic app shell (for new pages that opt in) ----------------
      A page using <aside data-shell></aside> + a sticky <div data-topbar></div>
      gets the standard sidebar + topbar built here, so it needs no copied markup. */
-  var PAGE_TITLES = { dashboard: 'Dashboard', dataaset: 'Data Aset', kategoriaset: 'Kategori Aset', ruangan: 'Ruangan', daftarpinjam: 'Daftar Pinjam', dipinjam: 'Sedang Dipinjam', ajukanpinjam: 'Ajukan Pinjam', verifikasi: 'Verifikasi', profil: 'Profil Saya' };
+  var PAGE_TITLES = { dashboard: 'Dashboard', dataaset: 'Data Aset', kategoriaset: 'Kategori Aset', ruangan: 'Ruangan', daftarpinjam: 'Daftar Pinjam', dipinjam: 'Sedang Dipinjam', ajukanpinjam: 'Ajukan Pinjam', verifikasi: 'Verifikasi', laporan: 'Laporan Peminjaman', profil: 'Profil Saya' };
   // Per-page chrome icons (topbar breadcrumb). NAV_ICONS keys map a sidebar link's
   // href → the same icon, so the menu and the header always agree (fixes the old
   // hard-coded "home" icon that showed on every page — see REDESIGN-GUIDE #2/#5).
-  var PAGE_ICONS = { dashboard: 'zap', dataaset: 'package', kategoriaset: 'tag', ruangan: 'home', daftarpinjam: 'refresh', dipinjam: 'clock', ajukanpinjam: 'clipboard', verifikasi: 'check_circle', katalog: 'search', profil: 'user' };
-  var NAV_ICONS = { 'dashboard.html': 'zap', 'dataaset.html': 'package', 'kategoriaset.html': 'tag', 'ruangan.html': 'home', 'daftarpinjam.html': 'refresh', 'dipinjam.html': 'clock', 'ajukanpinjam.html': 'clipboard', 'verifikasi.html': 'check_circle', 'katalog.html': 'search' };
+  var PAGE_ICONS = { dashboard: 'zap', dataaset: 'package', kategoriaset: 'tag', ruangan: 'home', daftarpinjam: 'refresh', dipinjam: 'clock', ajukanpinjam: 'clipboard', verifikasi: 'check_circle', laporan: 'chart', katalog: 'search', profil: 'user' };
+  var NAV_ICONS = { 'dashboard.html': 'zap', 'dataaset.html': 'package', 'kategoriaset.html': 'tag', 'ruangan.html': 'home', 'daftarpinjam.html': 'refresh', 'dipinjam.html': 'clock', 'ajukanpinjam.html': 'clipboard', 'verifikasi.html': 'check_circle', 'laporan.html': 'chart', 'katalog.html': 'search' };
   function pageIcon(p) { return (window.SESDIAN_ICONS && window.SESDIAN_ICONS[PAGE_ICONS[p] || 'home']) || ''; }
   // "Sedang Dipinjam" link for everyone (added into the PEMINJAMAN section).
   function injectBorrowedNav() {
@@ -1939,7 +1944,10 @@
       { label: 'Ekspor Data', variant: 'primary', icon: 'clipboard', onClick: function () { exportAssetsData(); } },
     ]);
     else if (p === 'kategoriaset') bar([{ label: 'Tambah Kategori', onClick: function () { openCategoryForm(null); } }]);
-    else if (p === 'ruangan') bar([{ label: 'Tambah Ruangan', onClick: function () { openRoomForm(null); } }]);
+    else if (p === 'ruangan') bar([
+      { label: 'Tambah Ruangan', icon: 'home', onClick: function () { openRoomForm(null); } },
+      { label: 'Scan & Audit Inventarisasi', variant: 'primary', icon: 'camera', onClick: function () { openRoomScanAuditModal(); } },
+    ]);
     else if (p === 'users') bar([{ label: 'Tambah User', icon: 'user', onClick: function () { openUserForm(); } }]);
   }
 
@@ -2469,6 +2477,477 @@
         scanning = true;
         animId = requestAnimationFrame(scanLoop);
       }
+    }
+
+    checkBtn.addEventListener('click', function () { checkCode(input.value); });
+    input.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); checkCode(input.value); } });
+
+    function cleanup() {
+      scanning = false;
+      if (animId) cancelAnimationFrame(animId);
+      if (stream) { stream.getTracks().forEach(function (t) { t.stop(); }); stream = null; }
+      ov.remove();
+    }
+    closeBtn.addEventListener('click', cleanup);
+    ov.addEventListener('click', function (e) { if (e.target === ov) cleanup(); });
+
+    ov.appendChild(m);
+    document.body.appendChild(ov);
+    setTimeout(function () { input.focus(); }, 100);
+  }
+
+
+  /* ---------------- Inventarisasi Ruangan Berbasis Pemindaian (SES-4.3.1) ---------------- */
+  async function openRoomAuditModal(room) {
+    if (modalOpen()) return;
+    var ov = overlay();
+    var m = el('div', { class: 'sesd-modal', style: 'width:680px;max-width:calc(100vw - 2rem);max-height:92vh;overflow:auto' });
+
+    var head = el('div', { style: 'display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.75rem' });
+    var titleBox = el('div');
+    titleBox.appendChild(el('h3', { style: 'margin:0;font-size:1.2rem;display:flex;align-items:center;gap:8px' }, ic('clipboard') + ' Inventarisasi Fisik: ' + (room.name || 'Ruangan')));
+    titleBox.appendChild(el('div', { style: 'font-size:0.78rem;color:var(--text-muted);margin-top:2px' }, (room.code ? room.code + ' · ' : '') + 'Penanggung Jawab: ' + (room.pic || '-')));
+    head.appendChild(titleBox);
+    var closeBtn = el('button', { class: 'sesd-btn sesd-btn-ghost sesd-btn-sm', style: 'padding:4px 8px;font-size:1.1rem' }, '×');
+    head.appendChild(closeBtn);
+    m.appendChild(head);
+
+    var loader = el('div', { class: 'sesd-page-loader', style: 'min-height:120px', html: '<span></span><span></span><span></span>' });
+    m.appendChild(loader);
+    ov.appendChild(m);
+    document.body.appendChild(ov);
+
+    function cleanup() {
+      if (scannerActive) stopScanner();
+      ov.remove();
+    }
+    closeBtn.addEventListener('click', cleanup);
+    ov.addEventListener('click', function (e) { if (e.target === ov) cleanup(); });
+
+    var allAssets = [];
+    try { allAssets = await DB.assets(); } catch (e) {}
+    loader.remove();
+
+    var roomAssets = allAssets.filter(function (a) { return String(a.room_id) === String(room.id); });
+    var auditState = {};
+    roomAssets.forEach(function (a) {
+      auditState[a.id] = { verified: false, condition: a.condition || 'Baik', time: null };
+    });
+
+    var progWrap = el('div', { style: 'background:var(--bg-mid);border:1px solid var(--border);border-radius:12px;padding:0.85rem;margin-bottom:1rem' });
+    var progHeader = el('div', { style: 'display:flex;justify-content:space-between;align-items:center;margin-bottom:6px' });
+    var progTitle = el('span', { style: 'font-size:0.8rem;font-weight:700;color:var(--text)' }, 'Rekonsiliasi Fisik Aset');
+    var progCount = el('span', { style: 'font-size:0.8rem;font-weight:700;color:var(--primary)' }, '0 / ' + roomAssets.length + ' (0%)');
+    progHeader.appendChild(progTitle);
+    progHeader.appendChild(progCount);
+    progWrap.appendChild(progHeader);
+
+    var barTrack = el('div', { style: 'background:#e2e8f0;border-radius:999px;height:8px;overflow:hidden' });
+    var barFill = el('div', { style: 'background:#10b981;height:100%;width:0%;transition:width 0.3s ease' });
+    barTrack.appendChild(barFill);
+    progWrap.appendChild(barTrack);
+    m.appendChild(progWrap);
+
+    function updateProgress() {
+      var total = roomAssets.length;
+      var checked = roomAssets.filter(function (a) { return auditState[a.id] && auditState[a.id].verified; }).length;
+      var pct = total ? Math.round((checked / total) * 100) : 0;
+      progCount.textContent = checked + ' / ' + total + ' (' + pct + '%)';
+      barFill.style.width = pct + '%';
+    }
+
+    var scanSection = el('div', { style: 'margin-bottom:1rem;background:#f8faff;border:1px solid #bfdbfe;border-radius:12px;padding:0.75rem' });
+    var scanRow = el('div', { style: 'display:flex;gap:8px' });
+    var scanInput = el('input', { type: 'text', placeholder: 'Pindai barcode / QR atau ketik kode barang...', style: 'flex:1;padding:0.6rem 0.8rem;font-size:0.85rem;border-radius:8px;border:1px solid var(--border);outline:none' });
+    var scanBtn = el('button', { class: 'sesd-btn sesd-btn-primary sesd-btn-sm' }, 'Cari');
+    var toggleCamBtn = el('button', { class: 'sesd-btn sesd-btn-ghost sesd-btn-sm', style: 'display:inline-flex;align-items:center;gap:6px' }, ic('camera') + ' Kamera');
+    scanRow.appendChild(scanInput);
+    scanRow.appendChild(scanBtn);
+    scanRow.appendChild(toggleCamBtn);
+    scanSection.appendChild(scanRow);
+
+    var camWrap = el('div', { style: 'position:relative;background:#000;border-radius:10px;height:160px;margin-top:8px;display:none;overflow:hidden;align-items:center;justify-content:center' });
+    var video = el('video', { autoplay: 'autoplay', playsinline: 'playsinline', muted: 'muted', style: 'width:100%;height:100%;object-fit:cover' });
+    var aim = el('div', { style: 'position:absolute;width:110px;height:110px;border:2px solid #10b981;border-radius:8px;pointer-events:none' });
+    camWrap.appendChild(video);
+    camWrap.appendChild(aim);
+    scanSection.appendChild(camWrap);
+
+    var camStream = null;
+    var camAnim = null;
+    var scannerActive = false;
+    var canvas = document.createElement('canvas');
+    var ctx = canvas.getContext('2d');
+
+    function startScanner() {
+      ensureJsQR().then(function () {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          toast('Kamera tidak didukung pada peramban ini', 'error');
+          return;
+        }
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } }).then(function (s) {
+          camStream = s;
+          video.srcObject = s;
+          camWrap.style.display = 'flex';
+          scannerActive = true;
+          toggleCamBtn.textContent = 'Tutup Kamera';
+          scanLoop();
+        }).catch(function (err) {
+          toast('Gagal mengakses kamera: ' + err.message, 'error');
+        });
+      });
+    }
+
+    function stopScanner() {
+      scannerActive = false;
+      if (camAnim) cancelAnimationFrame(camAnim);
+      if (camStream) { camStream.getTracks().forEach(function (t) { t.stop(); }); camStream = null; }
+      camWrap.style.display = 'none';
+      toggleCamBtn.innerHTML = ic('camera') + ' Kamera';
+    }
+
+    toggleCamBtn.addEventListener('click', function () {
+      if (scannerActive) stopScanner();
+      else startScanner();
+    });
+
+    function scanLoop() {
+      if (!scannerActive) return;
+      if (video.readyState === video.HAVE_ENOUGH_DATA) {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        if (window.jsQR) {
+          try {
+            var imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            var qr = window.jsQR(imgData.data, imgData.width, imgData.height);
+            if (qr && qr.data) {
+              var found = String(qr.data).trim();
+              if (found) {
+                scanInput.value = found;
+                processScannedItem(found);
+                stopScanner();
+                return;
+              }
+            }
+          } catch (e) {}
+        }
+      }
+      camAnim = requestAnimationFrame(scanLoop);
+    }
+
+    m.appendChild(scanSection);
+
+    var alertBox = el('div', { style: 'display:none;margin-bottom:0.75rem;padding:0.75rem;border-radius:10px;font-size:0.82rem' });
+    m.appendChild(alertBox);
+
+    function processScannedItem(rawCode) {
+      var query = parseScannedCode(rawCode).toLowerCase();
+      if (!query) return;
+
+      var matchInRoom = roomAssets.filter(function (a) {
+        return (a.code || '').toLowerCase() === query ||
+               (a.qr_code || '').toLowerCase() === query ||
+               String(a.id) === query;
+      })[0];
+
+      if (matchInRoom) {
+        alertBox.style.display = 'none';
+        auditState[matchInRoom.id].verified = true;
+        auditState[matchInRoom.id].time = new Date().toLocaleTimeString('id-ID');
+        updateProgress();
+        drawTable();
+        toast('Aset "' + matchInRoom.name + '" berhasil diverifikasi di ruangan ini!', 'success');
+        return;
+      }
+
+      var matchOther = allAssets.filter(function (a) {
+        return (a.code || '').toLowerCase() === query ||
+               (a.qr_code || '').toLowerCase() === query ||
+               String(a.id) === query;
+      })[0];
+
+      if (matchOther) {
+        alertBox.style.display = 'block';
+        alertBox.style.background = '#fef3c7';
+        alertBox.style.border = '1px solid #f59e0b';
+        alertBox.style.color = '#92400e';
+        alertBox.innerHTML = '';
+        var warnText = el('div', { style: 'font-weight:700;margin-bottom:4px' }, 'Aset Ditemukan dari Ruangan Lain: ' + matchOther.name);
+        var subText = el('div', { style: 'font-size:0.75rem;margin-bottom:8px' }, 'Tercatat di: ' + (matchOther.room || 'Tanpa Ruangan') + ' (' + (matchOther.code || matchOther.qr_code || '') + ')');
+        var moveBtn = el('button', { class: 'sesd-btn sesd-btn-sm sesd-btn-warning' }, 'Pindahkan ke Ruangan ' + room.name);
+        moveBtn.addEventListener('click', async function () {
+          moveBtn.disabled = true;
+          moveBtn.textContent = 'Memindahkan...';
+          try {
+            await DB.updateAsset(matchOther.id, assetPatch(matchOther, { room_id: room.id }));
+            matchOther.room_id = room.id;
+            matchOther.room = room.name;
+            roomAssets.push(matchOther);
+            auditState[matchOther.id] = { verified: true, condition: matchOther.condition || 'Baik', time: new Date().toLocaleTimeString('id-ID') };
+            alertBox.style.display = 'none';
+            updateProgress();
+            drawTable();
+            toast('Aset berhasil dipindahkan dan diverifikasi di ' + room.name, 'success');
+          } catch (e) {
+            toast('Gagal memindahkan aset: ' + e.message, 'error');
+            moveBtn.disabled = false;
+          }
+        });
+        alertBox.appendChild(warnText);
+        alertBox.appendChild(subText);
+        alertBox.appendChild(moveBtn);
+        return;
+      }
+
+      alertBox.style.display = 'block';
+      alertBox.style.background = '#fee2e2';
+      alertBox.style.border = '1px solid #ef4444';
+      alertBox.style.color = '#991b1b';
+      alertBox.textContent = 'Unit dengan kode/QR "' + query + '" tidak ditemukan di dalam sistem.';
+    }
+
+    scanBtn.addEventListener('click', function () { processScannedItem(scanInput.value); });
+    scanInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); processScannedItem(scanInput.value); } });
+
+    var tableWrap = el('div', { class: 'sesd-scroll', style: 'max-height:360px;overflow:auto;border:1px solid var(--border);border-radius:12px;margin-bottom:1rem' });
+    m.appendChild(tableWrap);
+
+    function drawTable() {
+      tableWrap.innerHTML = '';
+      if (!roomAssets.length) {
+        tableWrap.appendChild(el('div', { style: 'padding:2rem;text-align:center;color:var(--text-muted);font-size:0.85rem' }, 'Belum ada aset terdaftar pada ruangan ini.'));
+        return;
+      }
+      var tbl = el('table', { style: 'width:100%;border-collapse:collapse;min-width:540px' });
+      var thead = el('thead', { style: 'background:#f8faff;position:sticky;top:0;z-index:2' });
+      thead.innerHTML = '<tr><th style="padding:8px 12px;text-align:left;font-size:0.75rem;color:var(--text-muted)">STATUS</th><th style="padding:8px 12px;text-align:left;font-size:0.75rem;color:var(--text-muted)">NAMA ASET</th><th style="padding:8px 12px;text-align:left;font-size:0.75rem;color:var(--text-muted)">KODE / QR</th><th style="padding:8px 12px;text-align:left;font-size:0.75rem;color:var(--text-muted)">KONDISI</th></tr>';
+      tbl.appendChild(thead);
+
+      var tbody = el('tbody');
+      roomAssets.forEach(function (a) {
+        var tr = el('tr', { style: 'border-top:1px solid var(--border)' });
+        var st = auditState[a.id] || { verified: false, condition: 'Baik' };
+
+        var tdSt = el('td', { style: 'padding:8px 12px;width:130px' });
+        var chkLabel = el('label', { style: 'display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.78rem' });
+        var chk = el('input', { type: 'checkbox' });
+        chk.checked = st.verified;
+        chk.addEventListener('change', function () {
+          st.verified = chk.checked;
+          st.time = chk.checked ? new Date().toLocaleTimeString('id-ID') : null;
+          updateProgress();
+          drawTable();
+        });
+        chkLabel.appendChild(chk);
+        chkLabel.appendChild(el('span', { style: 'font-weight:600;color:' + (st.verified ? '#10b981' : 'var(--text-muted)') }, st.verified ? 'Ada' : 'Belum'));
+        tdSt.appendChild(chkLabel);
+        if (st.time) tdSt.appendChild(el('div', { style: 'font-size:0.65rem;color:var(--text-muted);margin-left:20px' }, st.time));
+        tr.appendChild(tdSt);
+
+        var tdName = el('td', { style: 'padding:8px 12px' });
+        tdName.appendChild(el('div', { style: 'font-weight:600;font-size:0.85rem' }, a.name || '-'));
+        tdName.appendChild(el('div', { style: 'font-size:0.72rem;color:var(--text-muted)' }, a.brand || '-'));
+        tr.appendChild(tdName);
+
+        var tdCode = el('td', { style: 'padding:8px 12px;font-family:"JetBrains Mono",monospace;font-size:0.75rem' });
+        tdCode.appendChild(el('div', {}, a.code || '-'));
+        if (a.qr_code) tdCode.appendChild(el('span', { style: 'background:#e0e7ff;color:#4338ca;padding:1px 5px;border-radius:4px;font-size:0.65rem' }, a.qr_code));
+        tr.appendChild(tdCode);
+
+        var tdCond = el('td', { style: 'padding:8px 12px' });
+        var selCond = el('select', { style: 'padding:3px 6px;border-radius:6px;border:1px solid var(--border);font-size:0.78rem' });
+        ['Baik', 'Rusak Ringan', 'Rusak Berat', 'Tidak Ditemukan'].forEach(function (c) {
+          var opt = el('option', { value: c }, c);
+          if (c === st.condition) opt.selected = true;
+          selCond.appendChild(opt);
+        });
+        selCond.addEventListener('change', function () {
+          st.condition = selCond.value;
+        });
+        tdCond.appendChild(selCond);
+        tr.appendChild(tdCond);
+
+        tbody.appendChild(tr);
+      });
+      tbl.appendChild(tbody);
+      tableWrap.appendChild(tbl);
+    }
+    updateProgress();
+    drawTable();
+
+    var foot = el('div', { style: 'display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end' });
+    var exportBtn = el('button', { class: 'sesd-btn sesd-btn-ghost sesd-btn-sm' }, 'Ekspor CSV');
+    exportBtn.addEventListener('click', function () {
+      var rows = [['Kode', 'QR', 'Nama', 'Merek', 'Status Audit', 'Kondisi Fisik', 'Waktu Cek'].join(',')];
+      roomAssets.forEach(function (a) {
+        var s = auditState[a.id];
+        rows.push([
+          '"' + (a.code || '') + '"',
+          '"' + (a.qr_code || '') + '"',
+          '"' + (a.name || '') + '"',
+          '"' + (a.brand || '') + '"',
+          '"' + (s && s.verified ? 'Ada' : 'Belum Terverifikasi') + '"',
+          '"' + (s && s.condition ? s.condition : a.condition || 'Baik') + '"',
+          '"' + (s && s.time ? s.time : '-') + '"'
+        ].join(','));
+      });
+      var blob = new Blob(['\uFEFF' + rows.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
+      var aEl = document.createElement('a');
+      aEl.href = URL.createObjectURL(blob);
+      aEl.download = 'opname-' + (room.code || 'ruangan') + '-' + new Date().toISOString().slice(0, 10) + '.csv';
+      document.body.appendChild(aEl);
+      aEl.click();
+      aEl.remove();
+      toast('Berkas opname berhasil diekspor', 'success');
+    });
+
+    var saveBtn = el('button', { class: 'sesd-btn sesd-btn-success sesd-btn-sm' }, 'Simpan Rekonsiliasi');
+    saveBtn.addEventListener('click', async function () {
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Menyimpan...';
+      try {
+        var updates = [];
+        roomAssets.forEach(function (a) {
+          var s = auditState[a.id];
+          if (s && s.condition !== a.condition) {
+            updates.push(DB.updateAsset(a.id, assetPatch(a, { condition: s.condition })));
+          }
+        });
+        if (updates.length) await Promise.all(updates);
+        toast('Hasil inventarisasi dan rekonsiliasi berhasil disimpan!', 'success');
+        cleanup();
+        reloadData();
+      } catch (err) {
+        toast('Gagal menyimpan hasil: ' + err.message, 'error');
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'Simpan Rekonsiliasi';
+      }
+    });
+
+    var closeFootBtn = el('button', { class: 'sesd-btn sesd-btn-ghost sesd-btn-sm' }, 'Tutup');
+    closeFootBtn.addEventListener('click', cleanup);
+
+    foot.appendChild(exportBtn);
+    foot.appendChild(saveBtn);
+    foot.appendChild(closeFootBtn);
+    m.appendChild(foot);
+  }
+
+  function openRoomScanAuditModal() {
+    if (modalOpen()) return;
+    var ov = overlay(), m = el('div', { class: 'sesd-modal', style: 'width:500px;max-width:calc(100vw - 2rem)' });
+    var stream = null;
+    var animId = null;
+    var scanning = true;
+
+    var head = el('div', { style: 'display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem' });
+    head.appendChild(el('h3', { style: 'margin:0;font-size:1.15rem;display:flex;align-items:center;gap:8px' }, ic('camera') + ' Pindai QR Ruangan / Aset'));
+    var closeBtn = el('button', { class: 'sesd-btn sesd-btn-ghost sesd-btn-sm', style: 'padding:4px 8px;font-size:1.1rem' }, '×');
+    head.appendChild(closeBtn);
+    m.appendChild(head);
+
+    m.appendChild(el('p', { style: 'color:var(--text-muted);font-size:0.8rem;margin:-6px 0 14px' }, 'Arahkan kamera ke QR Ruangan atau pilih ruangan untuk memulai audit fisik.'));
+
+    var viewWrap = el('div', { style: 'position:relative;background:#0b1120;border-radius:12px;height:180px;display:flex;align-items:center;justify-content:center;overflow:hidden;margin-bottom:1rem;border:2px solid var(--border)' });
+    var video = el('video', { autoplay: 'autoplay', playsinline: 'playsinline', muted: 'muted', style: 'width:100%;height:100%;object-fit:cover;display:none' });
+    var aim = el('div', { style: 'position:absolute;width:120px;height:120px;border:2px solid #10b981;border-radius:10px;box-shadow:0 0 16px rgba(16,185,129,0.35);pointer-events:none' });
+    aim.appendChild(el('div', { style: 'width:100%;height:2px;background:#10b981;box-shadow:0 0 8px #10b981;animation:sesd-scan-laser 2s infinite ease-in-out' }));
+    var camHint = el('div', { style: 'color:rgba(255,255,255,0.7);font-size:0.75rem;text-align:center;padding:0.75rem;pointer-events:none' }, 'Mengaktifkan sensor kamera...');
+
+    viewWrap.appendChild(video);
+    viewWrap.appendChild(aim);
+    viewWrap.appendChild(camHint);
+    m.appendChild(viewWrap);
+
+    var canvas = document.createElement('canvas');
+    var ctx = canvas.getContext('2d');
+
+    function scanLoop() {
+      if (!scanning) return;
+      if (video.readyState === video.HAVE_ENOUGH_DATA) {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        if (window.jsQR) {
+          try {
+            var imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            var qrRes = window.jsQR(imgData.data, imgData.width, imgData.height);
+            if (qrRes && qrRes.data) {
+              var rawFound = String(qrRes.data || '').trim();
+              if (rawFound) {
+                scanning = false;
+                checkCode(rawFound);
+                return;
+              }
+            }
+          } catch (e) {}
+        }
+      }
+      animId = requestAnimationFrame(scanLoop);
+    }
+
+    ensureJsQR().then(function () {
+      if (video.style.display === 'block') {
+        animId = requestAnimationFrame(scanLoop);
+      }
+    });
+
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } }).then(function (s) {
+        stream = s;
+        video.srcObject = s;
+        video.style.display = 'block';
+        camHint.style.display = 'none';
+        video.play().catch(function () {});
+        animId = requestAnimationFrame(scanLoop);
+      }).catch(function () {
+        camHint.textContent = 'Kamera tidak aktif. Silakan pilih atau ketik kode ruangan di bawah.';
+      });
+    }
+
+    var inputWrap = el('div', { style: 'display:flex;gap:8px;margin-bottom:1rem' });
+    var input = el('input', { type: 'text', placeholder: 'Ketik kode ruangan (mis. RK-01) atau scan...', style: 'flex:1;padding:0.65rem 0.85rem;border-radius:10px;border:1.5px solid var(--border);font-size:0.875rem;outline:none' });
+    var checkBtn = el('button', { class: 'sesd-btn sesd-btn-primary' }, 'Buka Audit');
+    inputWrap.appendChild(input);
+    inputWrap.appendChild(checkBtn);
+    m.appendChild(inputWrap);
+
+    async function checkCode(rawInput) {
+      var query = parseScannedCode(rawInput).toLowerCase();
+      if (!query) return;
+
+      var allRooms = await DB.rooms();
+      var matchedRoom = allRooms.filter(function (r) {
+        return (r.code || '').toLowerCase() === query ||
+               (r.name || '').toLowerCase() === query ||
+               String(r.id) === query;
+      })[0];
+
+      if (matchedRoom) {
+        cleanup();
+        openRoomAuditModal(matchedRoom);
+        return;
+      }
+
+      var allAssets = await DB.assets();
+      var matchedAsset = allAssets.filter(function (a) {
+        return (a.code || '').toLowerCase() === query ||
+               (a.qr_code || '').toLowerCase() === query;
+      })[0];
+
+      if (matchedAsset && matchedAsset.room_id) {
+        var aRoom = allRooms.filter(function (r) { return r.id == matchedAsset.room_id; })[0];
+        if (aRoom) {
+          cleanup();
+          openRoomAuditModal(aRoom);
+          return;
+        }
+      }
+
+      toast('Ruangan tidak ditemukan untuk kode "' + query + '"', 'error');
+      scanning = true;
+      animId = requestAnimationFrame(scanLoop);
     }
 
     checkBtn.addEventListener('click', function () { checkCode(input.value); });
