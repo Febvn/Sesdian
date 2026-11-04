@@ -24,7 +24,7 @@ export default async function handler(req, res) {
         where created_at >= ${start}::date and created_at < (${end}::date + 1) group by status`;
       // full row detail incl. admin (approver) and verifikator names + return date + borrower avatar
       const rows = await sql`
-        select b.id, b.borrower_name, b.qty, b.status, b.due_date, b.created_at, b.returned_at,
+        select b.id, b.borrower_name, b.qty, b.status, b.due_date, b.created_at, b.returned_at, b.notes,
                coalesce(a.name,'-') as asset_name, coalesce(a.code,'') as asset_code,
                coalesce(ua.name,'') as admin_name, coalesce(uv.name,'') as verifikator_name,
                coalesce(u.avatar,'') as borrower_avatar
