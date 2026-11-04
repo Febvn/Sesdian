@@ -71,13 +71,13 @@ Dokumen ini merupakan pemetaan resmi Work Breakdown Structure (WBS) proyek SESDI
 | **SES-4.1** | - | **Sprint 1: Akun, Data Aset, Katalog, dan Label QR** | **Adi Septriansyah** | **Back-End Developer** | 12/10/2026 | 30/10/2026 | 18 | **DONE** |
 | SES-4.1.1 | `F-01` | Akun, hak akses, dan aktivasi | Adi Septriansyah | Back-End Developer | 12/10/2026 | 20/10/2026 | 8 | Todo |
 | SES-4.1.2 | `F-02` | Data aset, katalog, dan pembuatan kode QR | Anselmus Herpin Hasugian | Front-End Developer | 19/10/2026 | 30/10/2026 | 11 | Todo |
-| **SES-4.2** | - | **Sprint 2: Peminjaman Dua Lapis dan Pemindaian** | **Adi Septriansyah** | **Back-End Developer** | 02/11/2026 | 13/11/2026 | 11 | **Todo** |
-| SES-4.2.1 | `F-03` | Siklus peminjaman dan aturan transisi status | Adi Septriansyah | Back-End Developer | 02/11/2026 | 09/11/2026 | 7 | Todo |
-| SES-4.2.2 | `F-04` | Pemindaian serah terima dan pengembalian | Anselmus Herpin Hasugian | Front-End Developer | 06/11/2026 | 13/11/2026 | 7 | Todo |
-| **SES-4.3** | - | **Sprint 3: Inventarisasi, Notifikasi, dan Laporan** | **Anselmus Herpin Hasugian** | **Quality Assurance** | 09/11/2026 | 20/11/2026 | 11 | **Todo** |
-| SES-4.3.1 | `F-05` | Inventarisasi ruangan berbasis pemindaian | Anselmus Herpin Hasugian | Front-End Developer | 09/11/2026 | 16/11/2026 | 7 | Todo |
-| SES-4.3.2 | `F-06` | Notifikasi dan tugas terjadwal | Adi Septriansyah | Back-End Developer | 13/11/2026 | 18/11/2026 | 5 | Todo |
-| SES-4.3.3 | `F-07` | Dashboard, laporan, dan jejak audit | Anselmus Herpin Hasugian | Front-End Developer | 16/11/2026 | 20/11/2026 | 4 | Todo |
+| **SES-4.2** | - | **Sprint 2: Peminjaman Dua Lapis dan Pemindaian** | **Adi Septriansyah** | **Back-End Developer** | 02/11/2026 | 13/11/2026 | 11 | **DONE** |
+| SES-4.2.1 | `F-03` | Siklus peminjaman dan aturan transisi status | Adi Septriansyah | Back-End Developer | 02/11/2026 | 09/11/2026 | 7 | DONE |
+| SES-4.2.2 | `F-04` | Pemindaian serah terima dan pengembalian | Anselmus Herpin Hasugian | Front-End Developer | 06/11/2026 | 13/11/2026 | 7 | DONE |
+| **SES-4.3** | - | **Sprint 3: Inventarisasi, Notifikasi, dan Laporan** | **Anselmus Herpin Hasugian** | **Quality Assurance** | 09/11/2026 | 20/11/2026 | 11 | **DONE** |
+| SES-4.3.1 | `F-05` | Inventarisasi ruangan berbasis pemindaian | Anselmus Herpin Hasugian | Front-End Developer | 09/11/2026 | 16/11/2026 | 7 | DONE |
+| SES-4.3.2 | `F-06` | Notifikasi dan tugas terjadwal | Adi Septriansyah | Back-End Developer | 13/11/2026 | 18/11/2026 | 5 | DONE |
+| SES-4.3.3 | `F-07` | Dashboard, laporan, dan jejak audit | Febrian Valentino Nugroho | Project Manager | 16/11/2026 | 20/11/2026 | 4 | DONE |
 
 ---
 

@@ -92,4 +92,4 @@ Rincian linimasa Work Breakdown Structure (WBS), pembagian Sprint (M1 s/d M6), s
 - Sprint M6 (Penutupan Proyek): Sosialisasi kepada pengguna, penyusunan dokumentasi teknis akhir, dan penyerahan hasil pekerjaan.
 
 ### Status Rilis Berjalan
-Sesuai Work Breakdown Structure (WBS), status siklus pengerjaan saat ini adalah Sprint 1 (SES-4.1) DONE, sedangkan Sprint 2 (SES-4.2) dan Sprint 3 (SES-4.3) berstatus Todo. Fitur lanjutan dikembangkan sesuai jadwal linimasa WBS.
+Sesuai Work Breakdown Structure (WBS), status siklus pengerjaan saat ini adalah Sprint 1 (SES-4.1), Sprint 2 (SES-4.2), dan Sprint 3 (SES-4.3) berstatus DONE. Tahap berikutnya adalah Pengujian dan Penerapan (SES-5) sesuai jadwal linimasa WBS.
