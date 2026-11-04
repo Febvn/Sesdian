@@ -10,9 +10,13 @@
     "db:run": "node scripts/run-sql.mjs",
     "db:migrate": "node scripts/run-sql.mjs db/migrate-v3.sql",
     "db:seed": "node scripts/run-sql.mjs db/seed-aset-2025.sql",
-    "db:setup": "node scripts/run-sql.mjs db/migrate-v3.sql && node scripts/run-sql.mjs db/seed-aset-2025.sql"
+    "db:setup": "node scripts/run-sql.mjs db/migrate-v3.sql && node scripts/run-sql.mjs db/seed-aset-2025.sql",
+    "test:e2e": "node scripts/test-e2e.mjs"
   },
   "dependencies": {
     "@neondatabase/serverless": "^0.10.4"
+  },
+  "devDependencies": {
+    "playwright": "^1.64.1"
   }
 }
