@@ -2,6 +2,7 @@ import { getSql } from './_db.js';
 import { requireAuth, send, readJson } from './_auth.js';
 import { notifyAdminBorrow } from './_wa.js';
 import { ensureSchema } from './_schema.js';
+import { logAudit } from './_audit.js';
 
 // Stock is counted as "out" while a borrowing is in any of these states.
 const RESERVED = ['pending', 'approved', 'verified', 'borrowed', 'return_pending'];
@@ -132,6 +133,7 @@ export default async function handler(req, res) {
       const arows = await sql`select name from assets where id = ${assetId}`;
       const assetName = arows.length ? arows[0].name : 'Aset';
       await notifyAdminBorrow({ assetName: assetName, borrower: borrower, qty: qty, due: dueDate });
+      await logAudit(sql, auth, 'create', 'borrowing', rows[0].id, { asset: assetName, borrower: borrower, qty: qty, due: dueDate });
       return send(res, 200, { borrowing: rows[0], asset_name: assetName });
     } catch (e) { return send(res, 500, { error: e.message }); }
   }
@@ -145,7 +147,9 @@ export default async function handler(req, res) {
       const status = String(body.status || '');
       if (!id || STATUSES.indexOf(status) === -1) return send(res, 400, { error: 'Data tidak valid' });
 
-      const cur = await sql`select status, qty, asset_id, user_id from borrowings where id = ${id}`;
+      const cur = await sql`select status, qty, asset_id, user_id, borrower_name,
+                                   (select name from assets where id = borrowings.asset_id) as asset_name
+                            from borrowings where id = ${id}`;
       if (!cur.length) return send(res, 404, { error: 'Peminjaman tidak ditemukan' });
       const prev = cur[0];
       const isOwner = String(prev.user_id) === String(auth.sub);
@@ -204,6 +208,10 @@ export default async function handler(req, res) {
         update assets a set stock_available = a.stock_available + ${dAvail},
                             stock_borrowed  = a.stock_borrowed  + ${dBorrow}
         from b where a.id = b.asset_id`;
+      await logAudit(sql, auth, 'status', 'borrowing', id, {
+        from: prev.status, to: status, asset: prev.asset_name || '-', borrower: prev.borrower_name || '',
+        scanned: !!(body.scanned_code || body.asset_code || body.qr_code),
+      });
       return send(res, 200, { ok: true, status: status });
     } catch (e) { return send(res, 500, { error: e.message }); }
   }

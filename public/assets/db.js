@@ -46,6 +46,7 @@
     borrowings: [{ id: 1, asset_id: 1, borrower_name: 'Adi Septriansyah', qty: 1, status: 'pending', due_date: '2026-06-18', created_at: '2026-06-15T08:00:00Z' }],
     users: [{ id: 1, nip: '123456789012345678', name: 'Adi Septriansyah', role: 'admin' }, { id: 2, nip: '987654321098765432', name: 'Budi Santoso', role: 'user' }],
     settings: { wa_number: '' },
+    audit: [],
   };
   var catName = function (id) { var c = DEMO.categories.filter(function (x) { return x.id == id; })[0]; return c ? c.name : ''; };
   var roomName = function (id) { var r = DEMO.rooms.filter(function (x) { return x.id == id; })[0]; return r ? r.name : ''; };
@@ -370,9 +371,54 @@
     if (demo) { return P({ auto: false, wa: kind === 'return-request' ? DEMO.settings.wa_number : '', text: 'Notifikasi demo (' + kind + ')' }); }
     return req('notify', { method: 'POST', body: { borrowingId: borrowingId, kind: kind } });
   }
+  // Tugas terjadwal (SES-4.3.2): run the overdue-reminder job now (staff only).
+  // Same job Vercel Cron runs daily; reminders are deduplicated per day server-side.
   async function checkScheduledTasks() {
-    if (demo) return P({ ok: true, count: 0, overdue: [] });
-    return req('notify?cron=overdue');
+    if (demo) {
+      var n = DEMO.borrowings.filter(function (b) { return ['borrowed', 'verified', 'return_pending', 'approved'].indexOf(b.status) !== -1 && b.due_date && b.due_date < new Date().toISOString().slice(0, 10); }).length;
+      return P({ ok: true, trigger: 'manual', auto: false, count: n, sent: 0, no_phone: n, already_reminded: 0 });
+    }
+    return req('notify', { method: 'POST', body: { action: 'cron' } });
+  }
+
+  /* ====================== inventarisasi ruangan (SES-4.3.1) ====================== */
+  // items: [{ asset_id, found, condition }] — one physical stock-take of a room
+  async function saveInventory(roomId, items) {
+    if (demo) {
+      var room = DEMO.rooms.filter(function (r) { return r.id == roomId; })[0] || {};
+      var found = 0, report = [];
+      items.forEach(function (it) {
+        var a = DEMO.assets.filter(function (x) { return x.id == it.asset_id; })[0]; if (!a) return;
+        if (a.room_id != roomId && !it.found) return;
+        var from = a.room_id != roomId ? roomName(a.room_id) : undefined;
+        if (it.found) { found++; a.room_id = room.id; }
+        if (it.condition) a.condition = it.condition;
+        report.push({ id: a.id, code: a.code, name: a.name, found: !!it.found, condition: a.condition, moved_from: from });
+      });
+      demoAudit('inventory', 'room', room.id, { room: room.name, room_code: room.code, total: report.length, found: found, missing: report.length - found, items: report });
+      return P({ ok: true, total: report.length, found: found, missing: report.length - found });
+    }
+    invalidateAssetsCache();
+    return req('rooms', { method: 'POST', body: { action: 'inventory', room_id: roomId, items: items } });
+  }
+
+  /* ====================== jejak audit (SES-4.3.3) ====================== */
+  function demoAudit(action, entity, entityId, detail) {
+    var p = currentUserRaw() || {};
+    DEMO.audit.unshift({ id: ++DEMO.seq, created_at: new Date().toISOString(), action: action, entity: entity, entity_id: entityId, detail: detail, user_name: p.name || 'Pengguna Demo', user_role: p.role || 'admin' });
+  }
+  // params: { start, end, entity, action, entity_id, limit, all }
+  async function auditTrail(params) {
+    params = params || {};
+    if (demo) {
+      var rows = DEMO.audit.filter(function (l) {
+        return (!params.entity || l.entity === params.entity) && (!params.action || l.action === params.action) &&
+          (!params.entity_id || String(l.entity_id) === String(params.entity_id));
+      }).slice(0, parseInt(params.limit, 10) || 1000);
+      return P({ start: params.start || null, end: params.end || null, total: rows.length, rows: rows });
+    }
+    var qs = Object.keys(params).filter(function (k) { return params[k]; }).map(function (k) { return k + '=' + encodeURIComponent(params[k]); }).join('&');
+    return req('dashboard?view=audit' + (qs ? ('&' + qs) : ''));
   }
 
   window.SESDIAN_DB = {
@@ -388,5 +434,6 @@
     createRoom: createRoom, updateRoom: updateRoom, deleteRoom: deleteRoom,
     updateBorrowingStatus: updateBorrowingStatus,
     checkScheduledTasks: checkScheduledTasks,
+    saveInventory: saveInventory, auditTrail: auditTrail,
   };
 })();

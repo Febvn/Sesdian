@@ -3,6 +3,9 @@
   "outputDirectory": "public",
   "cleanUrls": true,
   "trailingSlash": false,
+  "crons": [
+    { "path": "/api/notify?cron=overdue", "schedule": "0 1 * * *" }
+  ],
   "headers": [
     {
       "source": "/assets/(.*)",

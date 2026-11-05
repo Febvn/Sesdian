@@ -1,32 +1,35 @@
+import crypto from 'node:crypto';
 import { getSql } from './_db.js';
 import { getAuth, send, readJson } from './_auth.js';
-import { sendWa, getWaNumber, normalizeWa } from './_wa.js';
+import { sendWa, getWaNumber, normalizeWa, waEnabled, ensureSettings } from './_wa.js';
+import { ensureSchema } from './_schema.js';
+import { logAudit } from './_audit.js';
+
+const STAFF = ['admin', 'verifikator'];
 
 // Build + (best-effort) send a WhatsApp message tied to a borrowing.
 //   kind 'remind'        admin/verifikator -> borrower: overdue reminder
 //   kind 'returned'      admin/verifikator -> borrower: return confirmed
 //   kind 'return-request' borrower -> admin: "I have returned it, please verify"
-// Scheduled task / Cron:
-//   GET /api/notify?cron=overdue or POST with { action: 'cron' }
+// Scheduled task (SES-4.3.2) - overdue reminders:
+//   Vercel Cron  GET /api/notify?cron=overdue  with "Authorization: Bearer $CRON_SECRET"
+//   Staff (manual "Tugas Terjadwal")  POST { action: 'cron' }  with a staff JWT
+// The overdue list holds borrower names + phone numbers, so it is never public.
 export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return send(res, 204, {});
   const sql = getSql();
+  await ensureSchema(sql);
 
-  // Scheduled / Cron task endpoint: checks all overdue borrowings
-  if (req.method === 'GET' && req.query && (req.query.cron === 'overdue' || req.query.action === 'cron')) {
-    try {
-      const overdueRows = await sql`
-        select b.id, b.borrower_name, b.due_date, b.status, coalesce(a.name, '-') as asset_name, u.phone as borrower_phone
-        from borrowings b
-        left join assets a on a.id = b.asset_id
-        left join users u on u.id = b.user_id
-        where b.due_date is not null and b.due_date < current_date
-          and b.status in ('borrowed', 'verified', 'return_pending', 'approved')
-        order by b.due_date asc`;
-      return send(res, 200, { ok: true, count: overdueRows.length, overdue: overdueRows });
-    } catch (e) {
-      return send(res, 500, { error: e.message });
+  if (req.method === 'GET') {
+    if (isCronRequest(req)) {
+      try { return send(res, 200, await runOverdueJob(sql, null, 'cron')); }
+      catch (e) { return send(res, 500, { error: e.message }); }
     }
+    const auth = getAuth(req);
+    if (!auth) return send(res, 401, { error: 'Unauthorized' });
+    if (STAFF.indexOf(auth.role) === -1) return send(res, 403, { error: 'Akses staf diperlukan' });
+    try { return send(res, 200, await runOverdueJob(sql, auth, 'manual')); }
+    catch (e) { return send(res, 500, { error: e.message }); }
   }
 
   if (req.method !== 'POST') return send(res, 405, { error: 'Method not allowed' });
@@ -37,15 +40,8 @@ export default async function handler(req, res) {
     const body = await readJson(req);
 
     if (body.action === 'cron') {
-      const overdueRows = await sql`
-        select b.id, b.borrower_name, b.due_date, b.status, coalesce(a.name, '-') as asset_name, u.phone as borrower_phone
-        from borrowings b
-        left join assets a on a.id = b.asset_id
-        left join users u on u.id = b.user_id
-        where b.due_date is not null and b.due_date < current_date
-          and b.status in ('borrowed', 'verified', 'return_pending', 'approved')
-        order by b.due_date asc`;
-      return send(res, 200, { ok: true, count: overdueRows.length, overdue: overdueRows });
+      if (STAFF.indexOf(auth.role) === -1) return send(res, 403, { error: 'Akses staf diperlukan' });
+      return send(res, 200, await runOverdueJob(sql, auth, 'manual'));
     }
 
     const id = parseInt(body.borrowingId, 10);
@@ -80,8 +76,76 @@ export default async function handler(req, res) {
     }
 
     const auto = await sendWa(target, text);
+    if (kind === 'remind' && auto) await sql`update borrowings set reminded_at = now() where id = ${id}`;
+    await logAudit(sql, auth, 'notify', 'borrowing', id, {
+      kind: kind, asset: b.asset_name, borrower: b.borrower_name || '',
+      channel: auto ? 'whatsapp-otomatis' : (target ? 'wa.me' : 'tanpa-nomor'),
+    });
     return send(res, 200, { auto: auto, wa: normalizeWa(target), text: text });
   } catch (e) {
     return send(res, 500, { error: e.message });
   }
+}
+
+// Vercel Cron sends "Authorization: Bearer <CRON_SECRET>" when that env var is set.
+function isCronRequest(req) {
+  const secret = process.env.CRON_SECRET;
+  if (!secret) return false;
+  const got = Buffer.from(String(req.headers['authorization'] || ''));
+  const want = Buffer.from('Bearer ' + secret);
+  return got.length === want.length && crypto.timingSafeEqual(got, want);
+}
+
+// Overdue job: remind every overdue borrower by WhatsApp (at most once per day per
+// borrowing, tracked in borrowings.reminded_at), send the admin one daily summary,
+// and record the run in the audit trail. Returns counts only (no personal data).
+async function runOverdueJob(sql, actor, trigger) {
+  const rows = await sql`
+    select b.id, b.borrower_name, b.due_date, b.reminded_at,
+           coalesce(a.name, '-') as asset_name, u.phone as borrower_phone
+    from borrowings b
+    left join assets a on a.id = b.asset_id
+    left join users u on u.id = b.user_id
+    where b.due_date is not null and b.due_date < current_date
+      and b.status in ('borrowed', 'verified', 'return_pending', 'approved')
+    order by b.due_date asc`;
+
+  const auto = waEnabled();
+  const today = new Date().toISOString().slice(0, 10);
+  const remindedToday = (r) => r.reminded_at && new Date(r.reminded_at).toISOString().slice(0, 10) === today;
+  const due = rows.filter((r) => r.borrower_phone && !remindedToday(r));
+  let sent = 0;
+  if (auto) {
+    // small parallel batches so a long list cannot run past the function timeout
+    for (let i = 0; i < due.length; i += 5) {
+      const batch = due.slice(i, i + 5);
+      const ok = await Promise.all(batch.map((r) => sendWa(r.borrower_phone,
+        'Pengingat SESDIAN\nAset "' + r.asset_name + '" jatuh tempo ' + String(r.due_date).slice(0, 10) +
+        '.\nMohon segera dikembalikan.')));
+      const done = batch.filter((r, k) => ok[k]).map((r) => r.id);
+      if (done.length) await sql`update borrowings set reminded_at = now() where id = any(${done})`;
+      sent += done.length;
+    }
+    // one summary per day to the admin WhatsApp number (settings.wa_number)
+    if (rows.length) {
+      await ensureSettings(sql);
+      const last = await sql`select value from settings where key = 'overdue_summary_date'`;
+      if (!last.length || last[0].value !== today) {
+        const adminWa = await getWaNumber();
+        if (adminWa && await sendWa(adminWa, 'Ringkasan Jatuh Tempo SESDIAN\n' + rows.length +
+            ' peminjaman melewati jatuh tempo.\nMohon tindak lanjuti di halaman Daftar Pinjam.')) {
+          await sql`insert into settings (key, value) values ('overdue_summary_date', ${today})
+                    on conflict (key) do update set value = ${today}`;
+        }
+      }
+    }
+  }
+
+  const result = {
+    ok: true, trigger: trigger, auto: auto, count: rows.length, sent: sent,
+    no_phone: rows.filter((r) => !r.borrower_phone).length,
+    already_reminded: rows.filter(remindedToday).length,
+  };
+  await logAudit(sql, actor, 'cron', 'notification', null, result);
+  return result;
 }

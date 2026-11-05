@@ -42,6 +42,39 @@ export default async function handler(req, res) {
     } catch (e) { return send(res, 500, { error: e.message }); }
   }
 
+  // Jejak audit (admin + verifikator), also merged here for the function limit:
+  //   /api/dashboard?view=audit&start=&end=&entity=&action=&entity_id=&limit=&all=1
+  // all=1 drops the date window (used for a room's latest stock-take).
+  if (req.method === 'GET' && req.query && req.query.view === 'audit') {
+    if (!requireRoles(req, res, ['admin', 'verifikator'])) return;
+    try {
+      const q = req.query || {};
+      const today = new Date();
+      const iso = (d) => d.toISOString().slice(0, 10);
+      const isDate = (s) => /^\d{4}-\d{2}-\d{2}$/.test(s || '');
+      const all = q.all === '1';
+      const start = all ? '1970-01-01' : (isDate(q.start) ? q.start : iso(new Date(today.getTime() - 29 * 86400000)));
+      const end = all ? '9999-12-30' : (isDate(q.end) ? q.end : iso(today));
+      const entity = /^[a-z_]{1,32}$/.test(q.entity || '') ? q.entity : null;
+      const action = /^[a-z_]{1,32}$/.test(q.action || '') ? q.action : null;
+      const entityId = parseInt(q.entity_id, 10) || null;
+      const limit = Math.min(Math.max(parseInt(q.limit, 10) || 1000, 1), 5000);
+      const rows = await sql`
+        select l.id, l.created_at, l.action, l.entity, l.entity_id, l.detail,
+               coalesce(nullif(u.name, ''), l.user_name, 'Sistem') as user_name,
+               coalesce(u.role, l.user_role, '') as user_role
+        from audit_log l
+        left join users u on u.id = l.user_id
+        where l.created_at >= ${start}::date and l.created_at < (${end}::date + 1)
+          and (${entity}::text is null or l.entity = ${entity})
+          and (${action}::text is null or l.action = ${action})
+          and (${entityId}::bigint is null or l.entity_id = ${entityId})
+        order by l.created_at desc, l.id desc
+        limit ${limit}`;
+      return send(res, 200, { start: all ? null : start, end: all ? null : end, total: rows.length, rows });
+    } catch (e) { return send(res, 500, { error: e.message }); }
+  }
+
   if (req.method === 'GET') {
     const auth = requireAuth(req, res);
     if (!auth) return;

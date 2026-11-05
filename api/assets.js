@@ -1,6 +1,7 @@
 import { getSql } from './_db.js';
 import { requireAuth, requireAdmin, send, readJson } from './_auth.js';
 import { ensureSchema } from './_schema.js';
+import { logAudit } from './_audit.js';
 
 export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return send(res, 204, {});
@@ -39,11 +40,11 @@ export default async function handler(req, res) {
 
   // ---- admin write operations ----
   if (req.method === 'POST') {
-    if (!requireAdmin(req, res)) return;
+    const auth = requireAdmin(req, res); if (!auth) return;
     try {
       const b = await readJson(req);
       // bulk import from Excel (parsed client-side): body.rows present -> import path
-      if (Array.isArray(b.rows)) return importAssets(sql, b.rows, res);
+      if (Array.isArray(b.rows)) return importAssets(sql, b.rows, res, auth);
       // one image per jenis: single upsert covers every unit sharing the name
       if (b.jenis_image && b.jenis_image.name) {
         const key = String(b.jenis_image.name).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
@@ -53,6 +54,7 @@ export default async function handler(req, res) {
         if (img.length > 800000) return send(res, 400, { error: 'Gambar terlalu besar (maks ±600KB)' });
         await sql`insert into asset_images (name_key, image, updated_at) values (${key}, ${img}, now())
                   on conflict (name_key) do update set image = ${img}, updated_at = now()`;
+        await logAudit(sql, auth, 'update', 'asset', null, { jenis: b.jenis_image.name, image: true });
         return send(res, 200, { ok: true, key });
       }
       if (!b.code || !b.name) return send(res, 400, { error: 'Kode dan nama aset wajib diisi' });
@@ -68,12 +70,13 @@ export default async function handler(req, res) {
       // auto-assign a unique QR code so every asset has a scannable detail page
       await sql`update assets set qr_code = ${'QR' + String(newId).padStart(6, '0')}, qr_generated_at = now()
                 where id = ${newId} and qr_code is null`;
+      await logAudit(sql, auth, 'create', 'asset', newId, { code: b.code, name: b.name, stock_total: total });
       return send(res, 200, { id: newId });
     } catch (e) { return send(res, 500, { error: e.message }); }
   }
 
   if (req.method === 'PATCH') {
-    if (!requireAdmin(req, res)) return;
+    const auth = requireAdmin(req, res); if (!auth) return;
     try {
       const b = await readJson(req);
       const id = parseInt(b.id, 10);
@@ -107,12 +110,18 @@ export default async function handler(req, res) {
           asset_type = ${assetType}, stock_total = ${total}, stock_available = ${avail}, image = ${image},
           status = ${status}
         where id = ${id}`;
+      // record only the fields that actually changed: { field: [before, after] }
+      const next = { code, name, category_id: categoryId, brand, room_id: roomId, year, condition, type, asset_type: assetType, stock_total: total, status };
+      const changes = {};
+      Object.keys(next).forEach((k) => { if (String(c[k] == null ? '' : c[k]) !== String(next[k] == null ? '' : next[k])) changes[k] = [c[k], next[k]]; });
+      if (image !== c.image) changes.image = true;
+      await logAudit(sql, auth, 'update', 'asset', id, { code: code, name: name, changes: changes });
       return send(res, 200, { ok: true });
     } catch (e) { return send(res, 500, { error: e.message }); }
   }
 
   if (req.method === 'DELETE') {
-    if (!requireAdmin(req, res)) return;
+    const auth = requireAdmin(req, res); if (!auth) return;
     try {
       const b = await readJson(req);
       const id = parseInt(b.id || (req.query && req.query.id), 10);
@@ -121,7 +130,8 @@ export default async function handler(req, res) {
       // would silently delete live borrowing records (history + stock desync).
       const active = await sql`select count(*)::int as n from borrowings where asset_id = ${id} and status in ('pending','approved','verified','borrowed','return_pending')`;
       if (active[0].n > 0) return send(res, 409, { error: 'Aset sedang dipinjam atau dalam proses, tidak dapat dihapus' });
-      await sql`delete from assets where id = ${id}`;
+      const gone = await sql`delete from assets where id = ${id} returning code, name`;
+      if (gone.length) await logAudit(sql, auth, 'delete', 'asset', id, { code: gone[0].code, name: gone[0].name });
       return send(res, 200, { ok: true });
     } catch (e) { return send(res, 500, { error: e.message }); }
   }
@@ -132,7 +142,7 @@ export default async function handler(req, res) {
 // Bulk import (called from POST when body.rows is present). Category/room are
 // matched by name (created on the fly if missing); rows with an existing code
 // are skipped. Returns a per-row summary.
-async function importAssets(sql, rows, res) {
+async function importAssets(sql, rows, res, auth) {
   try {
     if (!rows.length) return send(res, 400, { error: 'Tidak ada baris untuk diimpor' });
     if (rows.length > 2000) return send(res, 400, { error: 'Maksimal 2000 baris per impor' });
@@ -185,6 +195,7 @@ async function importAssets(sql, rows, res) {
     }
 
     if (success) await sql`update assets set qr_code = 'QR' || lpad(id::text, 6, '0'), qr_generated_at = now() where qr_code is null`;
+    await logAudit(sql, auth, 'import', 'asset', null, { rows: rows.length, success, skipped, failed: errors.length });
     return send(res, 200, { success, skipped, failed: errors.length, errors });
   } catch (e) { return send(res, 500, { error: e.message }); }
 }

@@ -1343,9 +1343,12 @@
     var qrBtn = el('button', { class: 'sesd-btn sesd-btn-sm sesd-btn-ghost', html: ic('tag') + ' QR Ruangan' });
     qrBtn.addEventListener('click', function () { showRoomQR(room); });
     actions.appendChild(qrBtn);
-    var auditBtn = el('button', { class: 'sesd-btn sesd-btn-sm sesd-btn-success', html: ic('clipboard') + ' Audit Fisik & Pindai' });
-    auditBtn.addEventListener('click', function () { close(); openRoomAuditModal(room); });
-    actions.appendChild(auditBtn);
+    // stock-taking is a staff task (admin + verifikator); the save endpoint enforces it too
+    if (IS_STAFF) {
+      var auditBtn = el('button', { class: 'sesd-btn sesd-btn-sm sesd-btn-success', html: ic('clipboard') + ' Audit Fisik & Pindai' });
+      auditBtn.addEventListener('click', function () { close(); openRoomAuditModal(room); });
+      actions.appendChild(auditBtn);
+    }
     var editBtn = null, addBox = null, addSearch = null, poolWrap = null;
     if (IS_ADMIN) {
       editBtn = el('button', { class: 'sesd-btn sesd-btn-sm sesd-btn-primary', html: ic('pencil') + ' Edit Isi' });
@@ -1793,14 +1796,19 @@
     sec.appendChild(makeNavLink('verifikasi.html', 'check_circle', 'Verifikasi', 'Persetujuan ke-2'));
     sec.appendChild(makeNavLink('ruangan.html', 'clipboard', 'Inventarisasi Ruangan', 'Audit fisik & QR'));
     sec.appendChild(makeNavLink('laporan.html', 'chart', 'Laporan', 'Harian · bulanan'));
-    var cronLink = makeNavLink('#', 'clock', 'Tugas Terjadwal', 'Cek jatuh tempo');
+    sec.appendChild(makeNavLink('audit.html', 'shield', 'Jejak Audit', 'Log aktivitas'));
+    // runs now the same overdue-reminder job Vercel Cron runs every day at 08.00 WIB
+    var cronLink = makeNavLink('#', 'clock', 'Tugas Terjadwal', 'Pengingat jatuh tempo');
     cronLink.addEventListener('click', async function (e) {
       e.preventDefault();
       try {
         toast('Menjalankan pengecekan tugas terjadwal...', 'info');
         var res = await DB.checkScheduledTasks();
         if (res && res.count > 0) {
-          toast('Tugas terjadwal: ' + res.count + ' peminjaman melewati jatuh tempo', 'warning');
+          var msg = 'Tugas terjadwal: ' + res.count + ' peminjaman melewati jatuh tempo';
+          if (res.auto) msg += ' · ' + res.sent + ' pengingat WA terkirim' + (res.already_reminded ? ', ' + res.already_reminded + ' sudah diingatkan hari ini' : '') + (res.no_phone ? ', ' + res.no_phone + ' tanpa nomor HP' : '');
+          else msg += ' · WA otomatis belum aktif (FONNTE_TOKEN), kirim lewat tombol Ingatkan WA di Daftar Pinjam';
+          toast(msg, 'warning');
         } else {
           toast('Tugas terjadwal: seluruh peminjaman berjalan normal', 'success');
         }
@@ -1815,12 +1823,12 @@
   /* ---------------- dynamic app shell (for new pages that opt in) ----------------
      A page using <aside data-shell></aside> + a sticky <div data-topbar></div>
      gets the standard sidebar + topbar built here, so it needs no copied markup. */
-  var PAGE_TITLES = { dashboard: 'Dashboard', dataaset: 'Data Aset', kategoriaset: 'Kategori Aset', ruangan: 'Ruangan', daftarpinjam: 'Daftar Pinjam', dipinjam: 'Sedang Dipinjam', ajukanpinjam: 'Ajukan Pinjam', verifikasi: 'Verifikasi', laporan: 'Laporan Peminjaman', profil: 'Profil Saya' };
+  var PAGE_TITLES = { dashboard: 'Dashboard', dataaset: 'Data Aset', kategoriaset: 'Kategori Aset', ruangan: 'Ruangan', daftarpinjam: 'Daftar Pinjam', dipinjam: 'Sedang Dipinjam', ajukanpinjam: 'Ajukan Pinjam', verifikasi: 'Verifikasi', laporan: 'Laporan Peminjaman', audit: 'Jejak Audit', profil: 'Profil Saya' };
   // Per-page chrome icons (topbar breadcrumb). NAV_ICONS keys map a sidebar link's
   // href → the same icon, so the menu and the header always agree (fixes the old
   // hard-coded "home" icon that showed on every page — see REDESIGN-GUIDE #2/#5).
-  var PAGE_ICONS = { dashboard: 'zap', dataaset: 'package', kategoriaset: 'tag', ruangan: 'home', daftarpinjam: 'refresh', dipinjam: 'clock', ajukanpinjam: 'clipboard', verifikasi: 'check_circle', laporan: 'chart', katalog: 'search', profil: 'user' };
-  var NAV_ICONS = { 'dashboard.html': 'zap', 'dataaset.html': 'package', 'kategoriaset.html': 'tag', 'ruangan.html': 'home', 'daftarpinjam.html': 'refresh', 'dipinjam.html': 'clock', 'ajukanpinjam.html': 'clipboard', 'verifikasi.html': 'check_circle', 'laporan.html': 'chart', 'katalog.html': 'search' };
+  var PAGE_ICONS = { dashboard: 'zap', dataaset: 'package', kategoriaset: 'tag', ruangan: 'home', daftarpinjam: 'refresh', dipinjam: 'clock', ajukanpinjam: 'clipboard', verifikasi: 'check_circle', laporan: 'chart', audit: 'shield', katalog: 'search', profil: 'user' };
+  var NAV_ICONS = { 'dashboard.html': 'zap', 'dataaset.html': 'package', 'kategoriaset.html': 'tag', 'ruangan.html': 'home', 'daftarpinjam.html': 'refresh', 'dipinjam.html': 'clock', 'ajukanpinjam.html': 'clipboard', 'verifikasi.html': 'check_circle', 'laporan.html': 'chart', 'audit.html': 'shield', 'katalog.html': 'search' };
   function pageIcon(p) { return (window.SESDIAN_ICONS && window.SESDIAN_ICONS[PAGE_ICONS[p] || 'home']) || ''; }
   // "Sedang Dipinjam" link for everyone (added into the PEMINJAMAN section).
   function injectBorrowedNav() {
@@ -1901,6 +1909,7 @@
 
   function injectAdminBars() {
     var p = page();
+    if (!IS_ADMIN && p !== 'ruangan') return;
     var content = $$('main > div').pop(); if (!content) return;
     var inner = content.firstElementChild || content;
     function bar(buttons) {
@@ -1945,9 +1954,9 @@
     ]);
     else if (p === 'kategoriaset') bar([{ label: 'Tambah Kategori', onClick: function () { openCategoryForm(null); } }]);
     else if (p === 'ruangan') bar([
-      { label: 'Tambah Ruangan', icon: 'home', onClick: function () { openRoomForm(null); } },
+      IS_ADMIN && { label: 'Tambah Ruangan', icon: 'home', onClick: function () { openRoomForm(null); } },
       { label: 'Scan & Audit Inventarisasi', variant: 'primary', icon: 'camera', onClick: function () { openRoomScanAuditModal(); } },
-    ]);
+    ].filter(Boolean));
     else if (p === 'users') bar([{ label: 'Tambah User', icon: 'user', onClick: function () { openUserForm(); } }]);
   }
 
@@ -2259,6 +2268,9 @@
       var m3 = s.match(/[?&]code=([^&#]+)/);
       if (m3 && m3[1]) return decodeURIComponent(m3[1]).trim();
     }
+    // printed room QR (see roomCatalogUrl): katalog.html?room_code= / room_id= / room=
+    var m4 = s.match(/[?&]room(?:_code|_id)?=([^&#]+)/);
+    if (m4 && m4[1]) return decodeURIComponent(m4[1].replace(/\+/g, ' ')).trim();
     return s;
   }
 
@@ -2505,8 +2517,20 @@
 
     var head = el('div', { style: 'display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.75rem' });
     var titleBox = el('div');
-    titleBox.appendChild(el('h3', { style: 'margin:0;font-size:1.2rem;display:flex;align-items:center;gap:8px' }, ic('clipboard') + ' Inventarisasi Fisik: ' + (room.name || 'Ruangan')));
+    var auditTitle = el('h3', { style: 'margin:0;font-size:1.2rem;display:flex;align-items:center;gap:8px', html: ic('clipboard') });
+    auditTitle.appendChild(document.createTextNode(' Inventarisasi Fisik: ' + (room.name || 'Ruangan')));
+    titleBox.appendChild(auditTitle);
     titleBox.appendChild(el('div', { style: 'font-size:0.78rem;color:var(--text-muted);margin-top:2px' }, (room.code ? room.code + ' · ' : '') + 'Penanggung Jawab: ' + (room.pic || '-')));
+    // the room's previous saved stock-take (kept in the audit trail)
+    var lastInv = el('div', { style: 'font-size:0.74rem;color:var(--text-muted);margin-top:4px' }, 'Memuat riwayat inventarisasi...');
+    titleBox.appendChild(lastInv);
+    DB.auditTrail({ entity: 'room', action: 'inventory', entity_id: room.id, limit: 1, all: '1' }).then(function (r) {
+      var last = r && r.rows && r.rows[0];
+      if (!last) { lastInv.textContent = 'Belum pernah diinventarisasi.'; return; }
+      var d = last.detail || {};
+      lastInv.textContent = 'Inventarisasi terakhir: ' + new Date(last.created_at).toLocaleString('id-ID') + ' oleh ' + (last.user_name || '-') +
+        ' · ' + (d.found || 0) + ' ada, ' + (d.missing || 0) + ' tidak ditemukan';
+    }).catch(function () { lastInv.textContent = ''; });
     head.appendChild(titleBox);
     var closeBtn = el('button', { class: 'sesd-btn sesd-btn-ghost sesd-btn-sm', style: 'padding:4px 8px;font-size:1.1rem' }, '×');
     head.appendChild(closeBtn);
@@ -2560,7 +2584,7 @@
     var scanRow = el('div', { style: 'display:flex;gap:8px' });
     var scanInput = el('input', { type: 'text', placeholder: 'Pindai barcode / QR atau ketik kode barang...', style: 'flex:1;padding:0.6rem 0.8rem;font-size:0.85rem;border-radius:8px;border:1px solid var(--border);outline:none' });
     var scanBtn = el('button', { class: 'sesd-btn sesd-btn-primary sesd-btn-sm' }, 'Cari');
-    var toggleCamBtn = el('button', { class: 'sesd-btn sesd-btn-ghost sesd-btn-sm', style: 'display:inline-flex;align-items:center;gap:6px' }, ic('camera') + ' Kamera');
+    var toggleCamBtn = el('button', { class: 'sesd-btn sesd-btn-ghost sesd-btn-sm', style: 'display:inline-flex;align-items:center;gap:6px', html: ic('camera') + ' Kamera' });
     scanRow.appendChild(scanInput);
     scanRow.appendChild(scanBtn);
     scanRow.appendChild(toggleCamBtn);
@@ -2675,24 +2699,15 @@
         alertBox.innerHTML = '';
         var warnText = el('div', { style: 'font-weight:700;margin-bottom:4px' }, 'Aset Ditemukan dari Ruangan Lain: ' + matchOther.name);
         var subText = el('div', { style: 'font-size:0.75rem;margin-bottom:8px' }, 'Tercatat di: ' + (matchOther.room || 'Tanpa Ruangan') + ' (' + (matchOther.code || matchOther.qr_code || '') + ')');
+        // reconciled into this room on "Simpan Rekonsiliasi" (server moves it there)
         var moveBtn = el('button', { class: 'sesd-btn sesd-btn-sm sesd-btn-warning' }, 'Pindahkan ke Ruangan ' + room.name);
-        moveBtn.addEventListener('click', async function () {
-          moveBtn.disabled = true;
-          moveBtn.textContent = 'Memindahkan...';
-          try {
-            await DB.updateAsset(matchOther.id, assetPatch(matchOther, { room_id: room.id }));
-            matchOther.room_id = room.id;
-            matchOther.room = room.name;
-            roomAssets.push(matchOther);
-            auditState[matchOther.id] = { verified: true, condition: matchOther.condition || 'Baik', time: new Date().toLocaleTimeString('id-ID') };
-            alertBox.style.display = 'none';
-            updateProgress();
-            drawTable();
-            toast('Aset berhasil dipindahkan dan diverifikasi di ' + room.name, 'success');
-          } catch (e) {
-            toast('Gagal memindahkan aset: ' + e.message, 'error');
-            moveBtn.disabled = false;
-          }
+        moveBtn.addEventListener('click', function () {
+          roomAssets.push(matchOther);
+          auditState[matchOther.id] = { verified: true, condition: matchOther.condition || 'Baik', time: new Date().toLocaleTimeString('id-ID'), movedFrom: matchOther.room || 'Tanpa Ruangan' };
+          alertBox.style.display = 'none';
+          updateProgress();
+          drawTable();
+          toast('Aset ditandai pindah ke ' + room.name + ' — tersimpan saat Simpan Rekonsiliasi', 'success');
         });
         alertBox.appendChild(warnText);
         alertBox.appendChild(subText);
@@ -2748,6 +2763,7 @@
         var tdName = el('td', { style: 'padding:8px 12px' });
         tdName.appendChild(el('div', { style: 'font-weight:600;font-size:0.85rem' }, a.name || '-'));
         tdName.appendChild(el('div', { style: 'font-size:0.72rem;color:var(--text-muted)' }, a.brand || '-'));
+        if (st.movedFrom) tdName.appendChild(el('span', { style: 'display:inline-block;margin-top:3px;background:#fef3c7;color:#92400e;padding:1px 6px;border-radius:4px;font-size:0.65rem;font-weight:600' }, 'Pindahan dari ' + st.movedFrom));
         tr.appendChild(tdName);
 
         var tdCode = el('td', { style: 'padding:8px 12px;font-family:"JetBrains Mono",monospace;font-size:0.75rem' });
@@ -2757,7 +2773,8 @@
 
         var tdCond = el('td', { style: 'padding:8px 12px' });
         var selCond = el('select', { style: 'padding:3px 6px;border-radius:6px;border:1px solid var(--border);font-size:0.78rem' });
-        ['Baik', 'Rusak Ringan', 'Rusak Berat', 'Tidak Ditemukan'].forEach(function (c) {
+        // same values as the asset form; "tidak ditemukan" is the unchecked status, not a condition
+        ['Baik', 'Rusak Ringan', 'Rusak Berat'].forEach(function (c) {
           var opt = el('option', { value: c }, c);
           if (c === st.condition) opt.selected = true;
           selCond.appendChild(opt);
@@ -2779,7 +2796,7 @@
     var foot = el('div', { style: 'display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end' });
     var exportBtn = el('button', { class: 'sesd-btn sesd-btn-ghost sesd-btn-sm' }, 'Ekspor CSV');
     exportBtn.addEventListener('click', function () {
-      var rows = [['Kode', 'QR', 'Nama', 'Merek', 'Status Audit', 'Kondisi Fisik', 'Waktu Cek'].join(',')];
+      var rows = [['Kode', 'QR', 'Nama', 'Merek', 'Status Audit', 'Kondisi Fisik', 'Waktu Cek', 'Keterangan'].join(',')];
       roomAssets.forEach(function (a) {
         var s = auditState[a.id];
         rows.push([
@@ -2789,7 +2806,8 @@
           '"' + (a.brand || '') + '"',
           '"' + (s && s.verified ? 'Ada' : 'Belum Terverifikasi') + '"',
           '"' + (s && s.condition ? s.condition : a.condition || 'Baik') + '"',
-          '"' + (s && s.time ? s.time : '-') + '"'
+          '"' + (s && s.time ? s.time : '-') + '"',
+          '"' + (s && s.movedFrom ? 'Pindahan dari ' + s.movedFrom : '') + '"'
         ].join(','));
       });
       var blob = new Blob(['\uFEFF' + rows.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
@@ -2803,19 +2821,28 @@
     });
 
     var saveBtn = el('button', { class: 'sesd-btn sesd-btn-success sesd-btn-sm' }, 'Simpan Rekonsiliasi');
+    var missingConfirmed = false;
     saveBtn.addEventListener('click', async function () {
+      var missing = roomAssets.filter(function (a) { return !(auditState[a.id] && auditState[a.id].verified); }).length;
+      // unchecked units are recorded as "tidak ditemukan": ask once before saving
+      if (missing && !missingConfirmed) {
+        missingConfirmed = true;
+        alertBox.style.display = 'block';
+        alertBox.style.background = '#fef3c7';
+        alertBox.style.border = '1px solid #f59e0b';
+        alertBox.style.color = '#92400e';
+        alertBox.textContent = missing + ' unit belum dipindai dan akan dicatat sebagai "Tidak Ditemukan". Klik Simpan Rekonsiliasi sekali lagi untuk menyimpan.';
+        return;
+      }
       saveBtn.disabled = true;
       saveBtn.textContent = 'Menyimpan...';
       try {
-        var updates = [];
-        roomAssets.forEach(function (a) {
-          var s = auditState[a.id];
-          if (s && s.condition !== a.condition) {
-            updates.push(DB.updateAsset(a.id, assetPatch(a, { condition: s.condition })));
-          }
+        var items = roomAssets.map(function (a) {
+          var s = auditState[a.id] || {};
+          return { asset_id: a.id, found: !!s.verified, condition: s.condition || a.condition || 'Baik' };
         });
-        if (updates.length) await Promise.all(updates);
-        toast('Hasil inventarisasi dan rekonsiliasi berhasil disimpan!', 'success');
+        var r = await DB.saveInventory(room.id, items);
+        toast('Inventarisasi tersimpan: ' + r.found + ' ada, ' + r.missing + ' tidak ditemukan' + (r.moved ? ', ' + r.moved + ' dipindahkan' : ''), 'success');
         cleanup();
         reloadData();
       } catch (err) {
@@ -2842,7 +2869,7 @@
     var scanning = true;
 
     var head = el('div', { style: 'display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem' });
-    head.appendChild(el('h3', { style: 'margin:0;font-size:1.15rem;display:flex;align-items:center;gap:8px' }, ic('camera') + ' Pindai QR Ruangan / Aset'));
+    head.appendChild(el('h3', { style: 'margin:0;font-size:1.15rem;display:flex;align-items:center;gap:8px', html: ic('camera') + ' Pindai QR Ruangan / Aset' }));
     var closeBtn = el('button', { class: 'sesd-btn sesd-btn-ghost sesd-btn-sm', style: 'padding:4px 8px;font-size:1.1rem' }, '×');
     head.appendChild(closeBtn);
     m.appendChild(head);
@@ -3367,7 +3394,7 @@
     if (IS_STAFF) injectRoleNav();
     setupGreeting();              // dashboard greeting (role-aware)
     normalizeChrome();            // brand logo + per-page sidebar/topbar icons (#1/#2/#5)
-    if (IS_ADMIN) injectAdminBars();
+    if (IS_STAFF) injectAdminBars();     // admin: all bars · verifikator: only the inventory scan on Ruangan
     // Kerangka halaman (chevron sidebar, tanggal, breadcrumb, layout mobile) tidak
     // butuh data DB — pasang SEBELUM menunggu load supaya tampilan saat loading
     // sudah sama persis dengan tampilan sesudah data masuk.

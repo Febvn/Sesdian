@@ -1,6 +1,8 @@
 import { getSql } from './_db.js';
 import { requireAuth, requireAdmin, send, readJson } from './_auth.js';
 import { waEnabled, normalizeWa, ensureSettings } from './_wa.js';
+import { ensureSchema } from './_schema.js';
+import { logAudit } from './_audit.js';
 
 export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return send(res, 204, {});
@@ -18,12 +20,14 @@ export default async function handler(req, res) {
 
   // only admins may change settings
   if (req.method === 'PATCH') {
-    if (!requireAdmin(req, res)) return;
+    const auth = requireAdmin(req, res); if (!auth) return;
     try {
       const b = await readJson(req);
       const num = normalizeWa(b.wa_number);
       await sql`insert into settings (key, value) values ('wa_number', ${num})
                 on conflict (key) do update set value = ${num}`;
+      await ensureSchema(sql);
+      await logAudit(sql, auth, 'update', 'setting', null, { key: 'wa_number', value: num });
       return send(res, 200, { wa_number: num, wa_auto: waEnabled() });
     } catch (e) { return send(res, 500, { error: e.message }); }
   }

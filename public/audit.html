@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SESDIAN - Jejak Audit</title>
+    <link rel="icon" type="image/png" href="logo.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <script>(function(){try{var d=document.documentElement;if(localStorage.getItem('sesdian_theme')==='dark')d.setAttribute('data-theme','dark');var ts=localStorage.getItem('sesdian_textsize');if(ts==='small'||ts==='large')d.setAttribute('data-textsize',ts);if(localStorage.getItem('sesdian_rail')==='1')d.classList.add('sesd-rail-pref');}catch(e){}})();</script>
+    <link rel="stylesheet" href="assets/app.css?v=61" />
+    <link rel="stylesheet" href="assets/preloader.css?v=57" />
+    <style>
+      .audit-table-wrapper { -webkit-overflow-scrolling: touch; }
+      .audit-filter label { font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; display: block; margin-bottom: 5px; }
+      .audit-filter input, .audit-filter select { padding: 0.6rem 0.7rem; border: 1.5px solid var(--border); border-radius: 10px; font-size: 0.875rem; outline: none; background: var(--bg-card, #fff); color: var(--text); }
+      @media (max-width: 768px) {
+        .audit-content { padding: 1rem !important; }
+        .audit-filter > div { flex: 1 1 140px; }
+        .audit-filter input, .audit-filter select { width: 100%; box-sizing: border-box; }
+      }
+    </style>
+  </head>
+  <body
+    data-page="audit"
+    data-auth="required"
+    data-roles="admin,verifikator"
+  >
+    <div id="root">
+      <div style="display: flex; min-height: 100vh; background: rgb(240, 244, 255)">
+        <aside
+          data-shell
+          style="
+            width: 256px;
+            background: rgb(11, 17, 32);
+            display: flex;
+            flex-direction: column;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow: hidden;
+            flex-shrink: 0;
+            box-shadow: rgba(0, 0, 0, 0.25) 4px 0 32px;
+          "
+        ></aside>
+        <main style="flex: 1 1 0%; overflow: auto; min-width: 0">
+          <div
+            data-topbar
+            style="
+              background: #fff;
+              border-bottom: 1px solid rgb(226, 232, 240);
+              padding: 0.7rem 1rem;
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              position: sticky;
+              top: 0;
+              z-index: 10;
+              box-shadow: rgba(0, 0, 0, 0.04) 0 1px 0;
+            "
+          ></div>
+          <div style="padding: 1.75rem" class="audit-content">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; margin-bottom: 1.25rem">
+              <div>
+                <h1 style="font-size: 1.5rem; font-weight: 800; margin-bottom: 4px">Jejak Audit</h1>
+                <p style="color: var(--text-muted); font-size: 0.875rem">
+                  Riwayat aktivitas: siapa melakukan apa dan kapan pada peminjaman, aset, inventarisasi ruangan, notifikasi, dan pengguna.
+                </p>
+              </div>
+              <button data-audit-export class="sesd-btn sesd-btn-lg sesd-btn-success"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="1em" height="1em" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg></span> Export CSV</button>
+            </div>
+
+            <!-- filters -->
+            <div class="audit-filter" style="background: #fff; border-radius: 14px; box-shadow: var(--shadow); padding: 1rem 1.25rem; margin-bottom: 1.25rem; display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end">
+              <div><label for="audit-start">Dari</label><input id="audit-start" type="date" data-audit-start /></div>
+              <div><label for="audit-end">Sampai</label><input id="audit-end" type="date" data-audit-end /></div>
+              <div>
+                <label for="audit-kind">Jenis Aktivitas</label>
+                <select id="audit-kind" data-audit-kind>
+                  <option value="all">Semua aktivitas</option>
+                  <option value="borrowing">Peminjaman</option>
+                  <option value="inventory">Inventarisasi Ruangan</option>
+                  <option value="notification">Notifikasi &amp; Tugas Terjadwal</option>
+                  <option value="asset">Aset</option>
+                  <option value="room">Ruangan</option>
+                  <option value="user">Pengguna</option>
+                  <option value="other">Kategori &amp; Pengaturan</option>
+                </select>
+              </div>
+              <div style="flex: 1 1 200px">
+                <label for="audit-q">Cari</label>
+                <input id="audit-q" type="search" data-audit-q placeholder="Nama pengguna, aset, ruangan..." style="width: 100%; box-sizing: border-box" />
+              </div>
+            </div>
+
+            <!-- summary -->
+            <div data-audit-summary style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 1rem"></div>
+
+            <!-- log table -->
+            <div style="background: #fff; border-radius: 16px; box-shadow: var(--shadow); overflow: auto" class="audit-table-wrapper">
+              <table style="width: 100%; border-collapse: collapse; min-width: 860px">
+                <thead style="background: rgb(248, 250, 255)">
+                  <tr>
+                    <th style="padding: 0.7rem 0.8rem; text-align: left; font-size: 0.7rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 150px">Waktu</th>
+                    <th style="padding: 0.7rem 0.8rem; text-align: left; font-size: 0.7rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 170px">Pengguna</th>
+                    <th style="padding: 0.7rem 0.8rem; text-align: left; font-size: 0.7rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 130px">Aksi</th>
+                    <th style="padding: 0.7rem 0.8rem; text-align: left; font-size: 0.7rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 120px">Objek</th>
+                    <th style="padding: 0.7rem 0.8rem; text-align: left; font-size: 0.7rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase">Keterangan</th>
+                  </tr>
+                </thead>
+                <tbody data-audit-rows></tbody>
+              </table>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+    <script defer src="assets/config.js?v=57"></script>
+    <script defer src="assets/db.js?v=62"></script>
+    <script defer src="assets/icons.js?v=59"></script>
+    <script defer src="assets/preloader.js?v=57"></script>
+    <script defer src="assets/app.js?v=68"></script>
+    <script defer src="assets/audit.js?v=1"></script>
+    <script defer src="assets/theme.js?v=57"></script>
+  </body>
+</html>

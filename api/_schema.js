@@ -16,6 +16,23 @@ export async function ensureSchema(sql) {
     await sql`alter table borrowings add column if not exists verified_by  bigint`;
     await sql`alter table borrowings add column if not exists verified_at  timestamptz`;
     await sql`alter table borrowings add column if not exists returned_at  timestamptz`;
+    await sql`alter table borrowings add column if not exists reminded_at  timestamptz`;   // last overdue WA reminder (scheduled task)
+    // Jejak audit (SES-4.3.3): one row per write action. user_name/user_role are a
+    // snapshot so the trail still reads correctly after an account is renamed,
+    // deactivated or deleted (user_id then becomes null, the row survives).
+    await sql`create table if not exists audit_log (
+      id         bigserial primary key,
+      user_id    bigint references users(id) on delete set null,
+      action     text not null,
+      entity     text not null,
+      entity_id  bigint,
+      detail     jsonb,
+      created_at timestamptz default now()
+    )`;
+    await sql`alter table audit_log add column if not exists user_name text`;
+    await sql`alter table audit_log add column if not exists user_role text`;
+    await sql`create index if not exists idx_audit_log_created on audit_log (created_at desc)`;
+    await sql`create index if not exists idx_audit_entity on audit_log (entity, entity_id)`;
     // Keep loan history when a staff account is deleted: the approver/verifier
     // columns must be ON DELETE SET NULL so the borrowing row survives (only the
     // processor name goes blank). Older deployments created these as NO ACTION,
@@ -32,6 +49,15 @@ export async function ensureSchema(sql) {
     if (byName['borrowings_verified_by_fkey'] !== 'n') {
       await sql`alter table borrowings drop constraint if exists borrowings_verified_by_fkey`;
       await sql`alter table borrowings add constraint borrowings_verified_by_fkey foreign key (verified_by) references users(id) on delete set null`;
+    }
+    // migrate-v2 created audit_log.user_id as NO ACTION, which would block deleting
+    // any account that has audit rows; normalize it to ON DELETE SET NULL as well.
+    const afk = await sql`select con.confdeltype from pg_constraint con
+      join pg_class c on c.oid = con.conrelid
+      where c.relname = 'audit_log' and con.contype = 'f' and con.conname = 'audit_log_user_id_fkey'`;
+    if (!afk.length || afk[0].confdeltype !== 'n') {
+      await sql`alter table audit_log drop constraint if exists audit_log_user_id_fkey`;
+      await sql`alter table audit_log add constraint audit_log_user_id_fkey foreign key (user_id) references users(id) on delete set null`;
     }
     // one image per asset NAME (jenis) — changing it is a single upsert instead of
     // patching every unit; served as binary via /api/public?resource=img&key=...

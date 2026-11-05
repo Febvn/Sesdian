@@ -26,7 +26,12 @@ Browser  -->  /api/* (Vercel serverless, Node)  -->  Neon Postgres
 - New borrowing request -> the admin is notified.
 - Overdue item (past due date, not returned) -> admin can press "Ingatkan WA" on that row to remind the borrower.
 - On return, the borrower gets a confirmation; a borrower can also press "Konfirmasi Pengembalian" to tell the admin they have returned an item.
+- Scheduled task (Tugas Terjadwal): Vercel Cron calls `/api/notify?cron=overdue` every day at 08.00 WIB (`crons` in `vercel.json`). It WhatsApps every overdue borrower (at most once per day per loan) and sends the admin one daily summary. Staff can run the same job any time from the sidebar "Tugas Terjadwal". The endpoint needs `CRON_SECRET` (cron) or a staff login; it is never public.
 - Delivery: if `FONNTE_TOKEN` (https://fonnte.com gateway) is set, messages are auto-sent server-side. Otherwise the app opens a `wa.me` click-to-send link. Borrower reminders need the user's phone (captured at registration / `users.phone`).
+
+## Inventarisasi & jejak audit
+- Inventarisasi ruangan (admin/verifikator): Ruangan -> "Scan & Audit Inventarisasi" (scan the printed room QR or type the room code) or a room's "Audit Fisik & Pindai". Scan each unit's QR; unchecked units are saved as "tidak ditemukan", units found from another room are moved here, and changed conditions are written back. Each saved stock-take is kept per room.
+- Jejak audit (`audit.html`, admin/verifikator): every write (borrowing requests and status changes, assets, rooms, categories, users, settings, notifications, scheduled-task runs, stock-takes) is logged in `audit_log` with who and when; filter by period/type, CSV export.
 
 ## UI
 - Loading: protected pages show a spinner until the database data is rendered, so no hardcoded/placeholder content flashes first.
@@ -65,6 +70,7 @@ vercel.json         outputDirectory: public, clean URLs
    - `DATABASE_URL`  (required) - your Neon connection string
    - `JWT_SECRET`    (required) - a long random string, e.g. `openssl rand -hex 32`
    - `FONNTE_TOKEN`  (optional) - enables automatic WhatsApp sending
+   - `CRON_SECRET`   (required for the daily overdue reminder) - a long random string
 4. Log in with your existing account; since it is the only account and there is
    no admin yet, it is promoted to admin automatically. New sign-ups are users.
 

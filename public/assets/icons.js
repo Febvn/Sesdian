@@ -37,6 +37,7 @@
     pencil: '<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m14 6 4 4"/>',
     trash: '<path d="M4 7h16"/><path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/><path d="M6 7l1 13h10l1-13"/>',
     shield: '<path d="M12 3 5 6v6c0 4 3 7 7 9 4-2 7-5 7-9V6z"/>',
+    camera: '<path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13.5" r="3.5"/>',
     users: '<circle cx="9" cy="8" r="3.3"/><path d="M3 20c0-3.4 3-5.3 6-5.3s6 1.9 6 5.3"/><path d="M16 5a3.3 3.3 0 0 1 0 6.6M17 14.4c2.4.3 4 2.2 4 5.6"/>',
     check: '<path d="M5 12.5 10 17l9-10"/>',
   };
