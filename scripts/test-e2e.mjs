@@ -142,7 +142,9 @@ async function runTests() {
     record('API GET /api/dashboard?view=reports', !!(repData && repData.by_status && Array.isArray(repData.rows)), `by_status & ${repData.rows?.length || 0} rows received`);
 
     // /api/notify?cron=overdue
-    const cronRes = await fetch(`${BASE_URL}/api/notify?cron=overdue`);
+    const cronRes = await fetch(`${BASE_URL}/api/notify?cron=overdue`, {
+      headers: { Authorization: `Bearer ${adminToken}` }
+    });
     const cronData = await cronRes.json();
     record('API GET /api/notify?cron=overdue', cronData && cronData.ok === true, `count: ${cronData.count}`);
 
@@ -269,11 +271,11 @@ async function runTests() {
     console.error('Test execution error:', err);
     record('Test Suite Run', false, err.message);
   } finally {
-    await browser.close();
     if (serverProcess) {
-      serverProcess.kill();
+      try { serverProcess.kill(); } catch (e) {}
       console.log('Dev server stopped.');
     }
+    browser.close().catch(() => {});
   }
 
   // Summary
@@ -286,11 +288,7 @@ async function runTests() {
   console.log(`FAILED      : ${failed}`);
   console.log('========================================\n');
 
-  if (failed > 0) {
-    process.exit(1);
-  } else {
-    process.exit(0);
-  }
+  setTimeout(() => process.exit(failed > 0 ? 1 : 0), 500);
 }
 
 runTests();

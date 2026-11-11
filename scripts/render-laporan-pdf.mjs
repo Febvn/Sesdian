@@ -44,10 +44,10 @@ async function exportLaporanPdf() {
     margin: { top: 0, right: 0, bottom: 0, left: 0 }
   });
 
-  await browser.close();
-
   const stats = fs.statSync(outputPath);
   console.log(`[SUCCESS] Laporan Pengujian PDF generated cleanly! Size: ${(stats.size / 1024).toFixed(1)} KB`);
+  browser.close().catch(() => {});
+  setTimeout(() => process.exit(0), 500);
 }
 
 exportLaporanPdf().catch((err) => {
