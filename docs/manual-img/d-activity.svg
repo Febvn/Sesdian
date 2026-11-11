@@ -1,0 +1,116 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 1450" font-family="Arial, Helvetica, sans-serif">
+  <defs>
+    <marker id="arr" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto">
+      <path d="M0,0 L8,4 L0,8 z" fill="#33475c"/>
+    </marker>
+  </defs>
+  <rect width="1240" height="1450" fill="#ffffff"/>
+
+  <!-- ===== swimlanes ===== -->
+  <rect x="20"  y="40" width="400" height="1340" fill="#ffffff" stroke="#16365c" stroke-width="1.6"/>
+  <rect x="420" y="40" width="400" height="1340" fill="#f7fafd" stroke="#16365c" stroke-width="1.6"/>
+  <rect x="820" y="40" width="400" height="1340" fill="#ffffff" stroke="#16365c" stroke-width="1.6"/>
+  <rect x="20"  y="40" width="400" height="50" fill="#16365c"/>
+  <rect x="420" y="40" width="400" height="50" fill="#16365c"/>
+  <rect x="820" y="40" width="400" height="50" fill="#16365c"/>
+  <g font-size="18" font-weight="bold" fill="#ffffff" text-anchor="middle">
+    <text x="220"  y="72">Pegawai (Peminjam)</text>
+    <text x="620"  y="72">Administrator</text>
+    <text x="1020" y="72">Verifikator</text>
+  </g>
+
+  <!-- ===== nodes ===== -->
+  <!-- start -->
+  <circle cx="220" cy="130" r="11" fill="#16365c"/>
+
+  <g stroke="#2f6fb5" stroke-width="1.8" fill="#eaf2fb">
+    <rect x="70" y="170" width="300" height="60" rx="12"/>                     <!-- P1 masuk -->
+    <rect x="70" y="272" width="300" height="76" rx="12"/>                     <!-- P2 pilih unit -->
+    <rect x="70" y="390" width="300" height="60" rx="12"/>                     <!-- P3 kirim -->
+    <rect x="70" y="600" width="300" height="60" rx="12"/>                     <!-- PC dibatalkan -->
+    <rect x="470" y="490" width="300" height="60" rx="12"/>                    <!-- A1 periksa -->
+    <rect x="470" y="710" width="300" height="60" rx="12"/>                    <!-- AR ditolak -->
+    <rect x="870" y="600" width="300" height="60" rx="12"/>                    <!-- V1 periksa ulang -->
+    <rect x="870" y="820" width="300" height="66" rx="12"/>                    <!-- V2 serah terima -->
+    <rect x="70" y="940" width="300" height="60" rx="12"/>                     <!-- P4 gunakan -->
+    <rect x="70" y="1050" width="300" height="76" rx="12"/>                    <!-- P5 konfirmasi -->
+    <rect x="870" y="1170" width="300" height="66" rx="12"/>                   <!-- V3 verif kembali -->
+  </g>
+
+  <!-- decisions -->
+  <g stroke="#16365c" stroke-width="1.8" fill="#ffffff">
+    <polygon points="220,475 315,520 220,565 125,520"/>                        <!-- D0 batalkan? -->
+    <polygon points="620,585 715,630 620,675 525,630"/>                        <!-- D1 disetujui? -->
+    <polygon points="1020,695 1115,740 1020,785 925,740"/>                     <!-- D2 layak? -->
+  </g>
+
+  <!-- ends -->
+  <g>
+    <circle cx="220" cy="710" r="13" fill="#ffffff" stroke="#16365c" stroke-width="2"/>
+    <circle cx="220" cy="710" r="7" fill="#16365c"/>
+    <circle cx="620" cy="830" r="13" fill="#ffffff" stroke="#16365c" stroke-width="2"/>
+    <circle cx="620" cy="830" r="7" fill="#16365c"/>
+    <circle cx="1020" cy="1300" r="13" fill="#ffffff" stroke="#16365c" stroke-width="2"/>
+    <circle cx="1020" cy="1300" r="7" fill="#16365c"/>
+  </g>
+
+  <!-- ===== node labels ===== -->
+  <g font-size="14.5" fill="#16365c" text-anchor="middle">
+    <text x="220" y="196">Masuk ke aplikasi<tspan x="220" dy="17">(NIP dan kata sandi)</tspan></text>
+    <text x="220" y="296">Pilih unit aset, isi tanggal<tspan x="220" dy="17">jatuh tempo kembali, dan alasan</tspan><tspan x="220" dy="17">peminjaman (opsional)</tspan></text>
+    <text x="220" y="416">Kirim pengajuan<tspan x="220" dy="17">status: Pending</tspan></text>
+    <text x="220" y="512" font-size="13.5">Batalkan</text>
+    <text x="220" y="529" font-size="13.5">pengajuan?</text>
+    <text x="220" y="626">Status: Dibatalkan,<tspan x="220" dy="17">stok dikembalikan</tspan></text>
+    <text x="620" y="516">Periksa pengajuan<tspan x="620" dy="17">(Verifikasi 1)</tspan></text>
+    <text x="620" y="622" font-size="13.5">Disetujui</text>
+    <text x="620" y="639" font-size="13.5">admin?</text>
+    <text x="620" y="736">Status: Ditolak,<tspan x="620" dy="17">stok dikembalikan</tspan></text>
+    <text x="1020" y="626">Periksa ulang pengajuan<tspan x="1020" dy="17">(Verifikasi 2)</tspan></text>
+    <text x="1020" y="732" font-size="13.5">Layak</text>
+    <text x="1020" y="749" font-size="13.5">diserahkan?</text>
+    <text x="1020" y="846">Serah terima barang —<tspan x="1020" dy="17">status: Dipinjam,</tspan><tspan x="1020" dy="17">stok berkurang</tspan></text>
+    <text x="220" y="975">Gunakan barang</text>
+    <text x="220" y="1074">Konfirmasi pengembalian —<tspan x="220" dy="17">status: Menunggu</tspan><tspan x="220" dy="17">Verifikasi Kembali</tspan></text>
+    <text x="1020" y="1196">Verifikasi pengembalian —<tspan x="1020" dy="17">status: Kembali,</tspan><tspan x="1020" dy="17">stok pulih</tspan></text>
+  </g>
+
+  <!-- ===== edges ===== -->
+  <g stroke="#33475c" stroke-width="1.7" fill="none" marker-end="url(#arr)">
+    <line x1="220" y1="141" x2="220" y2="166"/>
+    <line x1="220" y1="230" x2="220" y2="268"/>
+    <line x1="220" y1="348" x2="220" y2="386"/>
+    <line x1="220" y1="450" x2="220" y2="471"/>
+    <line x1="220" y1="565" x2="220" y2="596"/>                                <!-- ya -> dibatalkan -->
+    <line x1="220" y1="660" x2="220" y2="693"/>
+    <line x1="315" y1="520" x2="466" y2="520"/>                                <!-- tidak -> A1 -->
+    <line x1="620" y1="550" x2="620" y2="581"/>
+    <line x1="620" y1="675" x2="620" y2="706"/>                                <!-- tidak -> ditolak -->
+    <line x1="620" y1="770" x2="620" y2="813"/>
+    <line x1="715" y1="630" x2="866" y2="630"/>                                <!-- ya -> V1 -->
+    <line x1="1020" y1="660" x2="1020" y2="691"/>
+    <polyline points="925,740 770,740"/>                                       <!-- tidak -> ditolak -->
+    <line x1="1020" y1="785" x2="1020" y2="816"/>                              <!-- ya -->
+    <polyline points="1020,886 1020,915 220,915 220,936"/>                     <!-- serah terima -> gunakan -->
+    <line x1="220" y1="1000" x2="220" y2="1046"/>
+    <polyline points="220,1126 220,1150 1020,1150 1020,1166"/>                 <!-- konfirmasi -> verif kembali -->
+    <line x1="1020" y1="1236" x2="1020" y2="1283"/>
+  </g>
+
+  <!-- edge labels -->
+  <g font-size="13.5" font-style="italic" fill="#33475c">
+    <text x="232" y="588">ya</text>
+    <text x="330" y="510">tidak</text>
+    <text x="632" y="698">tidak</text>
+    <text x="730" y="620">ya</text>
+    <text x="835" y="732">tidak</text>
+    <text x="1032" y="808">ya</text>
+  </g>
+
+  <!-- footnotes -->
+  <g font-size="13.5" font-style="italic" fill="#33475c" text-anchor="middle">
+    <text x="1020" y="1345">(verifikasi pengembalian dapat pula dilakukan oleh administrator)</text>
+    <text x="620" y="1415">Pemberitahuan WhatsApp dan lonceng aplikasi dikirim pada tiap perubahan status:</text>
+    <text x="620" y="1435">pengajuan baru, keputusan admin, serah terima, permintaan kembali, dan pengembalian.</text>
+  </g>
+</svg>

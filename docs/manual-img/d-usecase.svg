@@ -1,0 +1,119 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 900" font-family="Arial, Helvetica, sans-serif">
+  <rect width="1240" height="900" fill="#ffffff"/>
+
+  <!-- system boundary -->
+  <rect x="260" y="40" width="720" height="800" rx="10" fill="#f7fafd" stroke="#16365c" stroke-width="2"/>
+  <text x="620" y="76" text-anchor="middle" font-size="19" font-weight="bold" fill="#16365c">SESDIAN — Sistem Digital Inventarisasi Aset Negara</text>
+
+  <!-- ===== use cases: left column (publik & pegawai) ===== -->
+  <g stroke="#2f6fb5" stroke-width="1.8" fill="#eaf2fb">
+    <ellipse cx="445" cy="130" rx="150" ry="34"/>
+    <ellipse cx="445" cy="225" rx="150" ry="34"/>
+    <ellipse cx="445" cy="320" rx="150" ry="34"/>
+    <ellipse cx="445" cy="415" rx="150" ry="34"/>
+    <ellipse cx="445" cy="510" rx="150" ry="34"/>
+    <ellipse cx="445" cy="605" rx="150" ry="34"/>
+    <ellipse cx="445" cy="700" rx="150" ry="34"/>
+  </g>
+  <!-- ===== use cases: right column (staf) ===== -->
+  <g stroke="#2f6fb5" stroke-width="1.8" fill="#eaf2fb">
+    <ellipse cx="795" cy="130" rx="150" ry="34"/>
+    <ellipse cx="795" cy="225" rx="150" ry="34"/>
+    <ellipse cx="795" cy="320" rx="150" ry="34"/>
+    <ellipse cx="795" cy="415" rx="150" ry="34"/>
+    <ellipse cx="795" cy="510" rx="150" ry="34"/>
+    <ellipse cx="795" cy="605" rx="150" ry="34"/>
+    <ellipse cx="795" cy="700" rx="150" ry="34"/>
+  </g>
+
+  <g font-size="14.5" fill="#16365c" text-anchor="middle">
+    <text x="445" y="135">Melihat katalog aset</text>
+    <text x="445" y="220">Memindai kode QR<tspan x="445" dy="17">aset dan ruangan</tspan></text>
+    <text x="445" y="325">Melihat rincian aset</text>
+    <text x="445" y="410">Masuk dan aktivasi<tspan x="445" dy="17">akun (NIP)</tspan></text>
+    <text x="445" y="505">Mengajukan peminjaman<tspan x="445" dy="17">(tanggal &amp; alasan)</tspan></text>
+    <text x="445" y="600">Membatalkan pengajuan<tspan x="445" dy="17">(selagi Pending)</tspan></text>
+    <text x="445" y="697">Mengonfirmasi<tspan x="445" dy="17">pengembalian</tspan></text>
+
+    <text x="795" y="125">Serah terima barang<tspan x="795" dy="17">(Verifikasi 2)</tspan></text>
+    <text x="795" y="230">Memverifikasi pengembalian</text>
+    <text x="795" y="315">Menyusun laporan &amp;<tspan x="795" dy="17">ekspor (CSV, PDF)</tspan></text>
+    <text x="795" y="410">Menyetujui / menolak<tspan x="795" dy="17">pengajuan (Verifikasi 1)</tspan></text>
+    <text x="795" y="505">Mengelola data aset<tspan x="795" dy="17">(tambah, edit, import, QR)</tspan></text>
+    <text x="795" y="610">Mengelola kategori &amp; ruangan</text>
+    <text x="795" y="697">Mengelola pengguna (NIP,<tspan x="795" dy="17">peran, nonaktifkan)</tspan></text>
+  </g>
+
+  <!-- ===== actors ===== -->
+  <!-- Pengguna Umum -->
+  <g stroke="#16365c" stroke-width="2.4" fill="none">
+    <circle cx="120" cy="150" r="13" fill="#eaf2fb"/>
+    <line x1="120" y1="163" x2="120" y2="205"/>
+    <line x1="97"  y1="178" x2="143" y2="178"/>
+    <line x1="120" y1="205" x2="100" y2="240"/>
+    <line x1="120" y1="205" x2="140" y2="240"/>
+  </g>
+  <text x="120" y="263" text-anchor="middle" font-size="16" font-weight="bold" fill="#16365c">Pengguna Umum</text>
+
+  <!-- Pegawai -->
+  <g stroke="#16365c" stroke-width="2.4" fill="none">
+    <circle cx="120" cy="500" r="13" fill="#eaf2fb"/>
+    <line x1="120" y1="513" x2="120" y2="555"/>
+    <line x1="97"  y1="528" x2="143" y2="528"/>
+    <line x1="120" y1="555" x2="100" y2="590"/>
+    <line x1="120" y1="555" x2="140" y2="590"/>
+  </g>
+  <text x="120" y="613" text-anchor="middle" font-size="16" font-weight="bold" fill="#16365c">Pegawai</text>
+
+  <!-- Verifikator -->
+  <g stroke="#16365c" stroke-width="2.4" fill="none">
+    <circle cx="1120" cy="160" r="13" fill="#eaf2fb"/>
+    <line x1="1120" y1="173" x2="1120" y2="215"/>
+    <line x1="1097" y1="188" x2="1143" y2="188"/>
+    <line x1="1120" y1="215" x2="1100" y2="250"/>
+    <line x1="1120" y1="215" x2="1140" y2="250"/>
+  </g>
+  <text x="1120" y="273" text-anchor="middle" font-size="16" font-weight="bold" fill="#16365c">Verifikator</text>
+
+  <!-- Administrator -->
+  <g stroke="#16365c" stroke-width="2.4" fill="none">
+    <circle cx="1120" cy="500" r="13" fill="#eaf2fb"/>
+    <line x1="1120" y1="513" x2="1120" y2="555"/>
+    <line x1="1097" y1="528" x2="1143" y2="528"/>
+    <line x1="1120" y1="555" x2="1100" y2="590"/>
+    <line x1="1120" y1="555" x2="1140" y2="590"/>
+  </g>
+  <text x="1120" y="613" text-anchor="middle" font-size="16" font-weight="bold" fill="#16365c">Administrator</text>
+
+  <!-- ===== associations (stay in the side gutters) ===== -->
+  <g stroke="#33475c" stroke-width="1.6">
+    <!-- Pengguna Umum -->
+    <line x1="150" y1="175" x2="295" y2="130"/>
+    <line x1="150" y1="190" x2="295" y2="225"/>
+    <line x1="150" y1="205" x2="295" y2="320"/>
+    <!-- Pegawai -->
+    <line x1="150" y1="515" x2="295" y2="415"/>
+    <line x1="150" y1="528" x2="295" y2="510"/>
+    <line x1="150" y1="541" x2="295" y2="605"/>
+    <line x1="150" y1="554" x2="295" y2="700"/>
+    <!-- Verifikator -->
+    <line x1="1090" y1="180" x2="945" y2="130"/>
+    <line x1="1090" y1="195" x2="945" y2="225"/>
+    <line x1="1090" y1="212" x2="945" y2="320"/>
+    <!-- Administrator -->
+    <line x1="1090" y1="510" x2="945" y2="225"/>
+    <line x1="1090" y1="521" x2="945" y2="320"/>
+    <line x1="1090" y1="532" x2="945" y2="415"/>
+    <line x1="1090" y1="543" x2="945" y2="510"/>
+    <line x1="1090" y1="554" x2="945" y2="605"/>
+    <line x1="1090" y1="565" x2="945" y2="700"/>
+  </g>
+
+  <!-- ===== generalisation: Verifikator & Administrator mewarisi Pegawai ===== -->
+  <g stroke="#33475c" stroke-width="1.6" fill="none" stroke-dasharray="none">
+    <polyline points="1120,655 1120,865 120,865 120,648"/>
+    <polyline points="1150,215 1185,215 1185,865"/>
+  </g>
+  <polygon points="120,630 111,648 129,648" fill="#ffffff" stroke="#33475c" stroke-width="1.6"/>
+  <text x="620" y="887" text-anchor="middle" font-size="13.5" font-style="italic" fill="#33475c">Verifikator dan Administrator mewarisi seluruh kemampuan Pegawai</text>
+</svg>

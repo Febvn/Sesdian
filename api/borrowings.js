@@ -15,7 +15,7 @@ const STAFF = ['admin', 'verifikator'];
 //        --(peminjam: konfirmasi kembali)--> return_pending
 //        --(admin/verifikator verifikasi pengembalian)--> returned
 //   pending / approved --(peminjam/admin batalkan sebelum serah terima)--> cancelled (stok kembali)
-function transitionError(prevStatus, target, role, isOwner) {
+export function transitionError(prevStatus, target, role, isOwner) {
   const staff = STAFF.indexOf(role) !== -1;
 
   // Larangan memproses pengajuan sendiri (SKPL):

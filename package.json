@@ -11,7 +11,10 @@
     "db:migrate": "node scripts/run-sql.mjs db/migrate-v3.sql",
     "db:seed": "node scripts/run-sql.mjs db/seed-aset-2025.sql",
     "db:setup": "node scripts/run-sql.mjs db/migrate-v3.sql && node scripts/run-sql.mjs db/seed-aset-2025.sql",
-    "test:e2e": "node scripts/test-e2e.mjs"
+    "test": "node --test tests/*.test.mjs",
+    "test:all": "node --test tests/*.test.mjs && node scripts/test-e2e.mjs",
+    "test:e2e": "node scripts/test-e2e.mjs",
+    "pdf:laporan": "node scripts/render-laporan-pdf.mjs"
   },
   "dependencies": {
     "@neondatabase/serverless": "^0.10.4"
