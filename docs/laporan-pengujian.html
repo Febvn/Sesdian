@@ -142,7 +142,7 @@
     <div class="big"><span class="dark">PENGUJIAN & PENERAPAN</span><br/>SISTEM INFORMASI</div>
     <div class="manual">( TEST & VERIFICATION REPORT · MILESTONE M5 )</div>
     <div class="brand">SESDIAN</div>
-    <div class="brand-sub">Sistem Digital Inventarisasi Aset Negara — Balai Karantina Hewan, Ikan, dan Tumbuhan Lampung</div>
+    <div class="brand-sub">Sistem Digital Inventarisasi Aset Negara — Balai Penerapan Pengujian Mutu Hasil Perikanan (BPPMKP)</div>
     <div class="urlline">Repositori dan Lingkungan Pengujian:</div>
     <div class="pill">https://github.com/Febvn/Sesdian &middot; Branch: main</div>
     
@@ -169,7 +169,7 @@
   <!-- BAB I -->
   <h1 class="pgbreak" id="bab1">Bab I &nbsp; Gambaran Umum dan Metodologi Pengujian</h1>
   <p>Laporan ini mendokumentasikan pelaksanaan kegiatan pengujian sistem informasi SESDIAN (Sistem Digital Inventarisasi Aset Negara) pada Milestone M5 (Fase 5: Pengujian dan Penerapan) sesuai dengan Work Breakdown Structure (WBS) resmi proyek. Pengujian sistem dirancang untuk memastikan bahwa seluruh fungsi yang telah diselesaikan pada Sprint 1 (Akun & Katalog), Sprint 2 (Peminjaman Dua Lapis & QR), dan Sprint 3 (Inventarisasi Ruangan, Notifikasi, dan Laporan) bekerja dengan stabil, bebas cacat, aman dari manipulasi data, dan tahan terhadap kondisi ekstrem di lapangan.</p>
-  <p>Metodologi pengujian yang diterapkan mencakup empat pilar evaluasi terstruktur: pengujian kotak hitam (blackbox testing), pengujian akseptansi pengguna (user acceptance testing), pengujian keamanan aplikasi (application security testing), serta rekayasa kekacauan basis data (chaos database engineering). Pengujian dijalankan secara otomatis dan manual dengan mereplikasi beban kerja riil pada dataset 704 unit Barang Milik Negara (BMN) yang terdaftar di Balai Karantina Hewan, Ikan, dan Tumbuhan Lampung.</p>
+  <p>Metodologi pengujian yang diterapkan mencakup empat pilar evaluasi terstruktur: pengujian kotak hitam (blackbox testing), pengujian akseptansi pengguna (user acceptance testing), pengujian keamanan aplikasi (application security testing), serta rekayasa kekacauan basis data (chaos database engineering). Pengujian dijalankan secara otomatis dan manual dengan mereplikasi beban kerja riil pada dataset 704 unit Barang Milik Negara (BMN) yang terdaftar di Balai Penerapan Pengujian Mutu Hasil Perikanan (BPPMKP).</p>
   <p>Seluruh skenario pengujian unit dan integrasi backend dieksekusi menggunakan test runner native Node.js (node:test) yang menjamin pengujian berjalan cepat tanpa dependensi berat pihak ketiga. Di sisi antarmuka, simulasi peramban dikendalikan melalui pustaka Playwright terotomasi untuk memeriksa alur interaksi pengguna secara menyeluruh.</p>
 
   <!-- BAB II -->
@@ -299,7 +299,7 @@
   <h1 class="pgbreak" id="bab5">Bab V &nbsp; Chaos Engineering dan Uji Konkurensi Basis Data</h1>
   
   <h2>5.1 Konsep dan Urgensi Chaos Engineering</h2>
-  <p>Dalam tata kelola Barang Milik Negara (BMN) pada instansi pemerintah seperti Balai Karantina Hewan, Ikan, dan Tumbuhan Lampung, integritas sistem informasi diuji saat mengelola persediaan barang bernilai tinggi yang jumlah fisiknya sangat terbatas. Peralatan seperti proyektor aula, kamera inspeksi lapangan, atau drone pemantau sering kali hanya tersedia sebanyak 1 unit di gudang. Pada sistem inventaris konvensional yang tidak menerapkan kendali konkurensi ketat, kondisi ini sangat rawan menimbulkan kondisi pacu (<i>race condition</i>). Apabila dua atau lebih staf mengajukan peminjaman pada milidetik yang sama, kueri pembacaan konvensional (<code>SELECT stock_available</code>) dapat mendeteksi bahwa barang masih ada, lalu masing-masing transaksi secara terpisah mengeksekusi pemotongan stok (<code>UPDATE</code>). Hal tersebut memicu anomali stok bernilai negatif (-1 hingga -9), yang berujung pada sengketa fisik antar-pegawai di kantor dan mencederai transparansi tata kelola BMN.</p>
+  <p>Dalam tata kelola Barang Milik Negara (BMN) pada instansi pemerintah seperti Balai Penerapan Pengujian Mutu Hasil Perikanan (BPPMKP), integritas sistem informasi diuji saat mengelola persediaan barang bernilai tinggi yang jumlah fisiknya sangat terbatas. Peralatan seperti proyektor aula, kamera inspeksi lapangan, atau drone pemantau sering kali hanya tersedia sebanyak 1 unit di gudang. Pada sistem inventaris konvensional yang tidak menerapkan kendali konkurensi ketat, kondisi ini sangat rawan menimbulkan kondisi pacu (<i>race condition</i>). Apabila dua atau lebih staf mengajukan peminjaman pada milidetik yang sama, kueri pembacaan konvensional (<code>SELECT stock_available</code>) dapat mendeteksi bahwa barang masih ada, lalu masing-masing transaksi secara terpisah mengeksekusi pemotongan stok (<code>UPDATE</code>). Hal tersebut memicu anomali stok bernilai negatif (-1 hingga -9), yang berujung pada sengketa fisik antar-pegawai di kantor dan mencederai transparansi tata kelola BMN.</p>
   <p>Untuk memastikan keandalan mutlak dalam kondisi operasional paling kritis, tim pengembang menerapkan metodologi <i>Chaos Engineering</i> melalui berkas <code>tests/chaos-database.test.mjs</code>. Pendekatan ini secara sengaja menyuntikkan kegagalan terencana (<i>fault injection</i>), lonjakan lalu lintas paralel serentak (<i>burst concurrent traffic</i>), variasi keterlambatan jaringan acak (<i>jitter</i>), serta data korup ke dalam komponen inti sistem guna membuktikan bahwa basis data tetap stabil, konsisten, dan memenuhi kaidah atomisitas (ACID).</p>
 
   <div class="box-chaos">
@@ -406,7 +406,7 @@ RETURNING id;</div>
     <ul>
       <li><b>Definisi:</b> Kebijakan keamanan di mana sistem memilih tindakan paling aman (menutup dan mengunci pintu) saat menghadapi kesalahan tak terduga.</li>
       <li><b>Tujuan Pengujian:</b> Mencegah celah keamanan terbuka saat sistem bingung akibat data yang rusak atau tidak terbaca.</li>
-      <li><b>Cakupan Proteksi:</b> Melindungi seluruh data sensitif milik Balai Karantina Lampung.</li>
+      <li><b>Cakupan Proteksi:</b> Melindungi seluruh data sensitif milik BPPMKP.</li>
       <li><b>Komponen Sistem:</b> Diterapkan pada fungsi pencocokan sandi algoritma <i>scrypt</i>.</li>
       <li><b>Kondisi Pemicu:</b> Aktif seketika saat format hash kata sandi yang dibaca dari basis data tidak valid.</li>
       <li><b>Mekanisme Perlindungan:</b> Membungkus fungsi dengan pengaman penangkap galat yang mengembalikan nilai <code>false</code> secara anggun tanpa menghentikan worker.</li>
@@ -527,7 +527,7 @@ RETURNING id;</div>
   <p><b>3. Pengujian Keamanan & Chaos Engineering:</b> 5 Pengujian — 100% Lulus (Pass).</p>
   <p><b>4. Pengujian Otomasi Antarmuka (Playwright E2E):</b> 21 Pengujian — 100% Lulus (Pass).</p>
   <p><b>TOTAL PENGUJIAN KESELURUHAN:</b> <b>49 Skenario Uji Terverifikasi (100% Pass Rate).</b></p>
-  <p>Dengan hasil pengujian yang sempurna dan tidak ditemukannya cacat kritis (zero critical defects), perangkat lunak SESDIAN dinyatakan <b>MEMENUHI SYARAT KELAYAKAN (PRODUCTION-READY)</b> untuk diterapkan ke server produksi dan diserahterimakan kepada pihak Balai Karantina Hewan, Ikan, dan Tumbuhan Lampung.</p>
+  <p>Dengan hasil pengujian yang sempurna dan tidak ditemukannya cacat kritis (zero critical defects), perangkat lunak SESDIAN dinyatakan <b>MEMENUHI SYARAT KELAYAKAN (PRODUCTION-READY)</b> untuk diterapkan ke server produksi dan diserahterimakan kepada pihak Balai Penerapan Pengujian Mutu Hasil Perikanan (BPPMKP).</p>
 
   <div style="margin-top: 14mm; display: flex; justify-content: space-between; text-align: center; font-size: 10pt;">
     <div style="width: 55mm;">
