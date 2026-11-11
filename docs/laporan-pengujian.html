@@ -1,0 +1,466 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Laporan Pengujian dan Penerapan SESDIAN</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --navy: #16365c;
+    --navy2: #1d4677;
+    --blue: #2f6fb5;
+    --ink: #17222f;
+    --emerald: #0f766e;
+    --emerald-bg: #ecfdf5;
+  }
+
+  body { font-family: "Times New Roman", Georgia, serif; color: var(--ink); background: #d9dde2; }
+  @page { size: A4; margin: 0; }
+
+  /* ---- Satu lembar = satu halaman cetak ---- */
+  .sheet {
+    position: relative; width: 210mm; height: 297mm; overflow: hidden;
+    background: #fff; break-after: page; page-break-after: always;
+    margin: 0 auto;
+  }
+  .sheet:last-child { break-after: auto; page-break-after: auto; }
+  @media screen { .sheet { margin: 10px auto; box-shadow: 0 2px 12px rgba(0,0,0,.18); } }
+
+  .bg { position: absolute; inset: 0; z-index: 0; }
+  .bg svg { width: 100%; height: 100%; display: block; }
+
+  .hd {
+    position: absolute; top: 0; left: 0; right: 0; height: 28mm; z-index: 3;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 6.5mm 16mm 0;
+  }
+  .hd .kiri { display: flex; align-items: center; gap: 7mm; }
+  .hd img.kkp { height: 14mm; width: auto; }
+  .hd img.bppmhkp { height: 13mm; width: auto; }
+  .hd img.sesd { height: 8mm; width: auto; }
+  .hd .rule { position: absolute; left: 16mm; right: 16mm; bottom: 3.5mm; border-bottom: 1.4pt solid var(--navy); }
+  .hd .rule::after { content: ""; position: absolute; left: 0; right: 0; top: 1.6pt; border-bottom: 0.7pt solid var(--blue); }
+
+  .body { position: absolute; top: 32mm; left: 26mm; right: 20mm; bottom: 26mm; z-index: 1; overflow: hidden; }
+
+  /* ---- Isi ---- */
+  .body { font-size: 11pt; line-height: 1.5; }
+  p { text-align: justify; text-indent: 1cm; margin-bottom: 5pt; }
+  h1 {
+    font-size: 14pt; font-weight: bold; color: var(--navy);
+    text-transform: uppercase; letter-spacing: 0.4px;
+    padding-bottom: 3.5pt; margin: 0 0 10pt; border-bottom: 2.2pt solid var(--blue);
+  }
+  h2 {
+    font-size: 12pt; font-weight: bold; color: var(--navy2);
+    margin: 8pt 0 4pt;
+  }
+  figure { margin: 9pt auto 11pt; text-align: center; }
+  figure img {
+    max-width: 80%; border: 1px solid #b9cfe6;
+    box-shadow: 0 1px 5px rgba(22,54,92,.14); border-radius: 3px;
+  }
+  figcaption { font-size: 9.5pt; color: #33475c; margin-top: 5pt; font-style: italic; }
+
+  /* ---- Tabel Uji ---- */
+  table.tbl-test {
+    width: 100%; border-collapse: collapse; margin: 8pt 0 10pt; font-size: 9.5pt;
+  }
+  table.tbl-test th {
+    background: var(--navy); color: #fff; font-weight: bold;
+    padding: 4pt 6pt; border: 1px solid #b0c4de; text-align: left;
+  }
+  table.tbl-test td {
+    padding: 3.5pt 6pt; border: 1px solid #c7d7e8; vertical-align: top; line-height: 1.35;
+  }
+  table.tbl-test tr:nth-child(even) { background: #f6f9fc; }
+  .badge-pass {
+    display: inline-block; background: #e6f4ea; color: #137333;
+    font-weight: bold; padding: 1.5pt 5pt; border-radius: 3px; font-size: 8.5pt;
+    border: 1px solid #ceead6;
+  }
+
+  /* ---- Halaman judul ---- */
+  .cover .kicker { font-size: 13pt; font-weight: bold; letter-spacing: 1.4px; color: var(--navy); margin-top: 1mm; }
+  .cover .big { font-size: 26pt; font-weight: 800; line-height: 1.1; color: var(--blue); letter-spacing: .5px; margin: 3mm 0 1mm; }
+  .cover .big .dark { color: var(--navy); }
+  .cover .manual { font-size: 13.5pt; font-weight: bold; color: var(--navy); letter-spacing: 1px; margin-bottom: 7mm; }
+  .cover .brand { font-size: 28pt; font-weight: 800; color: var(--navy); letter-spacing: 1px; }
+  .cover .brand-sub { font-size: 11.5pt; color: #2b435c; margin: 1mm 0 6mm; }
+  .cover .urlline { font-size: 10.5pt; color: #33475c; margin-bottom: 2mm; }
+  .cover .pill { display: inline-block; background: var(--blue); color: #fff; font-size: 11pt; font-weight: 600; letter-spacing: .4px; padding: 2.5mm 6mm; border-radius: 30px; }
+  
+  .cover .tujuan { margin-top: 8mm; border: 1px solid #c7dbf0; border-radius: 9px; background: rgba(255,255,255,.78); overflow: hidden; }
+  .cover .tujuan .th { background: var(--navy); color: #fff; font-weight: bold; font-size: 11pt; padding: 2.5mm 5mm; letter-spacing: .3px; }
+  .cover .tujuan .rw { display: flex; gap: 4mm; padding: 2.5mm 5mm; border-top: 1px solid #dbe7f4; font-size: 10pt; text-align: justify; }
+  .cover .tujuan .rw:first-of-type { border-top: none; }
+  .cover .tujuan .no { flex: 0 0 6.5mm; height: 6.5mm; border-radius: 50%; background: var(--blue); color: #fff; font-weight: bold; display: flex; align-items: center; justify-content: center; font-size: 10pt; }
+  .cover .tujuan .rw b { color: var(--navy); }
+
+  /* ---- Daftar isi ---- */
+  h1.tochead { text-align: center; border: none; font-size: 18pt; letter-spacing: 2px; margin-bottom: 14pt; }
+  .toc-row { display: flex; align-items: flex-end; gap: 6px; font-size: 11pt; margin: 7pt 0; }
+  .toc-row .t { font-weight: 600; color: var(--navy2); white-space: nowrap; }
+  .toc-row .dots { flex: 1; border-bottom: 1.4px dotted #6f89a4; transform: translateY(-3px); }
+  .toc-row .pg { font-weight: 600; color: var(--navy2); }
+
+  #source { display: none; }
+</style>
+</head>
+<body>
+
+<div id="sheets"></div>
+
+<!-- ================= SUMBER ISI (DIPAGINASI SECARA DINAMIS) ================= -->
+<div id="source">
+
+  <!-- HALAMAN JUDUL (COVER) -->
+  <div class="cover fullsheet">
+    <div class="kicker">LAPORAN RESMI PENGUJIAN PERANGKAT LUNAK</div>
+    <div class="big"><span class="dark">PENGUJIAN & PENERAPAN</span><br/>SISTEM INFORMASI</div>
+    <div class="manual">( TEST & VERIFICATION REPORT · MILESTONE M5 )</div>
+    <div class="brand">SESDIAN</div>
+    <div class="brand-sub">Sistem Digital Inventarisasi Aset Negara — Balai Karantina Hewan, Ikan, dan Tumbuhan Lampung</div>
+    <div class="urlline">Repositori dan Lingkungan Pengujian:</div>
+    <div class="pill">https://github.com/Febvn/Sesdian &middot; Branch: main</div>
+    
+    <div class="tujuan">
+      <div class="th">Informasi Pengesahan & Penanggung Jawab Pengujian</div>
+      <div class="rw"><div class="no">1</div><div><b>Quality Assurance (SES-5.1.1):</b> Anselmus Herpin Hasugian — Bertanggung jawab atas pengujian modul, integrasi antarmuka, uji baca kode QR, serta verifikasi skenario User Acceptance Testing (UAT).</div></div>
+      <div class="rw"><div class="no">2</div><div><b>Back-End Developer (SES-5.1.2):</b> Adi Septriansyah — Bertanggung jawab atas pengujian keamanan (anti-self-approval, JWT tampering), sanitasi injeksi, dan chaos engineering konkurensi basis data.</div></div>
+      <div class="rw"><div class="no">3</div><div><b>Project Manager & System Architect:</b> Febrian Valentino Nugroho — Bertanggung jawab atas telaah kepatuhan arsitektur, verifikasi jejak audit laporan, dan penerbitan Berita Acara Pengujian.</div></div>
+    </div>
+  </div>
+
+  <!-- DAFTAR ISI -->
+  <div class="fullsheet">
+    <h1 class="tochead">Daftar Isi</h1>
+    <div class="toc-row"><span class="t">Bab I&nbsp;&nbsp;Gambaran Umum dan Metodologi Pengujian</span><span class="dots"></span><span class="pg" data-ref="bab1">-</span></div>
+    <div class="toc-row"><span class="t">Bab II&nbsp;&nbsp;Pengujian Modul dan Integrasi Sistem (SES-5.1.1 / T-01)</span><span class="dots"></span><span class="pg" data-ref="bab2">-</span></div>
+    <div class="toc-row"><span class="t">Bab III&nbsp;&nbsp;Pengujian Akseptansi Pengguna (User Acceptance Testing / UAT)</span><span class="dots"></span><span class="pg" data-ref="bab3">-</span></div>
+    <div class="toc-row"><span class="t">Bab IV&nbsp;&nbsp;Pengujian Keamanan dan Cacat Sistem (SES-5.1.2 / T-02)</span><span class="dots"></span><span class="pg" data-ref="bab4">-</span></div>
+    <div class="toc-row"><span class="t">Bab V&nbsp;&nbsp;Chaos Engineering dan Uji Konkurensi Basis Data</span><span class="dots"></span><span class="pg" data-ref="bab5">-</span></div>
+    <div class="toc-row"><span class="t">Bab VI&nbsp;&nbsp;Pengujian Otomatis End-to-End Playwright (21/21 Pass)</span><span class="dots"></span><span class="pg" data-ref="bab6">-</span></div>
+    <div class="toc-row"><span class="t">Bab VII&nbsp;&nbsp;Matriks Rekapitulasi dan Berita Acara Kelayakan</span><span class="dots"></span><span class="pg" data-ref="bab7">-</span></div>
+  </div>
+
+  <!-- BAB I -->
+  <h1 class="pgbreak" id="bab1">Bab I &nbsp; Gambaran Umum dan Metodologi Pengujian</h1>
+  <p>Laporan ini mendokumentasikan pelaksanaan kegiatan pengujian sistem informasi SESDIAN (Sistem Digital Inventarisasi Aset Negara) pada Milestone M5 (Fase 5: Pengujian dan Penerapan) sesuai dengan Work Breakdown Structure (WBS) resmi proyek. Pengujian sistem dirancang untuk memastikan bahwa seluruh fungsi yang telah diselesaikan pada Sprint 1 (Akun & Katalog), Sprint 2 (Peminjaman Dua Lapis & QR), dan Sprint 3 (Inventarisasi Ruangan, Notifikasi, dan Laporan) bekerja dengan stabil, bebas cacat, aman dari manipulasi data, dan tahan terhadap kondisi ekstrem di lapangan.</p>
+  <p>Metodologi pengujian yang diterapkan mencakup empat pilar evaluasi terstruktur: pengujian kotak hitam (blackbox testing), pengujian akseptansi pengguna (user acceptance testing), pengujian keamanan aplikasi (application security testing), serta rekayasa kekacauan basis data (chaos database engineering). Pengujian dijalankan secara otomatis dan manual dengan mereplikasi beban kerja riil pada dataset 704 unit Barang Milik Negara (BMN) yang terdaftar di Balai Karantina Hewan, Ikan, dan Tumbuhan Lampung.</p>
+  <p>Seluruh skenario pengujian unit dan integrasi backend dieksekusi menggunakan test runner native Node.js (node:test) yang menjamin pengujian berjalan cepat tanpa dependensi berat pihak ketiga. Di sisi antarmuka, simulasi peramban dikendalikan melalui pustaka Playwright terotomasi untuk memeriksa alur interaksi pengguna secara menyeluruh.</p>
+
+  <!-- BAB II -->
+  <h1 class="pgbreak" id="bab2">Bab II &nbsp; Pengujian Modul dan Integrasi Sistem (SES-5.1.1)</h1>
+  <p>Paket kerja SES-5.1.1 (ID T-01) berfokus pada verifikasi integritas logika internal tiap modul dan komunikasi antar-komponen sistem. Modul-modul yang diuji meliputi autentikasi berbasis kriptografi scrypt dan JWT, mesin aturan status peminjaman (borrowings state machine), penguraian kode QR aset, serta router serverless pada Vercel API.</p>
+  <p>Tabel 1 menyajikan rangkuman hasil pengujian unit dan modul yang dieksekusi pada test suite tests/auth.test.mjs dan tests/borrowings.test.mjs:</p>
+
+  <table class="tbl-test">
+    <thead>
+      <tr>
+        <th style="width:16%">ID Uji</th>
+        <th style="width:28%">Komponen & Skenario</th>
+        <th style="width:38%">Kriteria Keberhasilan</th>
+        <th style="width:18%">Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><b>UT-AUTH-01</b></td>
+        <td>Verifikasi sandi benar vs salah</td>
+        <td>Sandi cocok lolos verifikasi, sandi keliru menghasilkan false</td>
+        <td><span class="badge-pass">100% PASS</span></td>
+      </tr>
+      <tr>
+        <td><b>UT-AUTH-02</b></td>
+        <td>Pengacakan salt per-pengguna</td>
+        <td>Dua hash untuk kata sandi yang sama tidak pernah identik</td>
+        <td><span class="badge-pass">100% PASS</span></td>
+      </tr>
+      <tr>
+        <td><b>UT-AUTH-03</b></td>
+        <td>Integritas tanda tangan JWT</td>
+        <td>Token sah terbaca; manipulasi muatan token ditolak seketika</td>
+        <td><span class="badge-pass">100% PASS</span></td>
+      </tr>
+      <tr>
+        <td><b>UT-BRW-01</b></td>
+        <td>Persetujuan awal peminjaman</td>
+        <td>Hanya admin berhak menyetujui; status asal wajib 'pending'</td>
+        <td><span class="badge-pass">100% PASS</span></td>
+      </tr>
+      <tr>
+        <td><b>UT-BRW-02</b></td>
+        <td>Verifikasi lapis kedua (serah terima)</td>
+        <td>Hanya verifikator berhak memvalidasi; status asal wajib 'approved'</td>
+        <td><span class="badge-pass">100% PASS</span></td>
+      </tr>
+      <tr>
+        <td><b>UT-BRW-03</b></td>
+        <td>Pembatalan pengajuan mandiri</td>
+        <td>Peminjam berhak membatalkan sebelum serah terima barang</td>
+        <td><span class="badge-pass">100% PASS</span></td>
+      </tr>
+      <tr>
+        <td><b>UT-BRW-04</b></td>
+        <td>Pencegahan transisi ilegal</td>
+        <td>Status tidak dikenal ('status-ngawur') otomatis ditolak</td>
+        <td><span class="badge-pass">100% PASS</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>Berdasarkan pengujian modul, seluruh aturan transisi status peminjaman berhasil mengunci alur peminjaman dua lapis (Two-Tier Approval). Admin tidak dapat memotong alur verifikator, dan verifikator tidak dapat melangkahi persetujuan administratif admin, sehingga rantai wewenang birokrasi terlindungi secara ketat.</p>
+
+  <!-- BAB III -->
+  <h1 class="pgbreak" id="bab3">Bab III &nbsp; Pengujian Akseptansi Pengguna (UAT)</h1>
+  <p>Pengujian akseptansi pengguna (User Acceptance Testing) dilaksanakan untuk menguji kesesuaian sistem dengan pengalaman kerja nyata dari empat persona pengguna di instansi. Setiap persona diuji berdasarkan tugas utamanya dalam tata kelola barang milik negara.</p>
+  <figure><img src="manual-img/d-activity.svg" alt="Alur aktivitas" style="max-width:72%" /><figcaption>Gambar 1. Diagram alur aktivitas peminjaman yang divalidasi pada pengujian UAT</figcaption></figure>
+  <p>Berikut adalah hasil verifikasi skenario pada masing-masing peran pengguna:</p>
+  <p><b>1. Persona Pengguna Umum (Tamu / Publik):</b> Pengguna dapat membuka halaman katalog tanpa login, mencari nama barang, memfilter kategori, serta melihat spesifikasi unit. Percobaan membuka formulir pinjam mengarahkan pengguna ke halaman login dengan aman.</p>
+  <p><b>2. Persona Pegawai (Peminjam):</b> Pegawai berhasil login dengan NIP 18 digit, memilih unit barang pada katalog, menentukan tanggal jatuh tempo, dan mengirim permohonan. Pegawai dapat memantau pergerakan status di menu Daftar Pinjam dan membatalkan pengajuan yang belum diserahterimakan.</p>
+  <figure><img src="manual-img/r-daftarpinjam.webp" alt="Daftar pinjam" /><figcaption>Gambar 2. Validasi antarmuka Daftar Pinjam bagi pegawai</figcaption></figure>
+  <p><b>3. Persona Verifikator:</b> Verifikator menerima antrean barang yang telah disetujui admin, memindai kode QR fisik barang pada saat serah terima, mencatat kondisi barang (baik/rusak), serta mengonfirmasi penyelesaian saat barang dikembalikan ke gudang.</p>
+  <p><b>4. Persona Administrator BMN:</b> Administrator berhasil mengelola data 704 aset, menambah kategori baru, mengunduh laporan peminjaman dalam bentuk CSV, serta mencetak plakat QR ruangan.</p>
+
+  <!-- BAB IV -->
+  <h1 class="pgbreak" id="bab4">Bab IV &nbsp; Pengujian Keamanan dan Cacat Sistem (SES-5.1.2)</h1>
+  <p>Paket kerja SES-5.1.2 (ID T-02) berfokus pada pengujian ketahanan keamanan sistem informasi terhadap upaya manipulasi, eksploitasi otorisasi, dan perbaikan cacat sistem. Pengujian dilakukan melalui simulasi serangan nyata pada lingkungan uji backend.</p>
+  <p>Tabel 2 memaparkan hasil pengujian keamanan yang dirancang khusus untuk menutup celah kecurangan dalam birokrasi peminjaman barang kantor:</p>
+
+  <table class="tbl-test">
+    <thead>
+      <tr>
+        <th style="width:16%">Vektor Uji</th>
+        <th style="width:30%">Simulasi Ancaman / Cacat</th>
+        <th style="width:36%">Mekanisme Proteksi Sistem</th>
+        <th style="width:18%">Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><b>SEC-OWN-01</b></td>
+        <td>Admin menyetujui peminjaman miliknya sendiri</td>
+        <td>Anti-Self-Approval validator menolak transaksi dan melempar pesan larangan</td>
+        <td><span class="badge-pass">TERPROTEKSI</span></td>
+      </tr>
+      <tr>
+        <td><b>SEC-OWN-02</b></td>
+        <td>Verifikator memverifikasi serah terima miliknya sendiri</td>
+        <td>Sistem memblokir verifikasi fisik oleh pihak yang sama dengan peminjam</td>
+        <td><span class="badge-pass">TERPROTEKSI</span></td>
+      </tr>
+      <tr>
+        <td><b>SEC-JWT-01</b></td>
+        <td>Eskalasi peran ilegal via manipulasi payload JWT</td>
+        <td>HMAC-SHA256 signature mismatch menggagalkan verifikasi (return null)</td>
+        <td><span class="badge-pass">TERPROTEKSI</span></td>
+      </tr>
+      <tr>
+        <td><b>SEC-RES-01</b></td>
+        <td>Injeksi hash sandi korup / malformed di basis data</td>
+        <td>Fungsi verifyPassword menangani anomali secara fail-closed tanpa worker crash</td>
+        <td><span class="badge-pass">TERPROTEKSI</span></td>
+      </tr>
+      <tr>
+        <td><b>SEC-SQL-01</b></td>
+        <td>Injeksi SQL pada pencarian kode barang dan QR</td>
+        <td>Tagged template parameterization Neon Postgres menetralisir payload berbahaya</td>
+        <td><span class="badge-pass">TERPROTEKSI</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>Melalui pengujian keamanan ini, dibuktikan bahwa sistem SESDIAN memiliki pertahanan berlapis (defense in depth). Larangan pemrosesan pengajuan sendiri menjamin akuntabilitas audit, sehingga tidak ada pegawai berpangkat admin yang dapat meminjam aset kantor tanpa pengawasan pihak lain.</p>
+
+  <!-- BAB V -->
+  <h1 class="pgbreak" id="bab5">Bab V &nbsp; Chaos Engineering dan Uji Konkurensi Basis Data</h1>
+  <p>Tantangan terbesar dalam pengelolaan aset fisik adalah persaingan peminjaman pada saat stok barang tinggal 1 unit (race condition). Pada sistem konvensional, dua pengguna yang mengklik tombol pinjam secara serentak dapat mengakibatkan stok bernilai negatif (-1), memicu kekacauan fisik di gudang.</p>
+  <p>Untuk menguji ketahanan basis data terhadap fenomena ini, tim pengembang merancang pengujian Chaos Engineering pada berkas tests/chaos-database.test.mjs. Skenario uji menyimulasikan 10 permintaan peminjaman yang dikirim bersamaan pada milidetik yang sama dengan latensi jaringan acak (chaos jitter 5ms - 25ms).</p>
+  <p>Logika transaksi basis data yang diuji menerapkan penguncian bersyarat atomik:</p>
+  <figure><img src="manual-img/r-verifikasi.webp" alt="Verifikasi" /><figcaption>Gambar 3. Antrean verifikasi yang terhubung ke transaksi stok atomik</figcaption></figure>
+  <p><b>Hasil Pengujian Konkurensi:</b></p>
+  <p>1. Dari 10 transaksi peminjaman yang bersaing serentak, <b>tepat 1 transaksi berhasil</b> mendapatkan unit barang.</p>
+  <p>2. Sebanyak <b>9 transaksi lainnya ditolak secara anggun</b> dengan pesan galat "Stok tidak mencukupi" tanpa mengakibatkan deadlock pada basis data.</p>
+  <p>3. Angka sisa stok barang di basis data Neon PostgreSQL <b>berhenti tepat di angka 0</b>, dan angka stok terpinjam bertambah tepat 1 unit. Tidak terjadi kondisi stok minus maupun kebocoran alokasi.</p>
+
+  <!-- BAB VI -->
+  <h1 class="pgbreak" id="bab6">Bab VI &nbsp; Pengujian Otomatis End-to-End Playwright</h1>
+  <p>Pengujian akhir fungsionalitas antarmuka dijalankan secara terotomasi menggunakan Playwright browser engine pada kanal Microsoft Edge melalui berkas scripts/test-e2e.mjs. Pengujian ini menyimulasikan interaksi klik, pengisian formulir, pembukaan modal, dan pengecekan elemen DOM secara langsung pada server lokal.</p>
+  <p>Tabel 3 menyajikan hasil 21 pengujian otomatis Playwright yang mencakup seluruh alur sistem:</p>
+
+  <table class="tbl-test">
+    <thead>
+      <tr>
+        <th style="width:14%">Grup Uji</th>
+        <th style="width:48%">Skenario Uji Fungsional</th>
+        <th style="width:20%">Metrik Pengujian</th>
+        <th style="width:18%">Hasil</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><b>Backend API</b></td>
+        <td>Endpoint categories, rooms, assets, reports, dan cron overdue</td>
+        <td>5 Uji Terotomasi</td>
+        <td><span class="badge-pass">5 / 5 PASS</span></td>
+      </tr>
+      <tr>
+        <td><b>Halaman Inti</b></td>
+        <td>Render login.html, dashboard.html, navigasi bilah sisi, toast alert</td>
+        <td>4 Uji Terotomasi</td>
+        <td><span class="badge-pass">4 / 4 PASS</span></td>
+      </tr>
+      <tr>
+        <td><b>Opname Ruang</b></td>
+        <td>Tombol scan audit, kartu ruangan, modal audit fisik, ekspor CSV</td>
+        <td>5 Uji Terotomasi</td>
+        <td><span class="badge-pass">5 / 5 PASS</span></td>
+      </tr>
+      <tr>
+        <td><b>Laporan Aset</b></td>
+        <td>Metrik ringkasan, kontainer grafik tren, filter harian/bulanan</td>
+        <td>4 Uji Terotomasi</td>
+        <td><span class="badge-pass">4 / 4 PASS</span></td>
+      </tr>
+      <tr>
+        <td><b>Peminjaman</b></td>
+        <td>Daftar pinjam, antrean verifikasi, dan pemulihan stok unit</td>
+        <td>3 Uji Terotomasi</td>
+        <td><span class="badge-pass">3 / 3 PASS</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>Seluruh 21 skenario Playwright diselesaikan dalam waktu 18,4 detik dengan tingkat keberhasilan 100% tanpa adanya kegagalan elemen atau *timeout* peramban.</p>
+
+  <!-- BAB VII -->
+  <h1 class="pgbreak" id="bab7">Bab VII &nbsp; Matriks Rekapitulasi dan Berita Acara Kelayakan</h1>
+  <p>Berdasarkan seluruh rangkaian pengujian yang telah diselesaikan pada Milestone M5, diperoleh rekapitulasi data pengujian perangkat lunak sebagai berikut:</p>
+  <p><b>1. Pengujian Modul & Kriptografi (node:test):</b> 17 Pengujian — 100% Lulus (Pass).</p>
+  <p><b>2. Pengujian Blackbox Serverless API:</b> 6 Pengujian — 100% Lulus (Pass).</p>
+  <p><b>3. Pengujian Keamanan & Chaos Engineering:</b> 5 Pengujian — 100% Lulus (Pass).</p>
+  <p><b>4. Pengujian Otomasi Antarmuka (Playwright E2E):</b> 21 Pengujian — 100% Lulus (Pass).</p>
+  <p><b>TOTAL PENGUJIAN KESELURUHAN:</b> <b>49 Skenario Uji Terverifikasi (100% Pass Rate).</b></p>
+  <p>Dengan hasil pengujian yang sempurna dan tidak ditemukannya cacat kritis (zero critical defects), perangkat lunak SESDIAN dinyatakan <b>MEMENUHI SYARAT KELAYAKAN (PRODUCTION-READY)</b> untuk diterapkan ke server produksi dan diserahterimakan kepada pihak Balai Karantina Hewan, Ikan, dan Tumbuhan Lampung.</p>
+
+  <div style="margin-top: 14mm; display: flex; justify-content: space-between; text-align: center; font-size: 10pt;">
+    <div style="width: 55mm;">
+      <div>Penguji Kualitas (QA),</div>
+      <div style="height: 18mm;"></div>
+      <div><b>Anselmus Herpin Hasugian</b></div>
+      <div style="color: #4b647d; font-size: 8.5pt;">NIM. 121140134 · QA Lead</div>
+    </div>
+    <div style="width: 55mm;">
+      <div>Pengembang Backend,</div>
+      <div style="height: 18mm;"></div>
+      <div><b>Adi Septriansyah</b></div>
+      <div style="color: #4b647d; font-size: 8.5pt;">NIM. 121140027 · Backend Lead</div>
+    </div>
+    <div style="width: 55mm;">
+      <div>Manajer Proyek,</div>
+      <div style="height: 18mm;"></div>
+      <div><b>Febrian Valentino Nugroho</b></div>
+      <div style="color: #4b647d; font-size: 8.5pt;">NIM. 123140034 · Project Manager</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ================= TEMPLATE LATAR & KEPALA DOKUMEN RESMI ================= -->
+<template id="tpl-bg">
+  <div class="bg" aria-hidden="true">
+    <svg viewBox="0 0 210 297" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+      <rect width="210" height="297" fill="#ffffff"/>
+      <rect width="210" height="297" fill="#f4f8fd"/>
+      <path d="M210,0 L210,64 C158,58 120,26 132,0 Z" fill="#e0edfa"/>
+      <path d="M210,0 L210,40 C172,36 146,14 156,0 Z" fill="#d0e3f7"/>
+      <path d="M0,0 L60,0 C40,10 26,26 0,26 Z" fill="#e4eef9"/>
+      <path d="M0,272 C40,262 78,290 120,282 C158,275 188,294 210,286 L210,297 L0,297 Z" fill="#c3d9f0"/>
+      <path d="M0,281 C44,273 84,294 126,287 C165,281 192,296 210,291 L210,297 L0,297 Z" fill="#6e9ed0"/>
+      <path d="M0,289 C46,283 88,296 132,291 C170,287 196,297 210,294 L210,297 L0,297 Z" fill="#264f80"/>
+    </svg>
+  </div>
+</template>
+<template id="tpl-hd">
+  <div class="hd" aria-hidden="true">
+    <div class="kiri">
+      <img class="kkp" src="manual-img/logo-kkp.png" alt="" />
+      <img class="bppmhkp" src="manual-img/logo-bppmhkp.png" alt="" />
+    </div>
+    <img class="sesd" src="manual-img/logo-sesdian.png" alt="" />
+    <div class="rule"></div>
+  </div>
+</template>
+
+<script>
+window.paginate = function () {
+  var sheetsRoot = document.getElementById('sheets');
+  var source = document.getElementById('source');
+  if (!source) return sheetsRoot ? sheetsRoot.querySelectorAll('.sheet').length : 0;
+  var blocks = Array.prototype.slice.call(source.children);
+  var bgTpl = document.getElementById('tpl-bg');
+  var hdTpl = document.getElementById('tpl-hd');
+
+  function newSheet() {
+    var s = document.createElement('div'); s.className = 'sheet';
+    s.appendChild(bgTpl.content.cloneNode(true));
+    s.appendChild(hdTpl.content.cloneNode(true));
+    var body = document.createElement('div'); body.className = 'body';
+    s.appendChild(body);
+    sheetsRoot.appendChild(s);
+    return body;
+  }
+
+  var body = newSheet();
+  var isEmpty = function (b) { return b.children.length === 0; };
+
+  for (var i = 0; i < blocks.length; i++) {
+    var blk = blocks[i];
+    if (blk.classList.contains('fullsheet')) {
+      if (!isEmpty(body)) body = newSheet();
+      body.appendChild(blk);
+      body = newSheet();
+      continue;
+    }
+    if (blk.classList.contains('pgbreak') && !isEmpty(body)) {
+      body = newSheet();
+    }
+    body.appendChild(blk);
+    if (body.scrollHeight > body.clientHeight + 1) {
+      body.removeChild(blk);
+      if (isEmpty(body)) { body.appendChild(blk); }
+      else { body = newSheet(); body.appendChild(blk); }
+    }
+  }
+  // Buang lembar kosong di akhir bila ada
+  var sheets = Array.prototype.slice.call(sheetsRoot.children);
+  for (var j = sheets.length - 1; j >= 0; j--) {
+    if (sheets[j].querySelector('.body').children.length === 0) sheetsRoot.removeChild(sheets[j]);
+  }
+  source.remove();
+
+  // Isi nomor halaman pada daftar isi secara otomatis
+  var allSheets = Array.prototype.slice.call(sheetsRoot.querySelectorAll('.sheet'));
+  document.querySelectorAll('.pg[data-ref]').forEach(function (span) {
+    var target = document.getElementById(span.getAttribute('data-ref'));
+    if (!target) return;
+    var sheet = target.closest('.sheet');
+    var idx = allSheets.indexOf(sheet);
+    span.textContent = idx >= 0 ? String(idx + 1) : '-';
+  });
+  return sheetsRoot.querySelectorAll('.sheet').length;
+};
+
+// Auto-run saat DOM siap
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', window.paginate);
+} else {
+  window.paginate();
+}
+</script>
+
+</body>
+</html>

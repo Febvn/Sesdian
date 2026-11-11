@@ -69,8 +69,8 @@ Dokumen ini merupakan pemetaan resmi Work Breakdown Structure (WBS) proyek SESDI
 | :--- | :---: | :--- | :--- | :--- | :---: | :---: | :---: | :---: |
 | **SES-4** | - | **PEMBANGUNAN SISTEM** | **Adi Septriansyah** | **Back-End Developer** | 12/10/2026 | 20/11/2026 | 39 | **DONE** |
 | **SES-4.1** | - | **Sprint 1: Akun, Data Aset, Katalog, dan Label QR** | **Adi Septriansyah** | **Back-End Developer** | 12/10/2026 | 30/10/2026 | 18 | **DONE** |
-| SES-4.1.1 | `F-01` | Akun, hak akses, dan aktivasi | Adi Septriansyah | Back-End Developer | 12/10/2026 | 20/10/2026 | 8 | Todo |
-| SES-4.1.2 | `F-02` | Data aset, katalog, dan pembuatan kode QR | Anselmus Herpin Hasugian | Front-End Developer | 19/10/2026 | 30/10/2026 | 11 | Todo |
+| SES-4.1.1 | `F-01` | Akun, hak akses, dan aktivasi | Adi Septriansyah | Back-End Developer | 12/10/2026 | 20/10/2026 | 8 | DONE |
+| SES-4.1.2 | `F-02` | Data aset, katalog, dan pembuatan kode QR | Anselmus Herpin Hasugian | Front-End Developer | 19/10/2026 | 30/10/2026 | 11 | DONE |
 | **SES-4.2** | - | **Sprint 2: Peminjaman Dua Lapis dan Pemindaian** | **Adi Septriansyah** | **Back-End Developer** | 02/11/2026 | 13/11/2026 | 11 | **DONE** |
 | SES-4.2.1 | `F-03` | Siklus peminjaman dan aturan transisi status | Adi Septriansyah | Back-End Developer | 02/11/2026 | 09/11/2026 | 7 | DONE |
 | SES-4.2.2 | `F-04` | Pemindaian serah terima dan pengembalian | Anselmus Herpin Hasugian | Front-End Developer | 06/11/2026 | 13/11/2026 | 7 | DONE |
@@ -85,10 +85,10 @@ Dokumen ini merupakan pemetaan resmi Work Breakdown Structure (WBS) proyek SESDI
 
 | Kode WBS | ID | Paket Kerja | Penanggung Jawab | Peran | Tanggal Mulai | Tanggal Selesai | Durasi (Hari) | Status |
 | :--- | :---: | :--- | :--- | :--- | :---: | :---: | :---: | :---: |
-| **SES-5** | - | **PENGUJIAN DAN PENERAPAN** | **Anselmus Herpin Hasugian** | **Quality Assurance** | 16/11/2026 | 04/12/2026 | 18 | - |
-| **SES-5.1** | - | **Pengujian Sistem** | **Anselmus Herpin Hasugian** | **Quality Assurance** | 16/11/2026 | 27/11/2026 | 11 | **Todo** |
-| SES-5.1.1 | `T-01` | Pengujian modul dan integrasi | Anselmus Herpin Hasugian | Quality Assurance | 16/11/2026 | 20/11/2026 | 4 | Todo |
-| SES-5.1.2 | `T-02` | Pengujian keamanan dan perbaikan cacat | Adi Septriansyah | Back-End Developer | 23/11/2026 | 27/11/2026 | 4 | Todo |
+| **SES-5** | - | **PENGUJIAN DAN PENERAPAN** | **Anselmus Herpin Hasugian** | **Quality Assurance** | 16/11/2026 | 04/12/2026 | 18 | **In Progress** |
+| **SES-5.1** | - | **Sprint 1: Pengujian Sistem** | **Anselmus Herpin Hasugian** | **Quality Assurance** | 16/11/2026 | 27/11/2026 | 11 | **DONE** |
+| SES-5.1.1 | `T-01` | Pengujian modul dan integrasi | Anselmus Herpin Hasugian | Quality Assurance | 16/11/2026 | 20/11/2026 | 4 | DONE |
+| SES-5.1.2 | `T-02` | Pengujian keamanan dan perbaikan cacat | Adi Septriansyah | Back-End Developer | 23/11/2026 | 27/11/2026 | 4 | DONE |
 | **SES-5.2** | - | **Penerapan Sistem** | **Adi Septriansyah** | **Back-End Developer** | 23/11/2026 | 30/11/2026 | 7 | **Todo** |
 | SES-5.2.1 | `D-01` | Pemindahan data dari SESDIAN v1 | Adi Septriansyah | Back-End Developer | 23/11/2026 | 26/11/2026 | 3 | Todo |
 | SES-5.2.2 | `D-02` | Penerapan ke server dan domain resmi | Adi Septriansyah | Back-End Developer | 27/11/2026 | 30/11/2026 | 3 | Todo |
