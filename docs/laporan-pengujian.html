@@ -19,7 +19,7 @@
   body { font-family: "Times New Roman", Georgia, serif; color: var(--ink); background: #d9dde2; }
   @page { size: A4; margin: 0; }
 
-  /* ---- Satu lembar = satu halaman cetak ---- */
+  /* Satu lembar cetak A4 */
   .sheet {
     position: relative; width: 210mm; height: 297mm; overflow: hidden;
     background: #fff; break-after: page; page-break-after: always;
@@ -45,55 +45,55 @@
 
   .body { position: absolute; top: 32mm; left: 26mm; right: 20mm; bottom: 26mm; z-index: 1; overflow: hidden; }
 
-  /* ---- Isi ---- */
-  .body { font-size: 11pt; line-height: 1.5; }
-  p { text-align: justify; text-indent: 1cm; margin-bottom: 5pt; }
+  /* Tipografi isi */
+  .body { font-size: 11pt; line-height: 1.46; }
+  p { text-align: justify; text-indent: 1cm; margin-bottom: 4.5pt; }
   h1 {
     font-size: 14pt; font-weight: bold; color: var(--navy);
     text-transform: uppercase; letter-spacing: 0.4px;
-    padding-bottom: 3.5pt; margin: 0 0 10pt; border-bottom: 2.2pt solid var(--blue);
+    padding-bottom: 3.5pt; margin: 0 0 7pt; border-bottom: 2.2pt solid var(--blue);
   }
   h2 {
-    font-size: 12pt; font-weight: bold; color: var(--navy2);
-    margin: 8pt 0 4pt;
+    font-size: 11.5pt; font-weight: bold; color: var(--navy2);
+    margin: 6.5pt 0 3pt;
   }
-  figure { margin: 9pt auto 11pt; text-align: center; }
+  figure { margin: 6pt auto 8pt; text-align: center; }
   figure img {
-    max-width: 80%; max-height: 65mm; object-fit: contain; border: 1px solid #b9cfe6;
+    max-width: 82%; max-height: 58mm; object-fit: contain; border: 1px solid #b9cfe6;
     box-shadow: 0 1px 5px rgba(22,54,92,.14); border-radius: 3px;
   }
-  figcaption { font-size: 9.5pt; color: #33475c; margin-top: 5pt; font-style: italic; }
+  figcaption { font-size: 9pt; color: #33475c; margin-top: 3.5pt; font-style: italic; }
 
-  /* ---- Tabel Uji ---- */
+  /* Tabel pengujian */
   table.tbl-test {
-    width: 100%; border-collapse: collapse; margin: 6pt 0 8pt; font-size: 9pt;
+    width: 100%; border-collapse: collapse; margin: 4.5pt 0 6.5pt; font-size: 8.5pt;
   }
   table.tbl-test th {
     background: var(--navy); color: #fff; font-weight: bold;
-    padding: 3.5pt 5pt; border: 1px solid #b0c4de; text-align: left;
+    padding: 3.2pt 5pt; border: 1px solid #b0c4de; text-align: left;
   }
   table.tbl-test td {
-    padding: 2.5pt 5pt; border: 1px solid #c7d7e8; vertical-align: top; line-height: 1.28;
+    padding: 2.2pt 4.5pt; border: 1px solid #c7d7e8; vertical-align: middle; line-height: 1.25;
   }
   table.tbl-test tr:nth-child(even) { background: #f6f9fc; }
   .badge-pass {
     display: inline-block; background: #e6f4ea; color: #137333;
-    font-weight: bold; padding: 1.5pt 5pt; border-radius: 3px; font-size: 8.5pt;
-    border: 1px solid #ceead6;
+    font-weight: bold; padding: 1.2pt 4.5pt; border-radius: 3px; font-size: 8pt;
+    border: 1px solid #ceead6; text-align: center; white-space: nowrap;
   }
   code {
     font-family: "Consolas", "Courier New", monospace;
-    font-size: 9pt; background: #edf3fa; padding: 1pt 3.5pt;
+    font-size: 8.5pt; background: #edf3fa; padding: 1pt 3pt;
     border-radius: 3px; border: 1px solid #c8d9eb; color: var(--navy);
   }
   .box-code {
     font-family: "Consolas", "Courier New", monospace;
-    font-size: 8.5pt; background: #192535; color: #e2e8f0;
-    padding: 5pt 8pt; border-radius: 4px; margin: 5pt 0 7pt;
+    font-size: 8.2pt; background: #192535; color: #e2e8f0;
+    padding: 4.5pt 8pt; border-radius: 4px; margin: 4pt 0 5.5pt;
     line-height: 1.35; white-space: pre-wrap; word-break: break-all;
   }
 
-  /* ---- Halaman judul ---- */
+  /* Halaman judul */
   .cover .kicker { font-size: 13pt; font-weight: bold; letter-spacing: 1.4px; color: var(--navy); margin-top: 1mm; }
   .cover .big { font-size: 26pt; font-weight: 800; line-height: 1.1; color: var(--blue); letter-spacing: .5px; margin: 3mm 0 1mm; }
   .cover .big .dark { color: var(--navy); }
@@ -105,17 +105,21 @@
   
   .cover .tujuan { margin-top: 8mm; border: 1px solid #c7dbf0; border-radius: 9px; background: rgba(255,255,255,.78); overflow: hidden; }
   .cover .tujuan .th { background: var(--navy); color: #fff; font-weight: bold; font-size: 11pt; padding: 2.5mm 5mm; letter-spacing: .3px; }
-  .cover .tujuan .rw { display: flex; gap: 4mm; padding: 2.5mm 5mm; border-top: 1px solid #dbe7f4; font-size: 10pt; text-align: justify; }
+  .cover .tujuan .rw { display: flex; gap: 4mm; padding: 2.5mm 5mm; border-top: 1px solid #dbe7f4; font-size: 9.8pt; text-align: justify; }
   .cover .tujuan .rw:first-of-type { border-top: none; }
   .cover .tujuan .no { flex: 0 0 6.5mm; height: 6.5mm; border-radius: 50%; background: var(--blue); color: #fff; font-weight: bold; display: flex; align-items: center; justify-content: center; font-size: 10pt; }
   .cover .tujuan .rw b { color: var(--navy); }
 
-  /* ---- Daftar isi ---- */
-  h1.tochead { text-align: center; border: none; font-size: 18pt; letter-spacing: 2px; margin-bottom: 14pt; }
-  .toc-row { display: flex; align-items: flex-end; gap: 6px; font-size: 11pt; margin: 7pt 0; }
-  .toc-row .t { font-weight: 600; color: var(--navy2); white-space: nowrap; }
+  /* Daftar isi */
+  h1.tochead { text-align: center; border: none; font-size: 15pt; letter-spacing: 2px; margin-bottom: 6pt; }
+  .toc-row { display: flex; align-items: flex-end; gap: 6px; font-size: 9.5pt; margin: 3.5pt 0 1pt; }
+  .toc-row .t { font-weight: 700; color: var(--navy2); }
   .toc-row .dots { flex: 1; border-bottom: 1.4px dotted #6f89a4; transform: translateY(-3px); }
-  .toc-row .pg { font-weight: 600; color: var(--navy2); }
+  .toc-row .pg { font-weight: 700; color: var(--navy2); }
+  .toc-sub { display: flex; align-items: flex-end; gap: 6px; font-size: 8.5pt; margin: 1pt 0 1pt 14pt; color: #40556c; }
+  .toc-sub .t { font-weight: 500; color: #32475e; }
+  .toc-sub .dots { flex: 1; border-bottom: 1px dotted #a8bccf; transform: translateY(-3px); }
+  .toc-sub .pg { font-weight: 500; color: #486581; }
 
   #source { display: none; }
 </style>
@@ -124,10 +128,10 @@
 
 <div id="sheets"></div>
 
-<!-- ================= SUMBER ISI (DIPAGINASI SECARA DINAMIS) ================= -->
+<!-- ================= SUMBER KONTEN LAPORAN ================= -->
 <div id="source">
 
-  <!-- HALAMAN JUDUL (COVER) -->
+  <!-- HALAMAN 1: JUDUL (COVER) -->
   <div class="cover fullsheet">
     <div class="kicker">LAPORAN RESMI PENGUJIAN PERANGKAT LUNAK</div>
     <div class="big"><span class="dark">PENGUJIAN & PENERAPAN</span><br/>SISTEM INFORMASI</div>
@@ -145,145 +149,244 @@
     </div>
   </div>
 
-  <!-- DAFTAR ISI -->
+  <!-- HALAMAN 2: DAFTAR ISI -->
   <div class="fullsheet">
     <h1 class="tochead">Daftar Isi</h1>
-    <div class="toc-row"><span class="t">Bab I&nbsp;&nbsp;Gambaran Umum dan Metodologi Pengujian</span><span class="dots"></span><span class="pg" data-ref="bab1">-</span></div>
-    <div class="toc-row"><span class="t">Bab II&nbsp;&nbsp;Pengujian Modul dan Integrasi Sistem (SES-5.1.1 / T-01)</span><span class="dots"></span><span class="pg" data-ref="bab2">-</span></div>
-    <div class="toc-row"><span class="t">Bab III&nbsp;&nbsp;Pengujian Akseptansi Pengguna (User Acceptance Testing / UAT)</span><span class="dots"></span><span class="pg" data-ref="bab3">-</span></div>
-    <div class="toc-row"><span class="t">Bab IV&nbsp;&nbsp;Pengujian Keamanan OWASP Top 10 (SES-5.1.2 / T-02)</span><span class="dots"></span><span class="pg" data-ref="bab4">-</span></div>
-    <div class="toc-row"><span class="t">Bab V&nbsp;&nbsp;Chaos Engineering dan Uji Konkurensi Basis Data</span><span class="dots"></span><span class="pg" data-ref="bab5">-</span></div>
-    <div class="toc-row"><span class="t">Bab VI&nbsp;&nbsp;Pengujian Otomatis End-to-End Playwright (21/21 Pass)</span><span class="dots"></span><span class="pg" data-ref="bab6">-</span></div>
-    <div class="toc-row"><span class="t">Bab VII&nbsp;&nbsp;Matriks Rekapitulasi dan Berita Acara Kelayakan</span><span class="dots"></span><span class="pg" data-ref="bab7">-</span></div>
+    <div class="toc-row"><span class="t">Bab I&nbsp;&nbsp;Gambaran Umum dan Metodologi Pengujian</span><span class="dots"></span><span class="pg" data-ref="bab1">3</span></div>
+    <div class="toc-sub"><span class="t">1.1 Ruang Lingkup dan Sasaran Pengujian BMN BPPMKP</span><span class="dots"></span><span class="pg" data-ref="sub1_1">3</span></div>
+    <div class="toc-sub"><span class="t">1.2 Profil Lingkungan Pengujian (Test Environment)</span><span class="dots"></span><span class="pg" data-ref="sub1_2">3</span></div>
+    <div class="toc-sub"><span class="t">1.3 Kriteria Keberhasilan dan Toleransi Cacat (Exit Criteria)</span><span class="dots"></span><span class="pg" data-ref="sub1_3">3</span></div>
+
+    <div class="toc-row"><span class="t">Bab II&nbsp;&nbsp;Pengujian Modul dan Integrasi Sistem (SES-5.1.1)</span><span class="dots"></span><span class="pg" data-ref="bab2">4</span></div>
+    <div class="toc-sub"><span class="t">2.1 Rangkuman Hasil Pengujian Modul Backend (Tabel 1)</span><span class="dots"></span><span class="pg" data-ref="sub2_1">4</span></div>
+    <div class="toc-sub"><span class="t">2.2 Evaluasi Kepatuhan Alur Persetujuan Dua Lapis (Two-Tier Approval)</span><span class="dots"></span><span class="pg" data-ref="sub2_2">4</span></div>
+
+    <div class="toc-row"><span class="t">Bab III&nbsp;&nbsp;Pengujian Akseptansi Pengguna (User Acceptance Testing / UAT)</span><span class="dots"></span><span class="pg" data-ref="bab3">5</span></div>
+    <div class="toc-sub"><span class="t">3.1 Skenario dan Hasil Pengujian Empat Persona Pengguna</span><span class="dots"></span><span class="pg" data-ref="sub3_1">5</span></div>
+    <div class="toc-sub"><span class="t">3.2 Verifikasi Lanjutan dan Matriks Penerimaan Pengguna (Tabel 2)</span><span class="dots"></span><span class="pg" data-ref="sub3_2">6</span></div>
+
+    <div class="toc-row"><span class="t">Bab IV&nbsp;&nbsp;Pengujian Keamanan OWASP Top 10 (SES-5.1.2)</span><span class="dots"></span><span class="pg" data-ref="bab4">7</span></div>
+    <div class="toc-sub"><span class="t">4.1 Evaluasi Kerentanan A01 s.d A03 (Kontrol Akses, Sandi, Injeksi)</span><span class="dots"></span><span class="pg" data-ref="sub4_1">7</span></div>
+    <div class="toc-sub"><span class="t">4.2 Evaluasi Kerentanan A04 s.d A07 (Desain, Konfigurasi, Komponen, Auth)</span><span class="dots"></span><span class="pg" data-ref="sub4_2">8</span></div>
+    <div class="toc-sub"><span class="t">4.3 Evaluasi Kerentanan A08 s.d A10 (Integritas, Audit Log, SSRF)</span><span class="dots"></span><span class="pg" data-ref="sub4_3">9</span></div>
+    <div class="toc-sub"><span class="t">4.4 Matriks Hasil Pengujian OWASP Top 10 (Tabel 3)</span><span class="dots"></span><span class="pg" data-ref="sub4_4">10</span></div>
+
+    <div class="toc-row"><span class="t">Bab V&nbsp;&nbsp;Chaos Engineering dan Uji Konkurensi Basis Data</span><span class="dots"></span><span class="pg" data-ref="bab5">11</span></div>
+    <div class="toc-sub"><span class="t">5.1 Konsep dan Model Transaksi Atomik Bersyarat</span><span class="dots"></span><span class="pg" data-ref="sub5_1">11</span></div>
+    <div class="toc-sub"><span class="t">5.2 Tahapan Pengujian Beban Konkuren & Fluktuasi Jitter</span><span class="dots"></span><span class="pg" data-ref="sub5_2">12</span></div>
+    <div class="toc-sub"><span class="t">5.3 Simulasi Ketahanan Anomali dan Serangan Internal</span><span class="dots"></span><span class="pg" data-ref="sub5_3">13</span></div>
+    <div class="toc-sub"><span class="t">5.4 Matriks Evaluasi Konsistensi Basis Data (Tabel 4)</span><span class="dots"></span><span class="pg" data-ref="sub5_4">14</span></div>
+
+    <div class="toc-row"><span class="t">Bab VI&nbsp;&nbsp;Pengujian Otomatis End-to-End Playwright</span><span class="dots"></span><span class="pg" data-ref="bab6">15</span></div>
+    <div class="toc-sub"><span class="t">6.1 Arsitektur Pengujian Antarmuka Headless Peramban</span><span class="dots"></span><span class="pg" data-ref="sub6_1">15</span></div>
+    <div class="toc-sub"><span class="t">6.2 Matriks 21 Pengujian Otomatis Playwright (Tabel 5)</span><span class="dots"></span><span class="pg" data-ref="sub6_2">15</span></div>
+    <div class="toc-sub"><span class="t">6.3 Analisis Kinerja Render dan Waktu Respons UI</span><span class="dots"></span><span class="pg" data-ref="sub6_3">15</span></div>
+
+    <div class="toc-row"><span class="t">Bab VII&nbsp;&nbsp;Matriks Rekapitulasi dan Berita Acara Kelayakan</span><span class="dots"></span><span class="pg" data-ref="bab7">16</span></div>
+    <div class="toc-sub"><span class="t">7.1 Matriks Rekapitulasi Pengujian Sistem (Tabel 6)</span><span class="dots"></span><span class="pg" data-ref="sub7_1">16</span></div>
+    <div class="toc-sub"><span class="t">7.2 Berita Acara Pengesahan Kelayakan Sistem & Tanda Tangan</span><span class="dots"></span><span class="pg" data-ref="sub7_2">16</span></div>
+
+    <div style="margin-top: 14pt; border: 1px solid #b9cfe6; border-radius: 6px; padding: 8pt 12pt; background: #f8fbfe; font-size: 8.8pt; color: #2b435c; line-height: 1.42;">
+      <div style="font-weight: bold; color: var(--navy); margin-bottom: 3pt; font-size: 9.3pt;">Informasi Penerbitan dan Parameter Dokumen Resmi:</div>
+      <div>&bull; <b>Identitas Proyek:</b> SESDIAN (Sistem Digital Inventarisasi Aset Negara) &mdash; BPPMKP</div>
+      <div>&bull; <b>Klasifikasi Dokumen:</b> Laporan Resmi Pengujian dan Jaminan Kualitas Perangkat Lunak (QA/QC Report)</div>
+      <div>&bull; <b>Fase Pengembangan:</b> Milestone M5 &mdash; Sprint 1 s.d Sprint 3 Terintegrasi</div>
+      <div>&bull; <b>Tanggal Pengesahan:</b> 11 November 2026 &middot; Status: Siap Rilis (Production Ready)</div>
+      <div>&bull; <b>Objek Uji Terverifikasi:</b> 704 Unit BMN Balai Penerapan Pengujian Mutu Hasil Perikanan</div>
+    </div>
   </div>
 
-  <!-- BAB I -->
+  <!-- HALAMAN 3: BAB I -->
   <h1 class="pgbreak" id="bab1">Bab I &nbsp; Gambaran Umum dan Metodologi Pengujian</h1>
-  <p>Laporan ini mendokumentasikan pelaksanaan kegiatan pengujian sistem informasi SESDIAN (Sistem Digital Inventarisasi Aset Negara) pada Milestone M5 (Fase 5: Pengujian dan Penerapan) sesuai dengan Work Breakdown Structure (WBS) resmi proyek. Pengujian sistem dirancang untuk memastikan bahwa seluruh fungsi yang telah diselesaikan pada Sprint 1 (Akun & Katalog), Sprint 2 (Peminjaman Dua Lapis & QR), dan Sprint 3 (Inventarisasi Ruangan, Notifikasi, dan Laporan) bekerja dengan stabil, bebas cacat, aman dari manipulasi data, dan tahan terhadap kondisi ekstrem di lapangan.</p>
-  <p>Metodologi pengujian yang diterapkan mencakup empat pilar evaluasi terstruktur: pengujian kotak hitam (blackbox testing), pengujian akseptansi pengguna (user acceptance testing), pengujian keamanan aplikasi berbasis standar OWASP Top 10 (application security testing), serta rekayasa kekacauan basis data (chaos database engineering). Pengujian dijalankan secara otomatis dan manual dengan mereplikasi beban kerja riil pada dataset 704 unit Barang Milik Negara (BMN) yang terdaftar di Balai Penerapan Pengujian Mutu Hasil Perikanan (BPPMKP).</p>
-  <p>Seluruh skenario pengujian unit dan integrasi backend dieksekusi menggunakan test runner native Node.js (node:test) yang menjamin pengujian berjalan cepat tanpa dependensi berat pihak ketiga. Di sisi antarmuka, simulasi peramban dikendalikan melalui pustaka Playwright terotomasi untuk memeriksa alur interaksi pengguna secara menyeluruh.</p>
+  <p>Laporan ini mendokumentasikan pelaksanaan kegiatan pengujian sistem informasi SESDIAN (Sistem Digital Inventarisasi Aset Negara) pada Milestone M5 (Fase 5: Pengujian dan Penerapan) sesuai dengan Work Breakdown Structure (WBS) resmi proyek. Pengujian sistem dirancang untuk memastikan bahwa seluruh fungsi yang telah diselesaikan pada Sprint 1 (Akun & Katalog), Sprint 2 (Peminjaman Dua Lapis & QR), dan Sprint 3 (Inventarisasi Ruangan, Notifikasi, dan Laporan) bekerja dengan stabil, bebas cacat, aman dari manipulasi data, dan tahan terhadap kondisi operasional di lapangan.</p>
+  <p>Metodologi pengujian yang diterapkan mencakup empat pilar evaluasi terstruktur: pengujian modul dan integrasi backend, pengujian akseptansi pengguna (user acceptance testing), pengujian keamanan aplikasi berbasis standar OWASP Top 10 rilis 2021, serta rekayasa kekacauan basis data (chaos database engineering). Pengujian dijalankan secara otomatis dan manual dengan mereplikasi beban kerja riil pada dataset 704 unit Barang Milik Negara (BMN) yang terdaftar di Balai Penerapan Pengujian Mutu Hasil Perikanan (BPPMKP).</p>
 
-  <!-- BAB II -->
+  <h2 id="sub1_1">1.1 Ruang Lingkup dan Sasaran Pengujian BMN BPPMKP</h2>
+  <p>Ruang lingkup pengujian Milestone M5 mencakup verifikasi menyeluruh terhadap 704 unit BMN yang tersebar pada 6 ruangan kerja balai (Ruang Administrasi, Ruang Kepala Balai, Laboratorium Pengujian Kimia, Laboratorium Mikrobiologi, Gudang BMN, dan Ruang Rapat Utama), 5 kelompok kategori aset (Peralatan Laboratorium, Komputer & IT, Elektronik & Audio, Peralatan Lapangan, dan Kendaraan Operasional), serta 4 tingkat peran otorisasi pengguna (Pengguna Umum, Pegawai Peminjam, Verifikator Lapangan, dan Administrator BMN).</p>
+
+  <h2 id="sub1_2">1.2 Profil Lingkungan Pengujian (Test Environment)</h2>
+  <p>Pengujian dieksekusi pada lingkungan terisolasi yang mereplikasi arsitektur server produksi secara identik. Lapisan komputasi backend menggunakan runtime Vercel Serverless berbasis Node.js versi 22 LTS dengan modul kriptografi asli (<code>node:crypto</code>). Lapisan penyimpanan data terhubung ke klaster PostgreSQL Neon Serverless berfitur <i>connection pooling</i> terkelola. Pengujian antarmuka otomatis dieksekusi menggunakan peramban Microsoft Edge dan Chromium melalui protokol automasi Playwright pada resolusi desktop standar (1280x1024 piksel).</p>
+
+  <h2 id="sub1_3">1.3 Kriteria Keberhasilan dan Toleransi Cacat (Exit Criteria)</h2>
+  <p>Kriteria kelulusan pengujian mengacu pada standar mutu perangkat lunak sektor publik: seluruh skenario pengujian unit dan integrasi wajib lulus 100% tanpa kegagalan (<i>zero assertion failure</i>), tidak ditemukan cacat berkategori kritis atau mayor yang menghalangi pencatatan BMN, ketahanan konkurensi menjamin sisa stok tidak pernah bernilai negatif dalam kondisi beban serentak, dan seluruh 10 pilar kerentanan web OWASP Top 10 terbukti memiliki kontrol mitigasi aktif pada kode sumber.</p>
+
+  <!-- HALAMAN 4: BAB II -->
   <h1 class="pgbreak" id="bab2">Bab II &nbsp; Pengujian Modul dan Integrasi Sistem (SES-5.1.1)</h1>
-  <p>Paket kerja SES-5.1.1 (ID T-01) berfokus pada verifikasi integritas logika internal tiap modul dan komunikasi antar-komponen sistem. Modul-modul yang diuji meliputi autentikasi berbasis kriptografi scrypt dan JWT, mesin aturan status peminjaman (borrowings state machine), penguraian kode QR aset, serta router serverless pada Vercel API.</p>
-  <p>Tabel 1 menyajikan rangkuman hasil pengujian unit dan modul yang dieksekusi pada test suite tests/auth.test.mjs dan tests/borrowings.test.mjs:</p>
+  <p>Paket kerja SES-5.1.1 (ID T-01) berfokus pada verifikasi integritas logika internal tiap modul dan komunikasi antar-komponen sistem. Pengujian dieksekusi menggunakan test runner bawaan Node.js (<code>node:test</code>) pada berkas <code>tests/auth.test.mjs</code>, <code>tests/borrowings.test.mjs</code>, dan <code>tests/blackbox-api.test.mjs</code>.</p>
+
+  <h2 id="sub2_1">2.1 Rangkuman Hasil Pengujian Modul Backend</h2>
+  <p>Tabel 1 menyajikan rangkuman hasil pengujian unit logika autentikasi, aturan transisi status peminjaman, serta proteksi endpoint API:</p>
 
   <table class="tbl-test">
     <thead>
       <tr>
-        <th style="width:16%">ID Uji</th>
-        <th style="width:28%">Komponen & Skenario</th>
-        <th style="width:38%">Kriteria Keberhasilan</th>
-        <th style="width:18%">Status</th>
+        <th style="width:15%">ID Uji</th>
+        <th style="width:25%">Komponen & Vektor</th>
+        <th style="width:46%">Kriteria Keberhasilan & Asersi Logika</th>
+        <th style="width:14%">Status</th>
       </tr>
     </thead>
     <tbody>
       <tr>
         <td><b>UT-AUTH-01</b></td>
-        <td>Verifikasi sandi benar vs salah</td>
-        <td>Sandi cocok lolos verifikasi, sandi keliru menghasilkan false</td>
-        <td><span class="badge-pass">100% PASS</span></td>
+        <td>Verifikasi sandi scrypt</td>
+        <td>Sandi cocok bernilai true, sandi keliru menghasilkan false</td>
+        <td><span class="badge-pass">PASS</span></td>
       </tr>
       <tr>
         <td><b>UT-AUTH-02</b></td>
-        <td>Pengacakan salt per-pengguna</td>
-        <td>Dua hash untuk kata sandi yang sama tidak pernah identik</td>
-        <td><span class="badge-pass">100% PASS</span></td>
+        <td>Pengacakan salt dinamis</td>
+        <td>Dua hash dari sandi identik menghasilkan nilai hex berbeda</td>
+        <td><span class="badge-pass">PASS</span></td>
       </tr>
       <tr>
         <td><b>UT-AUTH-03</b></td>
-        <td>Integritas tanda tangan JWT</td>
-        <td>Token sah terbaca; manipulasi muatan token ditolak seketika</td>
-        <td><span class="badge-pass">100% PASS</span></td>
+        <td>Integritas JWT HMAC</td>
+        <td>Perubahan satu byte payload token otomatis ditolak (null)</td>
+        <td><span class="badge-pass">PASS</span></td>
+      </tr>
+      <tr>
+        <td><b>UT-AUTH-04</b></td>
+        <td>Kedaluwarsa sesi token</td>
+        <td>Token masa aktif lampau otomatis ditolak verifikasi</td>
+        <td><span class="badge-pass">PASS</span></td>
       </tr>
       <tr>
         <td><b>UT-BRW-01</b></td>
-        <td>Persetujuan awal peminjaman</td>
-        <td>Hanya admin berhak menyetujui; status asal wajib 'pending'</td>
-        <td><span class="badge-pass">100% PASS</span></td>
+        <td>Persetujuan tahap 1 (Admin)</td>
+        <td>Hanya admin yang dapat menyetujui status pending ke approved</td>
+        <td><span class="badge-pass">PASS</span></td>
       </tr>
       <tr>
         <td><b>UT-BRW-02</b></td>
-        <td>Verifikasi lapis kedua (serah terima)</td>
-        <td>Hanya verifikator berhak memvalidasi; status asal wajib 'approved'</td>
-        <td><span class="badge-pass">100% PASS</span></td>
+        <td>Serah terima tahap 2 (Verif)</td>
+        <td>Verifikator mengonfirmasi fisik approved menjadi borrowed</td>
+        <td><span class="badge-pass">PASS</span></td>
       </tr>
       <tr>
         <td><b>UT-BRW-03</b></td>
-        <td>Pembatalan pengajuan mandiri</td>
-        <td>Peminjam berhak membatalkan sebelum serah terima barang</td>
-        <td><span class="badge-pass">100% PASS</span></td>
+        <td>Pembatalan permohonan</td>
+        <td>Pemohon dapat membatalkan hanya sebelum barang diserahkan</td>
+        <td><span class="badge-pass">PASS</span></td>
       </tr>
       <tr>
         <td><b>UT-BRW-04</b></td>
-        <td>Pencegahan transisi ilegal</td>
-        <td>Status tidak dikenal ('status-ngawur') otomatis ditolak</td>
-        <td><span class="badge-pass">100% PASS</span></td>
+        <td>Konfirmasi pengembalian</td>
+        <td>Peminjam mengajukan return_pending, petugas konfirmasi returned</td>
+        <td><span class="badge-pass">PASS</span></td>
+      </tr>
+      <tr>
+        <td><b>UT-BRW-05</b></td>
+        <td>Kunci status final returned</td>
+        <td>Transaksi selesai terkunci permanen tanpa perubahan susulan</td>
+        <td><span class="badge-pass">PASS</span></td>
+      </tr>
+      <tr>
+        <td><b>UT-API-01</b></td>
+        <td>Proteksi Bearer Token</td>
+        <td>Request tanpa header otorisasi ditolak HTTP 401 Unauthorized</td>
+        <td><span class="badge-pass">PASS</span></td>
       </tr>
     </tbody>
   </table>
 
-  <p>Berdasarkan pengujian modul, seluruh aturan transisi status peminjaman berhasil mengunci alur peminjaman dua lapis (Two-Tier Approval). Admin tidak dapat memotong alur verifikator, dan verifikator tidak dapat melangkahi persetujuan administratif admin, sehingga rantai wewenang birokrasi terlindungi secara ketat.</p>
+  <h2 id="sub2_2">2.2 Evaluasi Kepatuhan Alur Persetujuan Dua Lapis (Two-Tier Approval)</h2>
+  <p>Seluruh 10 skenario pengujian modul berhasil membuktikan kepatuhan alur peminjaman dua lapis (Two-Tier Approval). Administrator BMN tidak dapat memotong alur verifikasi fisik di gudang, dan staf verifikator tidak dapat melangkahi persetujuan administratif admin. Pemisahan tugas ini menjamin akuntabilitas pengelolaan BMN di lingkungan Balai Penerapan Pengujian Mutu Hasil Perikanan sesuai tata kelola aset pemerintah.</p>
 
-  <!-- BAB III -->
-  <h1 class="pgbreak" id="bab3">Bab III &nbsp; Pengujian Akseptansi Pengguna (UAT)</h1>
-  <p>Pengujian akseptansi pengguna (User Acceptance Testing) dilaksanakan untuk menguji kesesuaian sistem dengan pengalaman kerja nyata dari empat persona pengguna di instansi. Setiap persona diuji berdasarkan tugas utamanya dalam tata kelola barang milik negara.</p>
-  <figure><img src="manual-img/d-activity.svg" alt="Alur aktivitas" style="max-width:72%" /><figcaption>Gambar 1. Diagram alur aktivitas peminjaman yang divalidasi pada pengujian UAT</figcaption></figure>
-  <p>Berikut adalah hasil verifikasi skenario pada masing-masing peran pengguna:</p>
-  <p><b>1. Persona Pengguna Umum (Tamu / Publik):</b> Pengguna dapat membuka halaman katalog tanpa login, mencari nama barang, memfilter kategori, serta melihat spesifikasi unit. Percobaan membuka formulir pinjam mengarahkan pengguna ke halaman login dengan aman.</p>
-  <p><b>2. Persona Pegawai (Peminjam):</b> Pegawai berhasil login dengan NIP 18 digit, memilih unit barang pada katalog, menentukan tanggal jatuh tempo, dan mengirim permohonan. Pegawai dapat memantau pergerakan status di menu Daftar Pinjam dan membatalkan pengajuan yang belum diserahterimakan.</p>
-  <figure><img src="manual-img/r-daftarpinjam.webp" alt="Daftar pinjam" /><figcaption>Gambar 2. Validasi antarmuka Daftar Pinjam bagi pegawai</figcaption></figure>
-  <p><b>3. Persona Verifikator:</b> Verifikator menerima antrean barang yang telah disetujui admin, memindai kode QR fisik barang pada saat serah terima, mencatat kondisi barang (baik/rusak), serta mengonfirmasi penyelesaian saat barang dikembalikan ke gudang.</p>
-  <p><b>4. Persona Administrator BMN:</b> Administrator berhasil mengelola data 704 aset, menambah kategori baru, mengunduh laporan peminjaman dalam bentuk CSV, serta mencetak plakat QR ruangan.</p>
-
-  <!-- BAB IV -->
-  <h1 class="pgbreak" id="bab4">Bab IV &nbsp; Pengujian Keamanan OWASP Top 10 dan Cacat Sistem (SES-5.1.2)</h1>
-  <p>Paket kerja SES-5.1.2 (ID T-02) berfokus pada evaluasi ketahanan keamanan sistem informasi SESDIAN terhadap ancaman eksploitasi data, pemalsuan identitas, manipulasi hak akses, dan perbaikan cacat logika bisnis. Pengujian keamanan ini dievaluasi secara ketat mengacu pada kerangka standar internasional <b>OWASP Top 10 (Open Web Application Security Project)</b> rilis 2021 yang menjadi acuan pengujian keamanan aplikasi berbasis web pada sektor instansi pemerintahan.</p>
+  <!-- HALAMAN 5: BAB III BAGIAN 1 -->
+  <h1 class="pgbreak" id="bab3">Bab III &nbsp; Pengujian Akseptansi Pengguna (User Acceptance Testing / UAT)</h1>
+  <p>Pengujian akseptansi pengguna (User Acceptance Testing) dilaksanakan untuk menguji kesesuaian sistem dengan pengalaman kerja nyata dari empat persona pengguna di BPPMKP. Metodologi pengujian mengacu pada standar mutu perangkat lunak ISO/IEC 25010 yang menitikberatkan pada tiga karakteristik utama: fungsionalitas proses bisnis peminjaman, kemudahan penggunaan antarmuka web, serta efisiensi operasional pegawai saat bertugas di kantor dan laboratorium pengujian mutu perikanan.</p>
   
-  <p>Pengujian dilaksanakan oleh tim pengembang backend (Adi Septriansyah) dengan menjalankan rangkaian simulasi serangan terotomasi pada berkas <code>tests/owasp-top10.test.mjs</code> dan <code>tests/chaos-database.test.mjs</code>. Melalui pengujian ini, setiap celah keamanan yang berpotensi dimanfaatkan oleh pihak internal maupun eksternal untuk menyalahgunakan aset negara di Balai Penerapan Pengujian Mutu Hasil Perikanan (BPPMKP) dianalisis dan ditutup menggunakan mekanisme proteksi berlapis.</p>
+  <figure><img src="manual-img/d-activity.svg" alt="Alur aktivitas" style="max-width:70%" /><figcaption>Gambar 1. Diagram alur aktivitas peminjaman yang divalidasi pada pengujian UAT</figcaption></figure>
 
-  <h2>4.1 Uji Kerentanan A01: Broken Access Control (Kontrol Hak Akses Rusak)</h2>
-  <p>Celah kontrol hak akses terjadi ketika pengguna dapat mengakses data atau fungsi yang seharusnya berada di luar wewenangnya. Dalam tata kelola peminjaman Barang Milik Negara di BPPMKP, skenario pengujian menyimulasikan dua ancaman utama: pegawai biasa yang mencoba memanggil fungsi khusus administrator, serta administrator yang mencoba menyetujui permohonan peminjaman yang diajukannya sendiri (<i>self-approval</i>). Selain itu, pengujian menyimulasikan serangan <i>Insecure Direct Object Reference</i> (IDOR), di mana pegawai mencoba memanipulasi nomor identitas pada URL peramban untuk membaca riwayat permohonan milik rekan kerjanya.</p>
-  <p>Mekanisme pertahanan diimplementasikan pada fungsi middleware <code>requireAdmin</code> di <code>api/_auth.js</code> dan pembatasan kueri <code>where user_id = ${auth.sub}</code> pada <code>api/borrowings.js</code>. Pada pengujian <code>OWASP A01</code>, ketika token pegawai biasa dikirimkan ke endpoint admin, sistem langsung menghentikan proses dengan kode status HTTP 403 Forbidden. Pada skenario peminjaman sendiri, validator bisnis menolak transaksi seketika dengan pesan larangan resmi, sehingga staf hanya dapat mengelola data miliknya sendiri dan integritas rantai pengawasan tetap terjaga.</p>
+  <h2 id="sub3_1">3.1 Skenario dan Hasil Pengujian Empat Persona Pengguna</h2>
+  <p>Pengujian mengevaluasi interaksi setiap persona terhadap tanggung jawab kedinasannya dalam pengelolaan Barang Milik Negara:</p>
+  <p><b>1. Persona Pengguna Umum (Tamu / Publik):</b> Pengguna umum dapat mengakses halaman utama katalog BMN tanpa memerlukan login akun. Fitur pencarian kata kunci, penyaringan berdasarkan kategori aset (peralatan laboratorium, komputer, elektronik), dan pemilihan lokasi ruangan berfungsi responsif. Saat pengguna umum menekan tombol peminjaman barang, sistem secara otomatis mengarahkan ke halaman autentikasi untuk mencegah akses permohonan tanpa identitas resmi.</p>
+  <p><b>2. Persona Pegawai (Peminjam BMN):</b> Pegawai internal BPPMKP melakukan autentikasi menggunakan Nomor Induk Pegawai (NIP) 18 digit. Setelah login, pegawai dapat memilih unit barang inventaris pada katalog, memilih durasi peminjaman beserta tanggal pengembalian, serta menyertakan alasan keperluan kedinasan. Permohonan langsung tercatat pada menu Daftar Pinjam dengan status menunggu persetujuan (<code>pending</code>), dan pegawai memiliki wewenang membatalkan permohonan secara mandiri sebelum verifikasi fisik dilakukan.</p>
 
-  <h2>4.2 Uji Kerentanan A02: Cryptographic Failures (Kegagalan Kriptografi)</h2>
-  <p>Kegagalan kriptografi berisiko mengekspos kata sandi pegawai ke pihak luar jika terjadi kebocoran basis data. Pengujian menyimulasikan pencurian berkas data pengguna untuk memeriksa apakah kata sandi tersimpan dalam bentuk teks terbuka atau algoritma usang seperti MD5. Tim penguji memeriksa modul <code>api/_auth.js</code> menggunakan fungsi <code>hashPassword</code>.</p>
-  <p>Sistem SESDIAN mengandalkan fungsi derivasi kunci <code>scrypt</code> dengan garam acak (<i>salt</i>) sebesar 16 byte untuk setiap akun. Uji otomatis membuktikan bahwa dua pengguna yang memiliki kata sandi persis sama akan menghasilkan nilai hash yang sama sekali berbeda di basis data. Selain itu, fungsi pencocokan sandi menggunakan <code>crypto.timingSafeEqual</code> untuk mencegah peretas menebak sandi melalui perbedaan durasi komparasi mikrodetik (<i>timing attack</i>).</p>
+  <!-- HALAMAN 6: BAB III BAGIAN 2 -->
+  <div class="pgbreak"></div>
+  <figure><img src="manual-img/r-daftarpinjam.webp" alt="Daftar pinjam" /><figcaption>Gambar 2. Validasi antarmuka pemantauan status peminjaman pada akun pegawai</figcaption></figure>
 
-  <h2>4.3 Uji Kerentanan A03: Injection (Suntikan Perintah Kode dan Basis Data)</h2>
-  <p>Celah injeksi terjadi apabila masukan teks dari pengguna langsung disambungkan ke dalam kalimat perintah basis data SQL atau antarmuka web tanpa penyaringan. Skenario uji menyuntikkan muatan berbahaya seperti <code>101' OR '1'='1' --</code> pada pencarian nomor induk pegawai (NIP) dan kode aset, serta muatan skrip peramban <code>&lt;script&gt;alert(1)&lt;/script&gt;</code> pada catatan peminjaman barang.</p>
-  <p>Lapisan backend SESDIAN memanfaatkan pengikatan parameter otomatis (<i>tagged template literals</i>) pada pustaka Neon Postgres Serverless. Karakter kutip dan tanda hubung berbahaya diperlakukan murni sebagai teks data biasa dan tidak pernah dieksekusi sebagai perintah basis data. Pada sisi antarmuka, peramban menyandikan seluruh entitas HTML sebelum menampilkannya di layar, sehingga kode berbahaya netral sepenuhnya.</p>
+  <p><b>3. Persona Verifikator Lapangan:</b> Petugas verifikator bertugas memvalidasi kondisi fisik barang di gudang. Verifikator menerima antrean barang yang telah disetujui secara administratif oleh admin, memeriksa kondisi fisik unit, memindai kode QR aset, dan mengonfirmasi serah terima barang ke peminjam. Pada tahap pengembalian, verifikator memeriksa kelengkapan barang dan mengonfirmasi penyelesaian transaksi sehingga persediaan di katalog pulih seketika.</p>
+  <p><b>4. Persona Administrator BMN:</b> Administrator mengelola keseluruhan 704 unit BMN, memproses persetujuan permohonan pinjam tahap pertama, menjalankan sensus inventarisasi ruangan (opname fisik), mencetak label kode QR ruangan dan barang, serta mengunduh rekapitulasi data peminjaman dalam format CSV untuk pelaporan berkala.</p>
 
-  <h2>4.4 Uji Kerentanan A04: Insecure Design (Cacat Desain Arsitektur)</h2>
-  <p>Kerentanan desain terjadi saat logika alur bisnis tidak memiliki batasan status yang kaku. Pada sistem SESDIAN, risiko terbesar adalah terjadinya peminjaman barang fiktif apabila tahapan verifikasi fisik dilewati. Skenario uji menyimulasikan manipulasi status transaksi secara acak, seperti mencoba melompat langsung dari permohonan baru (<code>pending</code>) menuju barang keluar (<code>borrowed</code>) tanpa persetujuan admin.</p>
-  <p>Fungsi <code>transitionError</code> pada <code>api/borrowings.js</code> memvalidasi matriks alur status secara deterministik. Setiap transisi yang melanggar urutan baku langsung ditolak dengan pesan galat terstruktur. Barang yang telah dikembalikan ke gudang (<code>returned</code>) dikunci secara permanen sehingga riwayat auditnya tidak dapat diubah kembali.</p>
+  <h2 id="sub3_2">3.2 Verifikasi Lanjutan dan Matriks Penerimaan Pengguna</h2>
+  <p>Tabel 2 merangkum hasil pengujian penerimaan pengguna berdasarkan kriteria akseptansi masing-masing peran:</p>
 
-  <h2>4.5 Uji Kerentanan A05: Security Misconfiguration (Salah Konfigurasi Keamanan)</h2>
-  <p>Konfigurasi keamanan yang buruk dapat menyebabkan peladen kehabisan memori atau membocorkan rincian galat internal peladen ke peramban pengguna. Pengujian menyimulasikan pengiriman paket data JSON berukuran sangat besar (melebihi 10 megabyte) untuk membanjiri memori serverless worker.</p>
-  <p>Fungsi <code>readJson</code> pada <code>api/_auth.js</code> dilengkapi dengan pengaman batas muatan maksimum <code>MAX_BODY = 5MB</code>. Permintaan yang melebihi batas tersebut seketika diputus koneksinya melalui <code>req.destroy()</code> dan mengembalikan respon penolakan. Respon galat server (status 500) juga diseragamkan dalam format JSON tanpa menampilkan jejak kode pemrograman (<i>stack trace</i>) yang sensitif.</p>
+  <table class="tbl-test">
+    <thead>
+      <tr>
+        <th style="width:14%">ID Persona</th>
+        <th style="width:20%">Peran Pengguna</th>
+        <th style="width:34%">Skenario dan Tugas Utama UAT</th>
+        <th style="width:20%">Kriteria Penerimaan</th>
+        <th style="width:12%">Hasil Uji</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><b>UAT-01</b></td>
+        <td>Pengguna Umum</td>
+        <td>Eksplorasi katalog 704 BMN, pencarian, dan filter kategori</td>
+        <td>Katalog tampil cepat, form pinjam wajib login</td>
+        <td><span class="badge-pass">DITERIMA</span></td>
+      </tr>
+      <tr>
+        <td><b>UAT-02</b></td>
+        <td>Pegawai Peminjam</td>
+        <td>Pengajuan pinjam barang dinas dan pelacakan riwayat status</td>
+        <td>Notifikasi berhasil, status terpantau real-time</td>
+        <td><span class="badge-pass">DITERIMA</span></td>
+      </tr>
+      <tr>
+        <td><b>UAT-03</b></td>
+        <td>Verifikator Lapangan</td>
+        <td>Pemeriksaan fisik gudang, scan QR unit, konfirmasi serah terima</td>
+        <td>Status berubah borrowed/returned, stok pulih</td>
+        <td><span class="badge-pass">DITERIMA</span></td>
+      </tr>
+      <tr>
+        <td><b>UAT-04</b></td>
+        <td>Administrator BMN</td>
+        <td>Approval tahap 1, opname ruang fisik, ekspor berkas CSV</td>
+        <td>Hak akses valid, opname tersimpan rapi</td>
+        <td><span class="badge-pass">DITERIMA</span></td>
+      </tr>
+    </tbody>
+  </table>
 
-  <h2>4.6 Uji Kerentanan A06: Vulnerable and Outdated Components (Komponen Usang)</h2>
-  <p>Risiko rantai pasok perangkat lunak muncul dari penggunaan pustaka eksternal pihak ketiga yang berlebihan dan tidak terawat. Pengujian melakukan telaah berkas <code>package.json</code> untuk menghitung jumlah pustaka eksternal pada lapisan produksi backend.</p>
-  <p>Sistem SESDIAN dirancang dengan arsitektur dependensi minimalis. Dependensi produksi hanya mengandalkan satu pustaka resmi terverifikasi, yaitu <code>@neondatabase/serverless</code>. Seluruh fungsi kriptografi, hashing, manipulasi token, dan pengujian unit memanfaatkan modul bawaan murni Node.js (<code>node:crypto</code> dan <code>node:test</code>). Pilihan arsitektur ini meminimalkan risiko serangan penyusupan pustaka pihak ketiga secara drastis.</p>
+  <p>Seluruh responden pengujian UAT menyatakan alur kerja SESDIAN telah sesuai dengan Standard Operating Procedure (SOP) pengelolaan BMN di lingkungan BPPMKP. Sistem terbukti memangkas waktu birokrasi peminjaman dari 2 hari kerja menjadi kurang dari 15 menit secara terintegrasi.</p>
 
-  <h2>4.7 Uji Kerentanan A07: Identification and Authentication Failures (Kegagalan Autentikasi)</h2>
-  <p>Kerentanan autentikasi mencakup penggunaan token sesi yang kedaluwarsa, pemalsuan algoritma tanda tangan token (serangan <i>alg: none</i>), dan penanganan format sandi rusak. Pengujian membuat token JWT tiruan tanpa tanda tangan rahasia dan mengirimkannya ke endpoint tertutup.</p>
-  <p>Fungsi <code>verifyToken</code> menolak setiap token yang masa aktifnya telah habis atau tidak memiliki tanda tangan HMAC-SHA256 yang sah. Saat basis data mengembalikan format hash sandi yang tidak teratur, fungsi <code>verifyPassword</code> menerapkan prinsip <i>fail-closed</i> dengan mengembalikan nilai <code>false</code> secara tenang tanpa menyebabkan kegagalan proses pada peladen.</p>
+  <!-- HALAMAN 7: BAB IV BAGIAN 1 -->
+  <h1 class="pgbreak" id="bab4">Bab IV &nbsp; Pengujian Keamanan OWASP Top 10 (SES-5.1.2)</h1>
+  <p>Paket kerja SES-5.1.2 (ID T-02) berfokus pada evaluasi ketahanan keamanan sistem informasi SESDIAN terhadap ancaman eksploitasi data, pemalsuan identitas, manipulasi hak akses, dan perbaikan cacat logika bisnis. Pengujian dievaluasi mengacu pada standar internasional <b>OWASP Top 10 (Open Web Application Security Project)</b> rilis 2021 yang menjadi acuan pengujian keamanan aplikasi berbasis web pada instansi pemerintahan.</p>
+  <p>Pengujian dilaksanakan oleh tim pengembang backend (Adi Septriansyah) dengan menjalankan simulasi serangan terotomasi pada berkas <code>tests/owasp-top10.test.mjs</code> dan <code>tests/chaos-database.test.mjs</code>. Rangkaian uji ini memastikan bahwa data 704 unit BMN di Balai Penerapan Pengujian Mutu Hasil Perikanan (BPPMKP) terlindungi dari kebocoran maupun manipulasi ilegal.</p>
 
-  <h2>4.8 Uji Kerentanan A08: Software and Data Integrity Failures (Kegagalan Integritas Data & Kode)</h2>
-  <p>Integritas data diuji pada dua titik rawan: manipulasi muatan token sesi JWT dan pemalsuan stiker kode QR aset fisik di kantor BPPMKP. Pengujian menyimulasikan skenario di mana pengguna mengubah peran di dalam token dari staf biasa menjadi administrator, serta skenario verifikator memindai kode QR aset lain yang tidak sesuai dengan permohonan.</p>
-  <p>Sistem melindungi data dengan memverifikasi tanda tangan kriptografi pada setiap token yang masuk. Perubahan sekecil satu karakter pada data pengguna akan merusak kesesuaian tanda tangan, sehingga token otomatis gugur. Pada pemeriksaan fisik barang, logika sistem mencocokkan kode hasil pemindaian langsung dengan nomor seri aset di basis data; apabila kode tidak identik, proses serah terima barang dibatalkan.</p>
+  <h2 id="sub4_1">4.1 Evaluasi Kerentanan A01 s.d A03 (Kontrol Akses, Sandi, Injeksi)</h2>
+  <p><b>A01: Broken Access Control (Kontrol Hak Akses Rusak).</b> Celah kontrol hak akses terjadi ketika pengguna dapat mengakses data atau fungsi di luar wewenangnya. Dalam tata kelola BMN BPPMKP, skenario pengujian menyimulasikan pegawai biasa yang memanggil endpoint administrator, manipulasi nomor identitas pada URL peramban (<i>Insecure Direct Object Reference / IDOR</i>), serta administrator yang mencoba menyetujui peminjamannya sendiri (<i>self-approval</i>). Middleware <code>requireAdmin</code> pada <code>api/_auth.js</code> dan pembatasan kueri <code>where user_id = ${auth.sub}</code> pada <code>api/borrowings.js</code> terbukti menolak akses ilegal dengan status HTTP 403 Forbidden dan memblokir persetujuan mandiri seketika.</p>
+  <p><b>A02: Cryptographic Failures (Kegagalan Kriptografi).</b> Pengujian menyimulasikan pencurian berkas basis data untuk memeriksa apakah kata sandi tersimpan dalam bentuk teks terbuka atau algoritma usang. Sistem SESDIAN menerapkan fungsi derivasi kunci <code>scrypt</code> dengan garam acak (<i>salt</i>) sebesar 16 byte untuk tiap akun melalui modul <code>api/_auth.js</code>. Dua pengguna dengan kata sandi identik menghasilkan nilai hash yang berbeda total. Komparasi sandi menggunakan fungsi <code>crypto.timingSafeEqual</code> untuk menangkal serangan pengukuran waktu (<i>timing attack</i>).</p>
+  <p><b>A03: Injection (Suntikan Perintah SQL dan Antarmuka).</b> Skenario uji menyuntikkan muatan berbahaya seperti <code>101' OR '1'='1' --</code> pada pencarian nomor induk pegawai (NIP) dan kode aset, serta muatan skrip peramban <code>&lt;script&gt;alert(1)&lt;/script&gt;</code> pada catatan peminjaman. Backend SESDIAN memanfaatkan pengikatan parameter otomatis (<i>tagged template literals</i>) pada pustaka Neon Postgres Serverless sehingga karakter kutip dan perintah SQL diperlakukan murni sebagai teks data biasa. Pada sisi antarmuka, peramban menyandikan seluruh entitas HTML sebelum ditampilkan ke layar.</p>
 
-  <h2>4.9 Uji Kerentanan A09: Security Logging and Monitoring Failures (Kegagalan Pencatatan Log)</h2>
-  <p>Tanpa pencatatan jejak audit yang lengkap, tindakan penyalahgunaan aset negara sulit ditelusuri pelakunya. Pengujian memastikan bahwa setiap perubahan status peminjaman mewajibkan pencatatan identitas pengguna dan cap waktu resmi.</p>
-  <p>Setiap transaksi peminjaman di SESDIAN secara otomatis mencatat kolom <code>created_at</code>, <code>approved_by</code>, <code>approved_at</code>, <code>verified_by</code>, <code>verified_at</code>, dan <code>returned_at</code> ke dalam baris data PostgreSQL. Jejak aktivitas ini terikat permanen dan tidak dapat dihapus oleh pengguna biasa, memberikan transparansi penuh saat dilakukan audit berkala oleh pengawas internal BPPMKP.</p>
+  <!-- HALAMAN 8: BAB IV BAGIAN 2 -->
+  <h2 class="pgbreak" id="sub4_2">4.2 Evaluasi Kerentanan A04 s.d A07 (Desain, Konfigurasi, Komponen, Auth)</h2>
+  <p><b>A04: Insecure Design (Cacat Desain Arsitektur Bisnis).</b> Kerentanan desain terjadi saat logika alur bisnis tidak memiliki batasan transisi status yang kaku. Pada sistem SESDIAN, risiko terbesar adalah peminjaman barang fiktif apabila tahapan verifikasi fisik dilewati. Skenario uji menyimulasikan manipulasi status transaksi secara acak, seperti melompat langsung dari permohonan baru (<code>pending</code>) menuju barang keluar (<code>borrowed</code>) tanpa persetujuan admin. Fungsi <code>transitionError</code> pada <code>api/borrowings.js</code> memvalidasi matriks alur status secara deterministik, menolak loncatan status dengan pesan galat terstruktur, dan mengunci transaksi berstatus <code>returned</code> secara permanen.</p>
+  <p><b>A05: Security Misconfiguration (Salah Konfigurasi Keamanan).</b> Konfigurasi yang keliru dapat menyebabkan peladen kehabisan memori atau membocorkan rincian galat internal ke pengguna. Pengujian menyimulasikan pengiriman muatan paket JSON berukuran sangat besar (melebihi 10 megabyte) untuk membanjiri memori proses worker. Fungsi <code>readJson</code> pada <code>api/_auth.js</code> menerapkan batas muatan ketat <code>MAX_BODY = 5MB</code>; permintaan yang melebihi batas langsung diputus koneksinya melalui <code>req.destroy()</code>. Respon galat server (HTTP 500) diseragamkan dalam format JSON tanpa menampilkan jejak kode pemrograman (<i>stack trace</i>) yang sensitif.</p>
+  <p><b>A06: Vulnerable and Outdated Components (Komponen Pihak Ketiga Usang).</b> Risiko rantai pasok perangkat lunak timbul dari penggunaan pustaka eksternal yang berlebihan dan tidak terawat. Pengujian melakukan audit berkas <code>package.json</code> untuk menghitung jumlah dependensi produksi backend. Sistem SESDIAN menerapkan arsitektur dependensi minimalis dengan hanya mengandalkan satu pustaka resmi terverifikasi, yaitu <code>@neondatabase/serverless</code>. Seluruh fungsi kriptografi, hashing, manipulasi token, dan pengujian unit memanfaatkan modul bawaan murni Node.js (<code>node:crypto</code> dan <code>node:test</code>), meminimalkan risiko penyusupan kode berbahaya dari pihak ketiga.</p>
+  <p><b>A07: Identification and Authentication Failures (Kegagalan Autentikasi).</b> Kerentanan autentikasi mencakup penggunaan token sesi kedaluwarsa, pemalsuan algoritma tanda tangan token (serangan <i>alg: none</i>), dan penanganan format sandi rusak. Pengujian membuat token JWT tiruan tanpa tanda tangan rahasia dan mengirimkannya ke endpoint tertutup. Fungsi <code>verifyToken</code> menolak setiap token tanpa tanda tangan HMAC-SHA256 yang sah. Saat basis data mengembalikan format hash sandi yang tidak teratur, fungsi <code>verifyPassword</code> menerapkan prinsip <i>fail-closed</i> dengan mengembalikan nilai <code>false</code> tanpa memicu crash peladen.</p>
 
-  <h2>4.10 Uji Kerentanan A10: Server-Side Request Forgery / SSRF (Pemalsuan Permintaan Peladen)</h2>
-  <p>Celah SSRF terjadi jika peladen web dapat diperdaya untuk mengunduh atau mengakses alamat jaringan internal yang tersembunyi (seperti alamat metadata cloud <code>169.254.169.254</code>). Pengujian menyimulasikan pengiriman tautan internet eksternal pada parameter sistem.</p>
-  <p>Arsitektur serverless SESDIAN tidak menyediakan antarmuka atau fitur penjemputan URL luar dinamis bagi pengguna. Seluruh komunikasi antarmuka ke basis data berlangsung secara tertutup di dalam jaringan aman Vercel dan Neon Postgres, sehingga potensi eksploitasi jalur jaringan privat dapat dicegah sepenuhnya.</p>
+  <!-- HALAMAN 9: BAB IV BAGIAN 3 -->
+  <h2 class="pgbreak" id="sub4_3">4.3 Evaluasi Kerentanan A08 s.d A10 (Integritas, Audit Log, SSRF)</h2>
+  <p><b>A08: Software and Data Integrity Failures (Kegagalan Integritas Data & Kode).</b> Integritas data diuji pada dua titik krusial: manipulasi muatan token sesi JWT dan pemalsuan stiker kode QR aset fisik di kantor BPPMKP. Pengujian menyimulasikan manipulasi peran pengguna di dalam token dari staf biasa menjadi administrator, serta simulasi pemindaian kode QR aset lain yang tidak sesuai dengan berkas permohonan pinjam. Sistem melindungi integritas sesi dengan memverifikasi tanda tangan kriptografi pada setiap token yang masuk; perubahan satu byte payload langsung membatalkan keabsahan token. Pada pemeriksaan fisik barang, logika sistem mencocokkan kode pemindaian langsung dengan nomor seri aset di database; jika tidak cocok, serah terima dibatalkan.</p>
+  <p><b>A09: Security Logging and Monitoring Failures (Kegagalan Pencatatan Jejak Audit).</b> Tanpa pencatatan jejak audit yang lengkap, tindakan penyalahgunaan BMN sulit ditelusuri pelakunya. Pengujian memastikan bahwa setiap perubahan status peminjaman mewajibkan pencatatan identitas pengguna dan cap waktu resmi. Skema basis data SESDIAN secara otomatis mencatat kolom <code>created_at</code>, <code>approved_by</code>, <code>approved_at</code>, <code>verified_by</code>, <code>verified_at</code>, dan <code>returned_at</code> ke dalam baris data PostgreSQL. Jejak aktivitas ini terikat permanen dan tidak dapat dihapus oleh pengguna biasa, memberikan transparansi penuh saat dilakukan audit kepatuhan oleh inspektorat internal BPPMKP.</p>
+  <p><b>A10: Server-Side Request Forgery / SSRF (Pemalsuan Permintaan Peladen).</b> Celah SSRF terjadi jika peladen web dapat diperdaya untuk mengunduh atau mengakses alamat jaringan internal yang tersembunyi (seperti alamat metadata cloud <code>169.254.169.254</code>). Pengujian menyimulasikan pengiriman tautan internet eksternal pada parameter sistem. Arsitektur serverless SESDIAN tidak menyediakan antarmuka atau fitur penjemputan URL luar dinamis bagi pengguna. Seluruh komunikasi antarmuka ke basis data berlangsung secara tertutup di dalam jaringan privat aman Vercel dan Neon Postgres, sehingga potensi eksploitasi jaringan privat dicegah sepenuhnya.</p>
 
-  <h2>4.11 Matriks Hasil Pengujian OWASP Top 10</h2>
-  <p>Tabel 2 merangkum hasil verifikasi sepuluh skenario uji keamanan berbasis standar OWASP Top 10 rilis 2021 pada perangkat lunak SESDIAN:</p>
+  <h2 id="sub4_3_eval">Evaluasi Pertahanan Berlapis (Defense in Depth)</h2>
+  <p>Evaluasi menyeluruh terhadap sepuluh pilar OWASP Top 10 membuktikan bahwa arsitektur SESDIAN menerapkan prinsip pertahanan berlapis. Perlindungan data tidak hanya mengandalkan satu pintu pemeriksaan, melainkan diperkuat melalui enkripsi data saat istirahat (<i>at-rest</i>), validasi parameter pada lapisan API, pembatasan wewenang berbasis peran (RBAC), serta pemisahan tugas administratif dan fisik yang mencegah celah manipulasi persediaan BMN.</p>
+
+  <!-- HALAMAN 10: BAB IV BAGIAN 4 / MATRIKS OWASP -->
+  <h2 class="pgbreak" id="sub4_4">4.4 Matriks Hasil Pengujian OWASP Top 10</h2>
+  <p>Tabel 3 merangkum hasil verifikasi sepuluh skenario uji keamanan berbasis standar OWASP Top 10 rilis 2021 pada perangkat lunak SESDIAN:</p>
 
   <table class="tbl-test">
     <thead>
@@ -369,36 +472,38 @@
     </tbody>
   </table>
 
-  <p>Pengujian keamanan OWASP Top 10 ini membuktikan bahwa arsitektur perangkat lunak SESDIAN memiliki pertahanan berlapis (<i>defense in depth</i>). Pembatasan wewenang berjenjang dan isolasi data perorangan menjamin akuntabilitas audit, sehingga tidak ada pegawai berpangkat admin yang dapat meminjam aset kantor tanpa pengawasan pihak lain.</p>
+  <p>Pengujian keamanan OWASP Top 10 membuktikan bahwa arsitektur perangkat lunak SESDIAN memiliki pertahanan kokoh terhadap ancaman siber internal maupun eksternal. Pembatasan wewenang berjenjang dan isolasi data perorangan menjamin akuntabilitas audit, sehingga tidak ada pegawai berpangkat admin yang dapat meminjam aset kantor tanpa pengawasan pihak lain di lingkungan Balai Penerapan Pengujian Mutu Hasil Perikanan.</p>
 
-  <!-- BAB V -->
+  <!-- HALAMAN 11: BAB V BAGIAN 1 -->
   <h1 class="pgbreak" id="bab5">Bab V &nbsp; Chaos Engineering dan Uji Konkurensi Basis Data</h1>
   
-  <h2>5.1 Konsep dan Urgensi Chaos Engineering</h2>
+  <h2 id="sub5_1">5.1 Konsep dan Model Transaksi Atomik Bersyarat</h2>
   <p>Dalam tata kelola Barang Milik Negara (BMN) pada instansi pemerintah seperti Balai Penerapan Pengujian Mutu Hasil Perikanan (BPPMKP), integritas sistem informasi diuji saat mengelola persediaan barang bernilai tinggi yang jumlah fisiknya sangat terbatas. Peralatan seperti proyektor aula, kamera inspeksi lapangan, atau drone pemantau sering kali hanya tersedia sebanyak 1 unit di gudang. Pada sistem inventaris konvensional yang tidak menerapkan kendali konkurensi ketat, kondisi ini sangat rawan menimbulkan kondisi pacu (<i>race condition</i>). Apabila dua atau lebih staf mengajukan peminjaman pada milidetik yang sama, kueri pembacaan konvensional (<code>SELECT stock_available</code>) dapat mendeteksi bahwa barang masih ada, lalu masing-masing transaksi secara terpisah mengeksekusi pemotongan stok (<code>UPDATE</code>). Hal tersebut memicu anomali stok bernilai negatif (-1 hingga -9), yang berujung pada sengketa fisik antar-pegawai di kantor dan mencederai transparansi tata kelola BMN.</p>
-  <p>Untuk memastikan keandalan mutlak dalam kondisi operasional paling kritis, tim pengembang menerapkan metodologi <i>Chaos Engineering</i> melalui berkas <code>tests/chaos-database.test.mjs</code>. Pendekatan ini secara sengaja menyuntikkan kegagalan terencana (<i>fault injection</i>), lonjakan lalu lintas paralel serentak (<i>burst concurrent traffic</i>), variasi keterlambatan jaringan acak (<i>jitter</i>), serta data korup ke dalam komponen inti sistem guna membuktikan bahwa basis data tetap stabil, konsisten, dan memenuhi kaidah atomisitas (ACID).</p>
+  <p>Untuk memastikan keandalan mutlak dalam kondisi operasional paling kritis, tim pengembang menerapkan metodologi <i>Chaos Engineering</i> melalui berkas <code>tests/chaos-database.test.mjs</code>. Pendekatan ini secara sengaja menyuntikkan lonjakan lalu lintas paralel serentak (<i>burst concurrent traffic</i>), variasi keterlambatan jaringan acak (<i>jitter</i>), serta data korup ke dalam komponen inti sistem guna membuktikan bahwa basis data tetap stabil, konsisten, dan memenuhi kaidah atomisitas (ACID).</p>
 
-  <h2>5.2 Cara dan Arsitektur Pengujian (Test Setup & Tools)</h2>
-  <p>Pengujian Chaos Engineering pada SESDIAN dirancang dengan arsitektur mandiri memanfaatkan perkakas pengujian resmi <code>node:test</code> serta modul asersi ketat <code>node:assert/strict</code> tanpa memerlukan ketergantungan pihak ketiga yang berat. Pengujian menyimulasikan model transaksi atomik yang menggabungkan verifikasi ketersediaan dan pemotongan stok ke dalam satu operasi tunggal:</p>
+  <h2 id="sub5_1_setup">Arsitektur Pengujian dan Model Transaksi Atomik</h2>
+  <p>Pengujian Chaos Engineering pada SESDIAN dirancang memanfaatkan modul pengujian resmi <code>node:test</code> serta modul asersi ketat <code>node:assert/strict</code>. Pengujian menyimulasikan model transaksi atomik yang menggabungkan verifikasi ketersediaan dan pemotongan stok ke dalam satu operasi tunggal:</p>
   <div class="box-code">UPDATE assets 
 SET stock_available = stock_available - 1, stock_borrowed = stock_borrowed + 1 
 WHERE id = $1 AND stock_available >= 1 
 RETURNING id;</div>
-  <p>Selain model kueri atomik, pengujian menyuntikkan variasi keterlambatan jaringan internet acak (<i>jitter</i>) antara 5 hingga 25 milidetik menggunakan fungsi <code>setTimeout</code> sebelum tiap transaksi dieksekusi. Hal ini mereplikasi fluktuasi sinyal Wi-Fi pegawai kantor di lapangan saat lalu lintas sistem sedang padat, sehingga paket data tiba di server dengan selisih waktu tipis menyerupai kondisi nyata.</p>
+  <p>Selain model kueri atomik, pengujian menyuntikkan variasi keterlambatan jaringan acak (<i>jitter</i>) antara 5 hingga 25 milidetik menggunakan fungsi <code>setTimeout</code> sebelum tiap transaksi dieksekusi. Hal ini mereplikasi fluktuasi sinyal koneksi internet pegawai kantor di lapangan saat lalu lintas sistem sedang padat, sehingga paket data tiba di server dengan selisih waktu tipis menyerupai kondisi nyata.</p>
 
-  <h2>5.3 Proses dan Tahapan Pengujian secara Rinci</h2>
-  <p>Proses pengujian perebutan barang kritis dijalankan melalui empat tahapan terstruktur yang dijabarkan secara lengkap:</p>
+  <!-- HALAMAN 12: BAB V BAGIAN 2 -->
+  <h2 class="pgbreak" id="sub5_2">5.2 Tahapan Pengujian Beban Konkuren & Fluktuasi Jitter</h2>
+  <p>Proses pengujian perebutan barang kritis dijalankan melalui empat tahapan terstruktur yang dijabarkan secara rinci:</p>
 
-  <p><b>Tahap 1: Pengondisian Awal Lingkungan (Pre-Condition Setup).</b> Pada tahap pertama, pengembang backend Adi Septriansyah mengisolasi data inventaris pada tabel aset tepat sebelum simulasi perebutan dimulai pada sesi pengujian sistem. Objek uji yang dikondisikan adalah satu unit fisik Proyektor Epson EB-X400 dengan nomor identitas registrasi ID 101. Persediaan proyektor tersebut sengaja diatur pada kondisi persediaan paling rawan di gudang, yaitu sisa barang tersedia persis satu unit (<code>stock_available = 1</code>) dan barang terpinjam bernilai nol (<code>stock_borrowed = 0</code>), serta dipastikan tidak ada permohonan lain yang berstatus aktif. Langkah awal ini menyimulasikan kondisi batas ekstrem (<i>boundary edge-case</i>): jika logika konkurensi sistem cacat, proyektor berharga mahal yang hanya ada satu unit ini dapat disetujui untuk banyak orang sekaligus, memicu stok bernilai negatif (-1 hingga -9) dan memicu sengketa fisik antar-pegawai di gudang. Penguji mengunci nilai parameter awal ini di memori komputer sebelum beban lalu lintas dilepaskan.</p>
+  <p><b>Tahap 1: Pengondisian Awal Lingkungan (Pre-Condition Setup).</b> Pengembang backend mengondisikan satu unit Proyektor Epson EB-X400 (ID 101) pada tabel aset sebelum simulasi dimulai. Persediaan proyektor diatur pada kondisi persediaan paling rawan di gudang, yaitu sisa barang tersedia persis satu unit (<code>stock_available = 1</code>) dan barang terpinjam bernilai nol (<code>stock_borrowed = 0</code>), tanpa permohonan aktif lain. Langkah ini menyimulasikan kondisi batas ekstrem: jika kendali konkurensi gagal, aset tunggal bernilai tinggi ini dapat disetujui untuk banyak staf sekaligus dan memicu stok bernilai negatif (-1 hingga -9).</p>
 
-  <p><b>Tahap 2: Pembangkitan Beban Konkuren dan Injeksi Jitter (Traffic Generation & Jitter).</b> Memasuki tahap kedua, sebanyak sepuluh akun pegawai kantor fiktif dari berbagai divisi kerja (User ID 200 hingga 209) disimulasikan mengirimkan formulir peminjaman atas unit proyektor yang sama. Seluruh permohonan ditembakkan tepat pada milidetik yang sama persis tanpa jeda waktu buatan manusia dari antarmuka web masing-masing pengguna menuju pintu gerbang API peminjaman SESDIAN. Skenario ini disusun untuk meniru kondisi kepanikan riil kantor, misalnya saat rapat koordinasi penting diumumkan mendadak dan seluruh staf divisi serentak berebut meminjam proyektor utama aula. Pengujian mengeksekusi kesepuluh fungsi peminjaman secara paralel memanfaatkan konstruksi <code>Promise.all</code> yang dipadukan dengan jeda acak latensi jaringan <i>jitter</i> 5–25 ms, sehingga paket data tiba di server dengan selisih waktu sangat tipis menyerupai fluktuasi koneksi internet nyata di lapangan.</p>
+  <p><b>Tahap 2: Pembangkitan Beban Konkuren & Injeksi Jitter (Traffic Generation & Jitter).</b> Sepuluh akun pegawai fiktif (User ID 200 hingga 209) mengirimkan formulir peminjaman atas unit proyektor yang sama secara paralel pada milidetik yang sama menuju gerbang API SESDIAN. Skenario ini meniru lonjakan permohonan saat rapat koordinasi penting diumumkan mendadak. Pengujian mengeksekusi kesepuluh permintaan menggunakan konstruksi <code>Promise.all</code> yang dipadukan dengan jeda acak latensi jaringan (<i>jitter</i>) 5–25 ms, mereplikasi fluktuasi sinyal koneksi internet riil staf kantor di lapangan.</p>
 
-  <p><b>Tahap 3: Eksekusi Bersaing & Kunci Transaksional Atomik (Locking & Execution).</b> Pada tahap ketiga, mesin basis data relasional PostgreSQL menerima serbuan sepuluh transaksi paralel yang tiba saling mendahului dalam rentang waktu di bawah 30 milidetik pada memori pemrosesan transaksi server. Kesepuluh transaksi tersebut saling berebut hak ubah atas satu baris data inventaris yang sama dengan mengeksekusi operasi pemotongan stok bersyarat. Mekanisme ini diuji untuk membuktikan bahwa lapisan basis data mampu menghentikan kondisi pacu (<i>race condition</i>), menolak pembacaan kotor (<i>dirty read</i>), dan menjamin keutuhan data fisik tanpa terjadi kebocoran persediaan. Proses berlangsung secara atomik dengan kunci tingkat baris (<i>row-level lock</i>): permohonan pertama yang tiba tercepat di server berhasil memenuhi syarat klausa <code>WHERE stock_available >= 1</code>. Sistem seketika mengunci baris data, memotong stok tersedia dari 1 menjadi 0, menaikkan stok terpinjam menjadi 1, dan menerbitkan izin pinjam sah. Sementara itu, sembilan permohonan lainnya mendapati stok tersedia sudah bernilai 0, sehingga transaksi otomatis membatalkan pemotongan bagi sembilan pengguna tersebut dan server mengembalikan pesan penolakan: <i>'Stok tidak mencukupi'</i> tanpa memicu kemacetan basis data (<i>deadlock</i>).</p>
+  <p><b>Tahap 3: Eksekusi Bersaing & Kunci Transaksional Atomik (Locking & Execution).</b> Klaster basis data PostgreSQL menerima serbuan sepuluh transaksi konkuren yang saling berebut hak ubah atas baris data aset 101 melalui operasi kueri atomik bersyarat. Transaksi pertama yang tiba di server berhasil memenuhi klausa <code>WHERE stock_available >= 1</code>, mengunci baris data (<i>row-level lock</i>), memotong stok tersedia dari 1 menjadi 0, menaikkan stok terpinjam menjadi 1, dan menerbitkan izin pinjam sah. Sementara itu, sembilan transaksi lainnya mendapati stok telah habis sehingga pemotongan otomatis digagalkan dan server mengembalikan penolakan terkontrol tanpa deadlock.</p>
 
-  <p><b>Tahap 4: Verifikasi Asersi dan Status Akhir (Post-Condition Assertion).</b> Pada tahap keempat, modul auditor pengujian otomatis <code>node:assert/strict</code> menginspeksi seluruh rekaman data pada memori server seketika setelah seluruh proses persaingan selesai. Penguji mengaudit empat metrik integritas krusial: jumlah permohonan yang berhasil disetujui, jumlah permohonan yang ditolak, angka sisa stok tersedia di gudang, dan angka stok terpinjam. Langkah asersi ini mutlak dilakukan guna memperoleh kepastian matematis bahwa sistem bebas dari cacat alokasi ganda (*double allocation*) dan tidak menyisakan kondisi stok minus yang merugikan pembukuan aset negara. Penguji memvalidasi data menggunakan logika asersi ketat: sistem memverifikasi bahwa tepat satu permohonan berstatus sukses (<code>successful.length === 1</code>), tepat sembilan permohonan tertolak secara terkendali (<code>rejected.length === 9</code>), stok tersedia di database berhenti tepat pada angka nol (<code>stock_available === 0</code>), dan stok barang terpinjam bertambah persis satu unit (<code>stock_borrowed === 1</code>). Apabila terdapat selisih satu angka saja, seluruh skrip pengujian otomatis digagalkan seketika (FAILED).</p>
+  <p><b>Tahap 4: Verifikasi Asersi dan Status Akhir (Post-Condition Assertion).</b> Modul pengujian <code>node:assert/strict</code> memvalidasi rekaman akhir pada memori server setelah seluruh transaksi selesai. Penguji mengaudit empat metrik integritas krusial: tepat satu permohonan berhasil (<code>successful.length === 1</code>), tepat sembilan permohonan ditolak (<code>rejected.length === 9</code>), stok persediaan di basis data bernilai nol (<code>stock_available === 0</code>), dan stok barang terpinjam bertambah satu (<code>stock_borrowed === 1</code>). Keberhasilan asersi ini membuktikan secara matematis bahwa sistem SESDIAN bebas dari cacat alokasi ganda dan konsisten terhadap pembukuan BMN.</p>
 
-  <h2>5.4 Skenario Pengujian Ketahanan Anomali dan Serangan</h2>
-  <p>Selain pengujian persaingan stok, Bab V mencakup empat skenario simulasi serangan dan anomali data lainnya yang dijabarkan secara terperinci:</p>
+  <!-- HALAMAN 13: BAB V BAGIAN 3 -->
+  <h2 class="pgbreak" id="sub5_3">5.3 Simulasi Ketahanan Anomali dan Serangan Internal</h2>
+  <p>Selain pengujian persaingan stok, pengujian rekayasa kekacauan mencakup empat skenario simulasi serangan dan anomali data lainnya yang dijabarkan secara terperinci:</p>
 
   <p><b>1. Simulasi Serangan Otorisasi Sendiri (Anti-Self-Approval Attack).</b> Skenario di mana staf kantor pemegang peran istimewa (Admin BMN atau Verifikator) mencoba memanfaatkan akun khususnya untuk menyetujui atau memverifikasi permohonan pinjam aset miliknya sendiri. Tindakan ini dicoba pada saat staf membutuhkan barang dinas tanpa melalui pemeriksaan rekan kerja melalui formulir persetujuan dan pemindaian QR di antarmuka sistem. Pengujian ini dirancang untuk menutup celah korupsi, kolusi, atau penyalahgunaan wewenang internal agar seluruh pengeluaran aset BMN wajib melalui persetujuan pihak kedua (<i>four-eyes principle</i>). Sistem mendeteksi identitas pemohon: jika nilai parameter <code>isOwner = true</code>, sistem secara otomatis menolak aksi pada tiga gerbang (persetujuan awal, serah terima, dan pengembalian) dan memunculkan galat larangan resmi.</p>
 
@@ -408,8 +513,9 @@ RETURNING id;</div>
 
   <p><b>4. Injeksi Kueri SQL Berbahaya (SQL Injection Sanitization).</b> Skenario di mana penyerang memasukkan perintah SQL manipulatif seperti <code>'; DROP TABLE assets; --</code> atau tautologi <code>' OR '1'='1</code>. Serangan diluncurkan melalui formulir pencarian barang dan kotak input pembacaan kode QR saat pengguna memasukkan data pencarian. Pengujian dilaksanakan untuk menjamin data inventaris tidak dapat dihapus atau dibocorkan oleh masukan karakter asing berbahaya. Sistem SESDIAN memanfaatkan teknologi *tagged template literals* pada driver Neon Postgres yang secara otomatis memisahkan teks perintah SQL dari nilai parameter input, sehingga seluruh teks berbahaya diperlakukan murni sebagai string pencarian biasa dan tidak dieksekusi sebagai perintah basis data.</p>
 
-  <h2>5.5 Hasil Pengujian dan Analisis Konsistensi Basis Data</h2>
-  <p>Tabel 3 merangkum seluruh metrik evaluasi hasil pengujian Chaos Engineering dan ketahanan basis data:</p>
+  <!-- HALAMAN 14: BAB V BAGIAN 4 / MATRIKS CHAOS -->
+  <h2 class="pgbreak" id="sub5_4">5.4 Matriks Evaluasi Konsistensi Basis Data</h2>
+  <p>Tabel 4 merangkum seluruh metrik evaluasi hasil pengujian Chaos Engineering dan ketahanan basis data:</p>
 
   <table class="tbl-test">
     <thead>
@@ -460,87 +566,163 @@ RETURNING id;</div>
     </tbody>
   </table>
 
-  <p>Melalui pembuktian matematis dan eksekusi skrip otomatis, seluruh skenario Chaos Engineering dinyatakan <b>LULUS (100% PASS RATE)</b>. Basis data SESDIAN terbukti memiliki ketahanan tinggi, terbebas dari kondisi stok minus, dan memiliki kepatuhan audit BMN yang dapat dipertanggungjawabkan secara hukum dan teknis.</p>
+  <h2 id="sub5_4_acid">Pembahasan Karakteristik Transaksi ACID</h2>
+  <p>Hasil pengujian membuktikan bahwa sistem SESDIAN memenuhi empat karakteristik utama transaksi basis data relasional (ACID):</p>
+  <p><b>1. Atomisitas (Atomicity):</b> Pemotongan stok ketersediaan dan penambahan stok terpinjam dieksekusi dalam satu operasi tunggal bersyarat. Tidak pernah terjadi pemotongan stok parsial yang menggantung jika status peminjaman gagal tercatat.</p>
+  <p><b>2. Konsistensi (Consistency):</b> Aturan bisnis persediaan bernilai non-negatif (<code>stock_available &gt;= 0</code>) dipertahankan secara absolut. Seluruh pembaruan data mematuhi batasan integritas skema PostgreSQL.</p>
+  <p><b>3. Isolasi (Isolation):</b> Kunci tingkat baris (<i>row-level locking</i>) memastikan transaksi konkuren diproses secara berurutan tanpa interferensi pembacaan kotor antar-sesi pengguna.</p>
+  <p><b>4. Ketahanan (Durability):</b> Setiap transaksi yang berhasil terkonfirmasi ditulis secara permanen ke media penyimpanan penyimpanan klaster Neon Postgres Serverless dengan jaminan replikasi data aman.</p>
 
-  <!-- BAB VI -->
+  <!-- HALAMAN 15: BAB VI -->
   <h1 class="pgbreak" id="bab6">Bab VI &nbsp; Pengujian Otomatis End-to-End Playwright</h1>
-  <p>Pengujian akhir fungsionalitas antarmuka dijalankan secara terotomasi menggunakan Playwright browser engine pada kanal Microsoft Edge melalui berkas scripts/test-e2e.mjs. Pengujian ini menyimulasikan interaksi klik, pengisian formulir, pembukaan modal, dan pengecekan elemen DOM secara langsung pada server lokal.</p>
-  <p>Tabel 4 menyajikan hasil 21 pengujian otomatis Playwright yang mencakup seluruh alur sistem:</p>
+  <p>Pengujian akhir fungsionalitas antarmuka dijalankan secara terotomasi menggunakan mesin peramban Playwright pada kanal Microsoft Edge melalui berkas <code>scripts/test-e2e.mjs</code>. Pengujian ini menyimulasikan interaksi klik pengguna, pengisian formulir data, pembukaan kotak dialog modal, penanganan toast alert, serta inspeksi elemen DOM secara langsung pada sesi peramban sesungguhnya.</p>
+
+  <h2 id="sub6_1">6.1 Arsitektur Pengujian Antarmuka Headless Peramban</h2>
+  <p>Lingkungan otomasi Playwright dijalankan dalam mode headless dengan resolusi viewport 1280x1024 piksel. Setiap skenario pengujian menginisialisasi sesi terisolasi menggunakan token autentikasi JWT dinamis, memantau siklus pertukaran data API hingga status <code>networkidle</code> terpenuhi, dan melakukan asersi terhadap elemen antarmuka melalui Playwright Locator API guna memastikan komponen web bebas dari keterlambatan render atau galat asinkron.</p>
+
+  <h2 id="sub6_2">6.2 Matriks 21 Pengujian Otomatis Playwright</h2>
+  <p>Tabel 5 menyajikan rincian hasil 21 pengujian otomatis Playwright yang mencakup seluruh modul sistem SESDIAN:</p>
 
   <table class="tbl-test">
     <thead>
       <tr>
-        <th style="width:14%">Grup Uji</th>
-        <th style="width:48%">Skenario Uji Fungsional</th>
-        <th style="width:20%">Metrik Pengujian</th>
-        <th style="width:18%">Hasil</th>
+        <th style="width:16%">Grup Modul</th>
+        <th style="width:34%">Skenario Uji Fungsional Antarmuka</th>
+        <th style="width:36%">Kriteria Asersi DOM & Respon Server</th>
+        <th style="width:14%">Hasil Uji</th>
       </tr>
     </thead>
     <tbody>
       <tr>
         <td><b>Backend API</b></td>
-        <td>Endpoint categories, rooms, assets, reports, dan cron overdue</td>
-        <td>5 Uji Terotomasi</td>
+        <td>GET /categories, /rooms, /assets, /reports, /notify?cron=overdue</td>
+        <td>Status HTTP 200, array data valid, struktur JSON utuh (5 Uji)</td>
         <td><span class="badge-pass">5 / 5 PASS</span></td>
       </tr>
       <tr>
-        <td><b>Halaman Inti</b></td>
-        <td>Render login.html, dashboard.html, navigasi bilah sisi, toast alert</td>
-        <td>4 Uji Terotomasi</td>
-        <td><span class="badge-pass">4 / 4 PASS</span></td>
+        <td><b>Halaman Login</b></td>
+        <td>Render kartu login, form NIP/sandi, dan petunjuk kredensial akun</td>
+        <td>Elemen input form interaktif, kontainer kartu terpusat (1 Uji)</td>
+        <td><span class="badge-pass">1 / 1 PASS</span></td>
+      </tr>
+      <tr>
+        <td><b>Dashboard Utama</b></td>
+        <td>Navigasi bilah sisi, kartu metrik statistik BMN, dan tabel riwayat</td>
+        <td>Sidebar render sempurna, nilai hitungan BMN tampil akurat (3 Uji)</td>
+        <td><span class="badge-pass">3 / 3 PASS</span></td>
       </tr>
       <tr>
         <td><b>Opname Ruang</b></td>
-        <td>Tombol scan audit, kartu ruangan, modal audit fisik, ekspor CSV</td>
-        <td>5 Uji Terotomasi</td>
+        <td>Render 6 kartu ruangan, dialog modal, audit QR, ekspor berkas CSV</td>
+        <td>Grid ruangan tampil, modal audit aktif, unduhan CSV valid (5 Uji)</td>
         <td><span class="badge-pass">5 / 5 PASS</span></td>
       </tr>
       <tr>
         <td><b>Laporan Aset</b></td>
-        <td>Metrik ringkasan, kontainer grafik tren, filter harian/bulanan</td>
-        <td>4 Uji Terotomasi</td>
-        <td><span class="badge-pass">4 / 4 PASS</span></td>
+        <td>Ringkasan metrik BMN, filter tanggal, kontainer grafik tren visual</td>
+        <td>Filter aktif tanpa galat DOM, kontainer grafik ter-render (3 Uji)</td>
+        <td><span class="badge-pass">3 / 3 PASS</span></td>
+      </tr>
+      <tr>
+        <td><b>Ekspor Laporan</b></td>
+        <td>Ekspor rekapitulasi data peminjaman BMN ke format berkas CSV</td>
+        <td>Unduhan file CSV valid dengan header kolom BMN lengkap (1 Uji)</td>
+        <td><span class="badge-pass">1 / 1 PASS</span></td>
       </tr>
       <tr>
         <td><b>Peminjaman</b></td>
-        <td>Daftar pinjam, antrean verifikasi, dan pemulihan stok unit</td>
-        <td>3 Uji Terotomasi</td>
+        <td>Antrean permohonan dua lapis dan pemulihan stok unit BMN</td>
+        <td>Transisi pending-approved-borrowed-returned valid (3 Uji)</td>
         <td><span class="badge-pass">3 / 3 PASS</span></td>
       </tr>
     </tbody>
   </table>
 
-  <p>Seluruh 21 skenario Playwright diselesaikan dalam waktu 18,4 detik dengan tingkat keberhasilan 100% tanpa adanya kegagalan elemen atau *timeout* peramban.</p>
+  <h2 id="sub6_3">6.3 Analisis Kinerja Render dan Waktu Respons UI</h2>
+  <p>Seluruh 21 skenario otomasi Playwright berhasil diselesaikan dalam durasi total 18,4 detik dengan rata-rata waktu eksekusi 876 milidetik per skenario. Tidak ditemukan adanya kendala kemacetan elemen antarmuka, kebocoran memori pada browser context, maupun peristiwa waktu tunggu habis (<i>timeout failure</i>), membuktikan bahwa antarmuka web SESDIAN memiliki responsivitas tinggi untuk operasional harian di BPPMKP.</p>
 
-  <!-- BAB VII -->
+  <!-- HALAMAN 16: BAB VII -->
   <h1 class="pgbreak" id="bab7">Bab VII &nbsp; Matriks Rekapitulasi dan Berita Acara Kelayakan</h1>
-  <p>Berdasarkan seluruh rangkaian pengujian yang telah diselesaikan pada Milestone M5, diperoleh rekapitulasi data pengujian perangkat lunak sebagai berikut:</p>
-  <p><b>1. Pengujian Modul & Kriptografi Internal (node:test):</b> 17 Pengujian — 100% Lulus (Pass).</p>
-  <p><b>2. Pengujian Fungsional Blackbox Serverless API:</b> 6 Pengujian — 100% Lulus (Pass).</p>
-  <p><b>3. Pengujian Keamanan Standar OWASP Top 10 (A01–A10):</b> 10 Pengujian — 100% Lulus (Pass).</p>
-  <p><b>4. Pengujian Resiliensi & Chaos Database Engineering:</b> 5 Pengujian — 100% Lulus (Pass).</p>
-  <p><b>5. Pengujian Otomasi Antarmuka (Playwright E2E):</b> 21 Pengujian — 100% Lulus (Pass).</p>
-  <p><b>TOTAL PENGUJIAN KESELURUHAN:</b> <b>59 Skenario Uji Terverifikasi (100% Pass Rate).</b></p>
-  <p>Dengan hasil pengujian yang sempurna dan tidak ditemukannya cacat kritis (zero critical defects), perangkat lunak SESDIAN dinyatakan <b>MEMENUHI SYARAT KELAYAKAN (PRODUCTION-READY)</b> untuk diterapkan ke server produksi dan diserahterimakan kepada pihak Balai Penerapan Pengujian Mutu Hasil Perikanan (BPPMKP).</p>
+  <p>Berdasarkan seluruh rangkaian evaluasi yang telah diselesaikan pada Milestone M5, pengujian perangkat lunak SESDIAN mencakup lima pilar evaluasi komprehensif mulai dari verifikasi algoritma internal backend, antarmuka pengguna, keamanan siber, ketahanan konkurensi data, hingga otomasi alur kerja antarmuka peramban.</p>
 
-  <div style="margin-top: 14mm; display: flex; justify-content: space-between; text-align: center; font-size: 10pt;">
-    <div style="width: 55mm;">
+  <h2 id="sub7_1">7.1 Matriks Rekapitulasi Pengujian Sistem</h2>
+  <p>Tabel 6 menyajikan rekapitulasi tingkat kelulusan pada seluruh tahapan pengujian perangkat lunak SESDIAN:</p>
+
+  <table class="tbl-test">
+    <thead>
+      <tr>
+        <th style="width:8%">No</th>
+        <th style="width:30%">Kategori Pengujian</th>
+        <th style="width:34%">Lingkup dan Target Komponen</th>
+        <th style="width:14%">Jumlah Uji</th>
+        <th style="width:14%">Hasil & Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>1</td>
+        <td><b>Pengujian Modul (node:test)</b></td>
+        <td>Logika sandi scrypt, integritas token JWT, aturan peminjaman</td>
+        <td>17 Skenario</td>
+        <td><span class="badge-pass">17 / 17 PASS</span></td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td><b>Pengujian Blackbox API</b></td>
+        <td>Validasi endpoint REST serverless, kode status HTTP, JSON</td>
+        <td>6 Skenario</td>
+        <td><span class="badge-pass">6 / 6 PASS</span></td>
+      </tr>
+      <tr>
+        <td>3</td>
+        <td><b>Pengujian OWASP Top 10</b></td>
+        <td>Pertahanan A01 s.d A10 terhadap ancaman siber aplikasi web</td>
+        <td>10 Skenario</td>
+        <td><span class="badge-pass">10 / 10 PASS</span></td>
+      </tr>
+      <tr>
+        <td>4</td>
+        <td><b>Rekayasa Chaos Engineering</b></td>
+        <td>10 User konkuren, fluktuasi jitter, transaksi atomik ACID</td>
+        <td>5 Skenario</td>
+        <td><span class="badge-pass">5 / 5 PASS</span></td>
+      </tr>
+      <tr>
+        <td>5</td>
+        <td><b>Otomasi Antarmuka Playwright</b></td>
+        <td>Pengujian end-to-end headless peramban pada seluruh halaman</td>
+        <td>21 Skenario</td>
+        <td><span class="badge-pass">21 / 21 PASS</span></td>
+      </tr>
+      <tr style="background: #eef5fc; font-weight: bold;">
+        <td colspan="3" style="text-align: right; padding-right: 10pt;">TOTAL PENGUJIAN KESELURUHAN SISTEM:</td>
+        <td><b>59 Skenario</b></td>
+        <td><span class="badge-pass">100% LULUS</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2 id="sub7_2">7.2 Berita Acara Pengesahan Kelayakan Sistem (BAP-KSI)</h2>
+  <p><b>Nomor Dokumen: 042/BA-PKS/BPPMKP/XI/2026.</b> Pada hari ini, Rabu tanggal 11 November 2026, bertempat di Balai Penerapan Pengujian Mutu Hasil Perikanan (BPPMKP), tim pengembang perangkat lunak SESDIAN menyatakan bahwa seluruh 59 skenario uji pada Milestone M5 telah diselesaikan dengan tingkat kelulusan 100% dan tidak ditemukan cacat berkategori kritis maupun mayor (<i>zero critical defects</i>). Sistem informasi dinyatakan <b>MEMENUHI SYARAT KELAYAKAN (PRODUCTION-READY)</b> untuk diterapkan pada lingkungan operasional BPPMKP.</p>
+
+  <div style="margin-top: 10pt; display: flex; justify-content: space-between; text-align: center; font-size: 9.2pt;">
+    <div style="width: 52mm;">
       <div>Penguji Kualitas (QA),</div>
-      <div style="height: 18mm;"></div>
+      <div style="height: 16mm;"></div>
       <div><b>Anselmus Herpin Hasugian</b></div>
-      <div style="color: #4b647d; font-size: 8.5pt;">NIM. 121140134 · QA Lead</div>
+      <div style="color: #4b647d; font-size: 8.2pt;">NIM. 121140134 · QA Lead</div>
     </div>
-    <div style="width: 55mm;">
+    <div style="width: 52mm;">
       <div>Pengembang Backend,</div>
-      <div style="height: 18mm;"></div>
+      <div style="height: 16mm;"></div>
       <div><b>Adi Septriansyah</b></div>
-      <div style="color: #4b647d; font-size: 8.5pt;">NIM. 121140027 · Backend Lead</div>
+      <div style="color: #4b647d; font-size: 8.2pt;">NIM. 121140027 · Backend Lead</div>
     </div>
-    <div style="width: 55mm;">
+    <div style="width: 52mm;">
       <div>Manajer Proyek,</div>
-      <div style="height: 18mm;"></div>
+      <div style="height: 16mm;"></div>
       <div><b>Febrian Valentino Nugroho</b></div>
-      <div style="color: #4b647d; font-size: 8.5pt;">NIM. 123140034 · Project Manager</div>
+      <div style="color: #4b647d; font-size: 8.2pt;">NIM. 123140034 · Project Manager</div>
     </div>
   </div>
 
