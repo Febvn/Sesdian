@@ -89,9 +89,12 @@
   .box-chaos {
     background: #f7fafc; border: 1px solid #c7d8ea;
     border-left: 3.5pt solid var(--blue); border-radius: 4px;
-    padding: 6pt 9pt; margin: 6pt 0 8pt; font-size: 9.5pt; line-height: 1.42;
+    padding: 6pt 10pt; margin: 6pt 0 8pt; font-size: 9.5pt; line-height: 1.42;
   }
   .box-chaos b { color: var(--navy); }
+  .box-chaos .box-head { font-weight: bold; font-size: 10pt; color: var(--navy); margin-bottom: 2.5pt; display: block; }
+  .box-chaos ul { margin: 2.5pt 0 2pt 14pt; padding: 0; }
+  .box-chaos li { margin-bottom: 2pt; line-height: 1.38; text-align: justify; }
   .box-code {
     font-family: "Consolas", "Courier New", monospace;
     font-size: 8.5pt; background: #192535; color: #e2e8f0;
@@ -296,37 +299,124 @@
   <h1 class="pgbreak" id="bab5">Bab V &nbsp; Chaos Engineering dan Uji Konkurensi Basis Data</h1>
   
   <h2>5.1 Konsep dan Urgensi Chaos Engineering</h2>
-  <p>Dalam tata kelola Barang Milik Negara (BMN), tantangan terbesar integritas sistem informasi terletak pada pengelolaan persediaan fisik yang terbatas, seperti proyektor, kamera inspeksi, atau drone lapangan yang hanya tersisa 1 unit di gudang. Pada sistem inventaris konvensional yang tidak menerapkan kontrol konkurensi ketat, timbul risiko kondisi pacu (<i>race condition</i>). Apabila dua atau lebih pegawai menekan tombol pinjam pada milidetik yang sama, kueri pembacaan konvensional (<code>SELECT stock_available</code>) mendeteksi bahwa barang masih ada, lalu masing-masing transaksi secara terpisah mengeksekusi pemotongan stok (<code>UPDATE</code>). Hal ini memicu fenomena stok minus (-1, -2), yang secara fisik mustahil dipenuhi dan mencederai akuntabilitas instansi.</p>
-  <p>Untuk memastikan keandalan mutlak dalam kondisi ekstrem, tim pengembang menerapkan metodologi <i>Chaos Engineering</i> melalui berkas <code>tests/chaos-database.test.mjs</code>. Pendekatan ini secara sengaja menyuntikkan kegagalan terprogram (<i>fault injection</i>), lonjakan lalu lintas paralel serempak (<i>burst concurrent traffic</i>), anomali latensi jaringan, dan integritas data korup ke dalam komponen inti sistem guna membuktikan bahwa basis data tetap berstatus stabil dan taat asas atomisitas (ACID).</p>
+  <p>Dalam tata kelola Barang Milik Negara (BMN) pada instansi pemerintah seperti Balai Karantina Hewan, Ikan, dan Tumbuhan Lampung, integritas sistem informasi diuji saat mengelola persediaan barang bernilai tinggi yang jumlah fisiknya sangat terbatas. Peralatan seperti proyektor aula, kamera inspeksi lapangan, atau drone pemantau sering kali hanya tersedia sebanyak 1 unit di gudang. Pada sistem inventaris konvensional yang tidak menerapkan kendali konkurensi ketat, kondisi ini sangat rawan menimbulkan kondisi pacu (<i>race condition</i>). Apabila dua atau lebih staf mengajukan peminjaman pada milidetik yang sama, kueri pembacaan konvensional (<code>SELECT stock_available</code>) dapat mendeteksi bahwa barang masih ada, lalu masing-masing transaksi secara terpisah mengeksekusi pemotongan stok (<code>UPDATE</code>). Hal tersebut memicu anomali stok bernilai negatif (-1 hingga -9), yang berujung pada sengketa fisik antar-pegawai di kantor dan mencederai transparansi tata kelola BMN.</p>
+  <p>Untuk memastikan keandalan mutlak dalam kondisi operasional paling kritis, tim pengembang menerapkan metodologi <i>Chaos Engineering</i> melalui berkas <code>tests/chaos-database.test.mjs</code>. Pendekatan ini secara sengaja menyuntikkan kegagalan terencana (<i>fault injection</i>), lonjakan lalu lintas paralel serentak (<i>burst concurrent traffic</i>), variasi keterlambatan jaringan acak (<i>jitter</i>), serta data korup ke dalam komponen inti sistem guna membuktikan bahwa basis data tetap stabil, konsisten, dan memenuhi kaidah atomisitas (ACID).</p>
+
+  <div class="box-chaos">
+    <span class="box-head">Kotak Penjelasan: Chaos Engineering</span>
+    <ul>
+      <li><b>What (Apa):</b> Metode pengujian keandalan perangkat lunak dengan sengaja menyuntikkan gangguan buatan (beban ekstrem, internet lambat, dan data rusak) ke dalam sistem.</li>
+      <li><b>Why (Mengapa):</b> Membuktikan bahwa aplikasi tidak akan mogok, mati mendadak, atau menghasilkan data cacat saat menghadapi situasi darurat di dunia nyata.</li>
+      <li><b>Who (Siapa):</b> Dikonsepkan dan diuji oleh tim insinyur backend (Adi Septriansyah) untuk melindungi data seluruh pegawai instansi.</li>
+      <li><b>Where (Di mana):</b> Dijalankan pada lapisan serverless backend dan basis data relasional Neon PostgreSQL.</li>
+      <li><b>When (Kapan):</b> Dilakukan pada pengujian tahap akhir (Milestone M5) sebelum sistem resmi diserahterimakan kepada pihak kantor.</li>
+      <li><b>How (Bagaimana):</b> Menggunakan skrip pengujian otomatis yang mengirim 10 permohonan bersamaan dalam satu milidetik dengan latensi acak dan manipulasi data.</li>
+    </ul>
+  </div>
 
   <h2>5.2 Cara dan Arsitektur Pengujian (Test Setup & Tools)</h2>
-  <p>Pengujian Chaos Engineering pada SESDIAN dibangun menggunakan perkakas pengujian bawaan <code>node:test</code> serta modul asersi ketat <code>node:assert/strict</code> tanpa ketergantungan pustaka luar yang berat. Arsitektur lingkungan uji dirancang dengan parameter operasional sebagai berikut:</p>
-  <div class="box-chaos">
-    <b>1. Injeksi Jitter Jaringan Acak (Chaos Latency Injection):</b> Setiap permintaan peminjaman disuntikkan fungsi jeda asinkron acak antara 5 ms hingga 25 ms (<code>setTimeout(r, Math.floor(Math.random() * 20) + 5)</code>). Hal ini merefleksikan kondisi nyata fluktuasi latensi koneksi seluler dan jaringan lokal kantor saat banyak staf mengakses sistem secara bersamaan.<br/>
-    <b>2. Pemicu Konkurensi Serentak (Parallel Burst Harness):</b> Memanfaatkan konstruksi <code>Promise.all</code> untuk melepas 10 permintaan peminjaman dari 10 pengguna berbeda (User ID 200 s.d. 209) yang tiba di lapisan pemrosesan pada milidetik yang sama.<br/>
-    <b>3. Model Eksekusi Transaksi Atomik Bersyarat:</b> Menguji ketahanan klausa SQL atomik SESDIAN yang memadukan pengecekan syarat stok dan pemotongan dalam satu siklus kunci baris (row-level lock):
-  </div>
+  <p>Pengujian Chaos Engineering pada SESDIAN dirancang dengan arsitektur mandiri memanfaatkan perkakas pengujian resmi <code>node:test</code> serta modul asersi ketat <code>node:assert/strict</code> tanpa memerlukan ketergantungan pihak ketiga yang berat. Pengujian menyimulasikan model transaksi atomik yang menggabungkan verifikasi ketersediaan dan pemotongan stok ke dalam satu operasi tunggal:</p>
   <div class="box-code">UPDATE assets 
 SET stock_available = stock_available - 1, stock_borrowed = stock_borrowed + 1 
 WHERE id = $1 AND stock_available >= 1 
 RETURNING id;</div>
 
-  <h2>5.3 Proses dan Tahapan Pengujian secara Rinci</h2>
-  <p>Proses pengujian dilakukan melalui empat tahapan terstruktur yang dapat diaudit secara transparan:</p>
-  <p><b>Tahap 1: Pengondisian Awal Lingkungan (Pre-Condition Setup).</b> Objek aset uji (ID 101, Proyektor Epson EB-X400) diinisialisasi dalam kondisi persediaan kritis: <code>stock_available = 1</code> dan <code>stock_borrowed = 0</code>. Tidak ada permohonan lain yang sedang aktif pada aset tersebut.</p>
-  <p><b>Tahap 2: Pembangkitan Beban Konkuren (Traffic Dispatch).</b> Sistem membangkitkan 10 instans pemanggil fungsi <code>simulateAtomicBorrow(requestId, userId)</code>. Kesepuluh permintaan dilepas serentak menggunakan <code>Promise.all</code> sehingga seluruh *promise* berjalan secara paralel dan saling berebut sumber daya.</p>
-  <p><b>Tahap 3: Eksekusi Bersaing & Evaluasi Kunci Atomik (Locking & Execution).</b> Setiap permintaan mengalami penundaan acak (jitter). Permintaan pertama yang menyelesaikan fase jitter dan mengeksekusi operasi basis data mendapati kondisi <code>stock_available >= 1</code> terpenuhi. Transaksi pertama ini mengunci baris, memotong stok tersedia menjadi 0, menambah stok terpinjam menjadi 1, dan mengembalikan status sukses. Sembilan permintaan berikutnya yang tiba beberapa milidetik setelahnya mendapati <code>stock_available = 0</code>. Karena syarat klausa <code>WHERE stock_available >= 1</code> tidak lagi terpenuhi, sistem secara otomatis menolak 9 transaksi tersebut dengan pesan galat transaksional "Stok tidak mencukupi".</p>
-  <p><b>Tahap 4: Verifikasi Asersi dan Integritas Status Akhir (Post-Condition Assertion).</b> Modul uji memverifikasi empat kondisi mutlak: tepat 1 transaksi berstatus sukses (<code>assert.equal(successful.length, 1)</code>), tepat 9 transaksi ditolak secara terkontrol (<code>assert.equal(rejected.length, 9)</code>), sisa stok tersedia persis bernilai 0 (<code>assert.equal(dbState.stock_available, 0)</code>), dan stok terpinjam bernilai 1 (<code>assert.equal(dbState.stock_borrowed, 1)</code>). Sistem membuktikan nol persen toleransi terhadap stok minus.</p>
+  <div class="box-chaos">
+    <span class="box-head">Kotak Penjelasan: Jitter (Fluktuasi Latensi Jaringan)</span>
+    <ul>
+      <li><b>What (Apa):</b> Variasi keterlambatan waktu transmisi paket data jaringan internet yang terjadi secara acak.</li>
+      <li><b>Why (Mengapa):</b> Kecepatan koneksi internet pegawai kantor di lapangan bervariasi; ada yang menerima respons cepat (5 ms) dan ada yang lambat (25 ms) tergantung sinyal Wi-Fi.</li>
+      <li><b>Who (Siapa):</b> Memengaruhi seluruh perangkat ponsel pintar dan komputer jinjing milik pegawai kantor saat mengakses sistem.</li>
+      <li><b>Where (Di mana):</b> Terjadi di jalur komunikasi jaringan antara peramban web pengguna dan server basis data di awan.</li>
+      <li><b>When (Kapan):</b> Muncul setiap kali pengguna menekan tombol pada antarmuka web saat lalu lintas kantor sedang padat.</li>
+      <li><b>How (Bagaimana):</b> Skrip pengujian memasang penundaan acak <code>setTimeout(r, Math.floor(Math.random() * 20) + 5)</code> sebelum transaksi dieksekusi agar simulasi mencerminkan kenyataan.</li>
+    </ul>
+  </div>
+
+  <h2>5.3 Proses dan Tahapan Pengujian secara Rinci (Naratif 5W + 1H)</h2>
+  <p>Proses pengujian perebutan barang kritis dijalankan melalui empat tahapan terstruktur yang dijabarkan secara lengkap dengan prinsip 5W + 1H:</p>
+
+  <p><b>Tahap 1: Pengondisian Awal Lingkungan (Pre-Condition Setup).</b> Pada tahap pertama, pengembang backend (<b>Adi Septriansyah / Who</b>) mengisolasi data inventaris pada tabel aset (<b>Where</b>) tepat sebelum simulasi perebutan dimulai pada sesi pengujian sistem (<b>When</b>). Objek uji yang dikondisikan adalah satu unit fisik Proyektor Epson EB-X400 dengan nomor identitas registrasi ID 101 (<b>What</b>). Persediaan proyektor tersebut sengaja diatur pada kondisi persediaan paling rawan di gudang, yaitu sisa barang tersedia persis satu unit (<code>stock_available = 1</code>) dan barang terpinjam bernilai nol (<code>stock_borrowed = 0</code>), serta dipastikan tidak ada permohonan lain yang berstatus aktif. Langkah awal ini mutlak dilakukan (<b>Why</b>) untuk menyimulasikan skenario batas kritis (<i>boundary edge-case</i>): jika logika konkurensi sistem cacat, proyektor berharga mahal yang hanya ada satu unit ini dapat disetujui untuk banyak orang sekaligus, memicu stok bernilai negatif (-1 hingga -9) dan memicu sengketa fisik antar-pegawai di gudang. Penguji mengunci nilai parameter awal ini di memori komputer sebelum beban lalu lintas dilepaskan (<b>How</b>).</p>
+
+  <div class="box-chaos">
+    <span class="box-head">Kotak Penjelasan: Kondisi Batas Ekstrem (Boundary Edge-Case)</span>
+    <ul>
+      <li><b>What (Apa):</b> Pengujian pada parameter nilai ambang batas terkecil (stok persis 1 unit) di mana kemungkinan galat sistem paling besar terjadi.</li>
+      <li><b>Why (Mengapa):</b> Menjamin sistem tidak salah hitung saat stok berada di ambang habis.</li>
+      <li><b>Who (Siapa):</b> Dikonfigurasi oleh pengembang untuk mengantisipasi aksi peminjaman oleh staf kantor.</li>
+      <li><b>Where (Di mana):</b> Diterapkan pada baris rekaman aset ID 101 di tabel basis data inventaris.</li>
+      <li><b>When (Kapan):</b> Ditetapkan sebelum permohonan pertama dikirimkan.</li>
+      <li><b>How (Bagaimana):</b> Mengeset nilai awal secara manual dan memastikan isolasi transaksi dari gangguan data lain.</li>
+    </ul>
+  </div>
+
+  <p><b>Tahap 2: Pembangkitan Beban Konkuren dan Injeksi Jitter (Traffic Generation & Jitter).</b> Memasuki tahap kedua, sebanyak sepuluh akun pegawai kantor fiktif dari berbagai divisi kerja (User ID 200 hingga 209 / <b>Who</b>) disimulasikan mengirimkan formulir peminjaman atas unit proyektor yang sama (<b>What</b>). Seluruh permohonan ditembakkan tepat pada milidetik yang sama persis tanpa jeda waktu buatan manusia (<b>When</b>) dari antarmuka web masing-masing pengguna menuju pintu gerbang API peminjaman SESDIAN (<b>Where</b>). Skenario ini disusun (<b>Why</b>) untuk meniru kondisi kepanikan riil kantor, misalnya saat rapat koordinasi penting diumumkan mendadak dan seluruh staf divisi serentak berebut meminjam proyektor utama aula. Pengujian mengeksekusi kesepuluh fungsi peminjaman secara paralel memanfaatkan konstruksi <code>Promise.all</code> yang dipadukan dengan jeda acak latensi jaringan <i>jitter</i> 5–25 ms (<b>How</b>), sehingga paket data tiba di server dengan selisih waktu sangat tipis menyerupai fluktuasi koneksi internet nyata di lapangan.</p>
+
+  <p><b>Tahap 3: Eksekusi Bersaing & Kunci Transaksional Atomik (Locking & Execution).</b> Pada tahap ketiga, mesin basis data relasional PostgreSQL (<b>Who</b>) menerima serbuan sepuluh transaksi paralel yang tiba saling mendahului dalam rentang waktu di bawah 30 milidetik (<b>When</b>) pada memori pemrosesan transaksi server (<b>Where</b>). Kesepuluh transaksi tersebut saling berebut hak ubah atas satu baris data inventaris yang sama dengan mengeksekusi operasi pemotongan stok bersyarat (<b>What</b>). Mekanisme ini diuji (<b>Why</b>) untuk membuktikan bahwa lapisan basis data mampu menghentikan kondisi pacu (<i>race condition</i>), menolak pembacaan kotor (<i>dirty read</i>), dan menjamin keutuhan data fisik tanpa terjadi kebocoran persediaan. Proses berlangsung secara atomik (<b>How</b>): permohonan pertama yang tiba tercepat di server berhasil memenuhi syarat klausa <code>WHERE stock_available >= 1</code>. Sistem seketika mengunci baris data (<i>row lock</i>), memotong stok tersedia dari 1 menjadi 0, menaikkan stok terpinjam menjadi 1, dan menerbitkan izin pinjam sah. Sementara itu, sembilan permohonan lainnya yang tiba beberapa milidetik kemudian mendapati stok tersedia sudah bernilai 0. Karena syarat kueri tidak lagi terpenuhi, transaksi secara otomatis membatalkan eksekusi pemotongan bagi sembilan pengguna tersebut dan server mengembalikan pesan penolakan anggun: <i>'Stok tidak mencukupi'</i> tanpa memicu kemacetan basis data (<i>deadlock</i>).</p>
+
+  <div class="box-chaos">
+    <span class="box-head">Kotak Penjelasan: Transaksi Atomik (Atomic Transaction)</span>
+    <ul>
+      <li><b>What (Apa):</b> Prinsip komputasi di mana rangkaian proses dieksekusi secara tak terpisahkan: harus berhasil sepenuhnya atau dibatalkan sama sekali (semua atau tidak sama sekali).</li>
+      <li><b>Why (Mengapa):</b> Mencegah kondisi setengah jalan, misalnya stok barang terlanjur berkurang tetapi data peminjam gagal tercatat di sistem.</li>
+      <li><b>Who (Siapa):</b> Dijalankan secara otomatis oleh pengendali basis data relasional PostgreSQL.</li>
+      <li><b>Where (Di mana):</b> Berjalan di dalam memori kueri basis data pada tabel transaksi peminjaman.</li>
+      <li><b>When (Kapan):</b> Aktif seketika saat kueri <code>UPDATE ... WHERE stock_available >= 1</code> dieksekusi.</li>
+      <li><b>How (Bagaimana):</b> Menggunakan kunci tingkat baris (*row-level lock*) sehingga transaksi lain wajib menunggu giliran verifikasi kondisi stok secara berurutan.</li>
+    </ul>
+  </div>
+
+  <p><b>Tahap 4: Verifikasi Asersi dan Status Akhir (Post-Condition Assertion).</b> Pada tahap keempat, modul auditor pengujian otomatis <code>node:assert/strict</code> (<b>Who</b>) menginspeksi seluruh rekaman data pada memori server (<b>Where</b>) seketika setelah seluruh proses persaingan selesai (<b>When</b>). Penguji mengaudit empat metrik integritas krusial (<b>What</b>): jumlah permohonan yang berhasil disetujui, jumlah permohonan yang ditolak, angka sisa stok tersedia di gudang, dan angka stok terpinjam. Langkah asersi ini mutlak dilakukan (<b>Why</b>) guna memperoleh kepastian matematis bahwa sistem bebas dari cacat alokasi ganda (*double allocation*) dan tidak menyisakan kondisi stok minus yang merugikan pembukuan aset negara. Penguji memvalidasi data menggunakan logika asersi ketat (<b>How</b>): sistem memverifikasi bahwa tepat satu permohonan berstatus sukses (<code>successful.length === 1</code>), tepat sembilan permohonan tertolak secara terkendali (<code>rejected.length === 9</code>), stok tersedia di database berhenti tepat pada angka nol (<code>stock_available === 0</code>), dan stok barang terpinjam bertambah persis satu unit (<code>stock_borrowed === 1</code>). Apabila terdapat selisih satu angka saja, seluruh skrip pengujian otomatis digagalkan seketika (FAILED).</p>
 
   <h2>5.4 Skenario Pengujian Ketahanan Anomali dan Serangan</h2>
-  <p>Selain persaingan konkurensi stok, Bab V mencakup empat skenario simulasi kekacauan dan serangan terarah lainnya:</p>
-  <p><b>1. Simulasi Serangan Otorisasi Sendiri (Anti-Self-Approval Attack).</b> Skenario di mana seorang staf pemegang akun Administrator atau Verifikator mencoba menyalahgunakan hak istimewanya untuk menyetujui permohonan pinjam barang miliknya sendiri (<code>isOwner = true</code>). Pengujian memverifikasi tiga titik gerbang: persetujuan awal (<code>pending</code> &rarr; <code>approved</code>), verifikasi serah terima fisik (<code>approved</code> &rarr; <code>borrowed</code>), dan konfirmasi pengembalian (<code>borrowed</code> &rarr; <code>returned</code>). Ketiga titik tersebut sukses memblokir aksi dan memunculkan galat larangan resmi.</p>
-  <p><b>2. Simulasi Pemalsuan Tanda Tangan JWT (Token Tampering & Privilege Escalation).</b> Token sah milik pengguna biasa berformat <code>header.payload.signature</code> didekonstruksi. Bagian payload didekode dari Base64URL, nilai atribut peran diubah secara ilegal menjadi <code>admin</code>, dienkode ulang, dan digabungkan kembali dengan tanda tangan HMAC asli. Pengujian memverifikasi bahwa modul otentikasi menggagalkan verifikasi tanda tangan dan mengembalikan nilai <code>null</code>.</p>
-  <p><b>3. Injeksi Hash Kriptografi Rusak (Fail-Closed Password Resilience).</b> Menguji resiliensi fungsi verifikasi sandi terhadap 7 variasi data korup di basis data (string kosong, null, undefined, format tanpa pembatas salt, heksadesimal ganjil, dan karakter di luar rentang hex). Hasil pengujian membuktikan fungsi mengembalikan <code>false</code> secara aman (<i>fail-closed</i>) tanpa memicu <i>unhandled exception</i> maupun keruntuhan proses serverless.</p>
-  <p><b>4. Injeksi Kueri SQL Berbahaya (SQL Injection Sanitization).</b> Menguji injeksi muatan berbahaya seperti <code>' OR '1'='1</code> dan <code>'; DROP TABLE assets; --</code> pada fungsi pencarian dan pembacaan kode QR. Penggunaan parameterisasi bertanda (<i>tagged template literals</i>) pada Neon Postgres terbukti mengisolasi seluruh masukan sebagai nilai literal murni tanpa dieksekusi sebagai perintah basis data.</p>
+  <p>Selain pengujian persaingan stok, Bab V mencakup empat skenario simulasi serangan dan anomali data lainnya yang dijabarkan secara terperinci:</p>
+
+  <p><b>1. Simulasi Serangan Otorisasi Sendiri (Anti-Self-Approval Attack).</b> Skenario di mana staf kantor pemegang peran istimewa (Admin BMN atau Verifikator / <b>Who</b>) mencoba memanfaatkan akun khususnya untuk menyetujui atau memverifikasi permohonan pinjam aset miliknya sendiri (<b>What</b>). Tindakan ini dicoba pada saat staf membutuhkan barang dinas tanpa melalui pemeriksaan rekan kerja (<b>When</b>) melalui formulir persetujuan dan pemindaian QR di antarmuka sistem (<b>Where</b>). Pengujian ini dirancang (<b>Why</b>) untuk menutup celah korupsi, kolusi, atau penyalahgunaan wewenang internal agar seluruh pengeluaran aset BMN wajib melalui persetujuan pihak kedua (<i>four-eyes principle</i>). Sistem mendeteksi identitas pemohon: jika nilai parameter <code>isOwner = true</code>, sistem secara otomatis menolak aksi pada tiga gerbang (persetujuan awal, serah terima, dan pengembalian) dan memunculkan galat larangan resmi (<b>How</b>).</p>
+
+  <div class="box-chaos">
+    <span class="box-head">Kotak Penjelasan: Anti-Self-Approval (Pencegahan Persetujuan Mandiri)</span>
+    <ul>
+      <li><b>What (Apa):</b> Pembatasan keamanan birokrasi digital yang melarang staf menyetujui berkas permohonan yang ia buat sendiri.</li>
+      <li><b>Why (Mengapa):</b> Menjamin akuntabilitas audit dan mencegah pengeluaran aset kantor tanpa pengawasan orang lain.</li>
+      <li><b>Who (Siapa):</b> Mengikat seluruh pengguna yang memiliki hak Administrator dan Verifikator.</li>
+      <li><b>Where (Di mana):</b> Ditanamkan pada fungsi transisi status peminjaman di file <code>api/borrowings.js</code>.</li>
+      <li><b>When (Kapan):</b> Dijalankan setiap kali ada percobaan perubahan status peminjaman.</li>
+      <li><b>How (Bagaimana):</b> Membandingkan ID pemohon dengan ID pengguna yang sedang masuk; jika identik, izin otomatis dibatalkan.</li>
+    </ul>
+  </div>
+
+  <p><b>2. Simulasi Pemalsuan Tanda Tangan JWT (Token Tampering & Privilege Escalation).</b> Skenario di mana pengguna biasa (staf biasa / <b>Who</b>) mencoba merekayasa tiket login digital miliknya agar memperoleh hak wewenang setingkat Administrator (<b>What</b>). Aksi ini disimulasikan saat pengguna ingin membuka data rahasia seluruh aset atau mengubah status inventaris secara ilegal (<b>When</b>) dengan membongkar memori peramban klien menuju gerbang otorisasi backend (<b>Where</b>). Pengujian bertujuan (<b>Why</b>) membuktikan bahwa sistem SESDIAN kebal terhadap upaya manipulasi tiket digital tanpa kunci rahasia server. Penguji memecah format token <code>header.payload.signature</code>, mengubah isi payload dari <code>user</code> menjadi <code>admin</code>, dan mengirimkannya kembali ke server; fungsi <code>verifyToken</code> mendeteksi ketidakcocokan segel kriptografi HMAC-SHA256 dan seketika membatalkan akses dengan mengembalikan nilai kosong <code>null</code> (<b>How</b>).</p>
+
+  <div class="box-chaos">
+    <span class="box-head">Kotak Penjelasan: JWT & Eskalasi Peran (Privilege Escalation)</span>
+    <ul>
+      <li><b>What (Apa):</b> JWT adalah kartu tanda pengenal digital terenkripsi yang dibawa peramban setelah login. Eskalasi peran adalah upaya mengubah isi kartu tersebut agar menjadi admin.</li>
+      <li><b>Why (Mengapa):</b> Melindungi fungsi-fungsi kritis sistem seperti penghapusan aset dan pencetakan berita acara dari pihak tidak berwenang.</li>
+      <li><b>Who (Siapa):</b> Menangkal aksi peretasan dari pengguna internal maupun pihak luar.</li>
+      <li><b>Where (Di mana):</b> Diperiksa pada modul gerbang otentikasi <code>api/_auth.js</code>.</li>
+      <li><b>When (Kapan):</b> Divalidasi pada setiap pemanggilan rute API yang memerlukan hak khusus.</li>
+      <li><b>How (Bagaimana):</b> Menggunakan tanda tangan kriptografi berkunci rahasia 256-bit; perubahan satu karakter pun akan membatalkan seluruh token.</li>
+    </ul>
+  </div>
+
+  <p><b>3. Injeksi Hash Kriptografi Rusak (Fail-Closed Password Resilience).</b> Skenario ketika basis data mengalami anomali transmisi atau kerusakan berkas sehingga data kata sandi pengguna tersimpan dalam kondisi cacat atau terpotong (<b>What</b>). Situasi ini dialami pengguna saat mencoba login ke aplikasi SESDIAN (<b>When</b>) pada modul verifikasi sandi serverless backend (<b>Where</b>). Pengujian dirancang (<b>Why</b>) untuk memastikan bahwa server tidak mengalami kegagalan fatal (<i>unhandled crash 500</i>) dan tidak membiarkan pintu masuk terbuka akibat kesalahan pembacaan format sandi. Penguji menyuntikkan tujuh variasi teks korup (string kosong, null, format tanpa pemisah salt, heksadesimal cacat) ke dalam fungsi <code>verifyPassword</code>; sistem terbukti tetap beroperasi stabil tanpa mati dan menerapkan asas <i>Fail-Closed</i> dengan mengunci pintu masuk secara aman (<b>How</b>).</p>
+
+  <div class="box-chaos">
+    <span class="box-head">Kotak Penjelasan: Fail-Closed (Kunci Aman Saat Galat)</span>
+    <ul>
+      <li><b>What (Apa):</b> Kebijakan keamanan di mana sistem memilih tindakan paling aman (menutup dan mengunci pintu) saat menghadapi kesalahan tak terduga.</li>
+      <li><b>Why (Mengapa):</b> Mencegah celah keamanan terbuka saat sistem bingung akibat data yang rusak atau tidak terbaca.</li>
+      <li><b>Who (Siapa):</b> Melindungi seluruh data sensitif milik Balai Karantina Lampung.</li>
+      <li><b>Where (Di mana):</b> Diterapkan pada fungsi pencocokan sandi algoritma <i>scrypt</i>.</li>
+      <li><b>When (Kapan):</b> Aktif seketika saat format hash kata sandi yang dibaca dari basis data tidak valid.</li>
+      <li><b>How (Bagaimana):</b> Membungkus fungsi dengan pengaman penangkap galat yang mengembalikan nilai <code>false</code> secara anggun tanpa menghentikan worker.</li>
+    </ul>
+  </div>
+
+  <p><b>4. Injeksi Kueri SQL Berbahaya (SQL Injection Sanitization).</b> Skenario di mana penyerang memasukkan perintah SQL manipulatif seperti <code>'; DROP TABLE assets; --</code> atau tautologi <code>' OR '1'='1</code> (<b>What</b>). Serangan diluncurkan melalui formulir pencarian barang dan kotak input pembacaan kode QR (<b>Where</b>) saat pengguna memasukkan data pencarian (<b>When</b>). Pengujian dilaksanakan (<b>Why</b>) untuk menjamin data inventaris tidak dapat dihapus atau dibocorkan oleh masukan karakter asing berbahaya. Sistem SESDIAN memanfaatkan teknologi *tagged template literals* pada driver Neon Postgres yang secara otomatis memisahkan teks perintah SQL dari nilai parameter input, sehingga seluruh teks berbahaya diperlakukan murni sebagai string pencarian biasa dan tidak dieksekusi sebagai perintah basis data (<b>How</b>).</p>
 
   <h2>5.5 Hasil Pengujian dan Analisis Konsistensi Basis Data</h2>
-  <p>Tabel 3 merangkum seluruh metrik evaluasi hasil pengujian Chaos Engineering dan konkurensi basis data:</p>
+  <p>Tabel 3 merangkum seluruh metrik evaluasi hasil pengujian Chaos Engineering dan ketahanan basis data:</p>
 
   <table class="tbl-test">
     <thead>
@@ -377,7 +467,7 @@ RETURNING id;</div>
     </tbody>
   </table>
 
-  <p>Hasil pengujian di atas membuktikan bahwa arsitektur basis data SESDIAN memiliki tingkat ketahanan tinggi terhadap kondisi tak terduga (<i>fault-tolerant</i>), terbebas dari kebocoran alokasi fisik, dan menjamin kepatuhan audit BMN secara penuh.</p>
+  <p>Melalui pembuktian matematis dan eksekusi skrip otomatis, seluruh skenario Chaos Engineering dinyatakan <b>LULUS (100% PASS RATE)</b>. Basis data SESDIAN terbukti memiliki ketahanan tinggi, terbebas dari kondisi stok minus, dan memiliki kepatuhan audit BMN yang dapat dipertanggungjawabkan secara hukum dan teknis.</p>
 
   <!-- BAB VI -->
   <h1 class="pgbreak" id="bab6">Bab VI &nbsp; Pengujian Otomatis End-to-End Playwright</h1>
