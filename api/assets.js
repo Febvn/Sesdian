@@ -1,7 +1,20 @@
 import { getSql } from './_db.js';
 import { requireAuth, requireAdmin, send, readJson } from './_auth.js';
 import { ensureSchema } from './_schema.js';
-import { logAudit } from './_audit.js';
+
+// Normalise an acquisition-date value to 'YYYY-MM-DD' (or null). Accepts an ISO
+// string, a plain date, or an Excel-style value that starts with the date; any
+// time portion is dropped. Returns null for empty; returns null (invalid) only
+// when a non-empty value can't be parsed as a real calendar date.
+function normDate(v) {
+  if (v == null || v === '') return null;
+  const s = String(v).trim();
+  const m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (m) { const d = new Date(m[0] + 'T00:00:00Z'); return isNaN(d.getTime()) ? null : m[0]; }
+  const d = new Date(s);
+  if (isNaN(d.getTime())) return null;
+  return d.toISOString().slice(0, 10);
+}
 
 export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return send(res, 204, {});
@@ -23,6 +36,7 @@ export default async function handler(req, res) {
                coalesce(a.asset_type,'') as asset_type,
                a.stock_total, a.stock_available, a.stock_borrowed,
                coalesce(a.status,'tersedia') as status,
+               to_char(a.acquisition_date, 'YYYY-MM-DD') as acquisition_date,
                a.category_id, a.room_id, a.image, a.qr_code,
                coalesce(c.name,'') as category, coalesce(r.name,'') as room,
                ai.name_key as jenis_key, extract(epoch from ai.updated_at)::bigint as jenis_ver,
@@ -40,11 +54,11 @@ export default async function handler(req, res) {
 
   // ---- admin write operations ----
   if (req.method === 'POST') {
-    const auth = requireAdmin(req, res); if (!auth) return;
+    if (!requireAdmin(req, res)) return;
     try {
       const b = await readJson(req);
       // bulk import from Excel (parsed client-side): body.rows present -> import path
-      if (Array.isArray(b.rows)) return importAssets(sql, b.rows, res, auth);
+      if (Array.isArray(b.rows)) return importAssets(sql, b.rows, res);
       // one image per jenis: single upsert covers every unit sharing the name
       if (b.jenis_image && b.jenis_image.name) {
         const key = String(b.jenis_image.name).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
@@ -54,34 +68,34 @@ export default async function handler(req, res) {
         if (img.length > 800000) return send(res, 400, { error: 'Gambar terlalu besar (maks ±600KB)' });
         await sql`insert into asset_images (name_key, image, updated_at) values (${key}, ${img}, now())
                   on conflict (name_key) do update set image = ${img}, updated_at = now()`;
-        await logAudit(sql, auth, 'update', 'asset', null, { jenis: b.jenis_image.name, image: true });
         return send(res, 200, { ok: true, key });
       }
       if (!b.code || !b.name) return send(res, 400, { error: 'Kode dan nama aset wajib diisi' });
       const total = Math.max(0, parseInt(b.stock_total || 1, 10));
       const status = (b.status === 'maintenance') ? 'maintenance' : 'tersedia';
+      const acq = normDate(b.acquisition_date);
+      if (b.acquisition_date && acq === null) return send(res, 400, { error: 'Format tanggal perolehan tidak valid (gunakan YYYY-MM-DD)' });
       const rows = await sql`
-        insert into assets (code, name, category_id, brand, room_id, year, condition, type, asset_type, stock_total, stock_available, stock_borrowed, image, status)
+        insert into assets (code, name, category_id, brand, room_id, year, condition, type, asset_type, stock_total, stock_available, stock_borrowed, image, status, acquisition_date)
         values (${b.code}, ${b.name}, ${b.category_id || null}, ${b.brand || null}, ${b.room_id || null},
                 ${b.year ? parseInt(b.year, 10) : null}, ${b.condition || 'Baik'}, ${b.type || 'BMN'},
-                ${b.asset_type || 'Fixed Asset'}, ${total}, ${total}, 0, ${b.image || null}, ${status})
+                ${b.asset_type || 'Fixed Asset'}, ${total}, ${total}, 0, ${b.image || null}, ${status}, ${acq}::date)
         returning id`;
       const newId = rows[0].id;
       // auto-assign a unique QR code so every asset has a scannable detail page
       await sql`update assets set qr_code = ${'QR' + String(newId).padStart(6, '0')}, qr_generated_at = now()
                 where id = ${newId} and qr_code is null`;
-      await logAudit(sql, auth, 'create', 'asset', newId, { code: b.code, name: b.name, stock_total: total });
       return send(res, 200, { id: newId });
     } catch (e) { return send(res, 500, { error: e.message }); }
   }
 
   if (req.method === 'PATCH') {
-    const auth = requireAdmin(req, res); if (!auth) return;
+    if (!requireAdmin(req, res)) return;
     try {
       const b = await readJson(req);
       const id = parseInt(b.id, 10);
       if (!id) return send(res, 400, { error: 'ID tidak valid' });
-      const cur = await sql`select code, name, category_id, brand, room_id, year, condition, type, asset_type, stock_total, stock_borrowed, image, coalesce(status,'tersedia') as status from assets where id = ${id}`;
+      const cur = await sql`select code, name, category_id, brand, room_id, year, condition, type, asset_type, stock_total, stock_borrowed, image, coalesce(status,'tersedia') as status, to_char(acquisition_date,'YYYY-MM-DD') as acquisition_date from assets where id = ${id}`;
       if (!cur.length) return send(res, 404, { error: 'Aset tidak ditemukan' });
       const c = cur[0];
       const has = (k) => Object.prototype.hasOwnProperty.call(b, k);
@@ -103,25 +117,24 @@ export default async function handler(req, res) {
       const avail      = Math.max(0, total - c.stock_borrowed);
       const image      = has('image') && b.image ? String(b.image) : c.image;
       const status     = has('status') ? ((b.status === 'maintenance') ? 'maintenance' : 'tersedia') : c.status;
+      let acqDate = c.acquisition_date;
+      if (has('acquisition_date')) {
+        acqDate = normDate(b.acquisition_date);
+        if (b.acquisition_date && acqDate === null) return send(res, 400, { error: 'Format tanggal perolehan tidak valid (gunakan YYYY-MM-DD)' });
+      }
       await sql`
         update assets set
           code = ${code}, name = ${name}, category_id = ${categoryId}, brand = ${brand},
           room_id = ${roomId}, year = ${year}, condition = ${condition}, type = ${type},
           asset_type = ${assetType}, stock_total = ${total}, stock_available = ${avail}, image = ${image},
-          status = ${status}
+          status = ${status}, acquisition_date = ${acqDate}::date
         where id = ${id}`;
-      // record only the fields that actually changed: { field: [before, after] }
-      const next = { code, name, category_id: categoryId, brand, room_id: roomId, year, condition, type, asset_type: assetType, stock_total: total, status };
-      const changes = {};
-      Object.keys(next).forEach((k) => { if (String(c[k] == null ? '' : c[k]) !== String(next[k] == null ? '' : next[k])) changes[k] = [c[k], next[k]]; });
-      if (image !== c.image) changes.image = true;
-      await logAudit(sql, auth, 'update', 'asset', id, { code: code, name: name, changes: changes });
       return send(res, 200, { ok: true });
     } catch (e) { return send(res, 500, { error: e.message }); }
   }
 
   if (req.method === 'DELETE') {
-    const auth = requireAdmin(req, res); if (!auth) return;
+    if (!requireAdmin(req, res)) return;
     try {
       const b = await readJson(req);
       const id = parseInt(b.id || (req.query && req.query.id), 10);
@@ -130,8 +143,7 @@ export default async function handler(req, res) {
       // would silently delete live borrowing records (history + stock desync).
       const active = await sql`select count(*)::int as n from borrowings where asset_id = ${id} and status in ('pending','approved','verified','borrowed','return_pending')`;
       if (active[0].n > 0) return send(res, 409, { error: 'Aset sedang dipinjam atau dalam proses, tidak dapat dihapus' });
-      const gone = await sql`delete from assets where id = ${id} returning code, name`;
-      if (gone.length) await logAudit(sql, auth, 'delete', 'asset', id, { code: gone[0].code, name: gone[0].name });
+      await sql`delete from assets where id = ${id}`;
       return send(res, 200, { ok: true });
     } catch (e) { return send(res, 500, { error: e.message }); }
   }
@@ -142,7 +154,7 @@ export default async function handler(req, res) {
 // Bulk import (called from POST when body.rows is present). Category/room are
 // matched by name (created on the fly if missing); rows with an existing code
 // are skipped. Returns a per-row summary.
-async function importAssets(sql, rows, res, auth) {
+async function importAssets(sql, rows, res) {
   try {
     if (!rows.length) return send(res, 400, { error: 'Tidak ada baris untuk diimpor' });
     if (rows.length > 2000) return send(res, 400, { error: 'Maksimal 2000 baris per impor' });
@@ -183,19 +195,19 @@ async function importAssets(sql, rows, res, auth) {
         const catId = await resolveCat(r.category);
         const roomId = await resolveRoom(r.room);
         const type = String(r.type || '').toLowerCase().includes('non') ? 'Non-BMN' : 'BMN';
+        const acq = normDate(r.acquisition_date);
         await sql`
           insert into assets (code, name, category_id, brand, room_id, year, condition, type, asset_type,
-                              stock_total, stock_available, stock_borrowed)
+                              stock_total, stock_available, stock_borrowed, acquisition_date)
           values (${code}, ${name}, ${catId}, ${r.brand || null}, ${roomId},
                   ${r.year ? parseInt(r.year, 10) : null}, ${r.condition || 'Baik'}, ${type},
-                  ${r.asset_type || 'Fixed Asset'}, ${total}, ${total}, 0)`;
+                  ${r.asset_type || 'Fixed Asset'}, ${total}, ${total}, 0, ${acq}::date)`;
         codes.add(code.toLowerCase());
         success++;
       } catch (e) { errors.push({ row: ln, error: e.message }); }
     }
 
     if (success) await sql`update assets set qr_code = 'QR' || lpad(id::text, 6, '0'), qr_generated_at = now() where qr_code is null`;
-    await logAudit(sql, auth, 'import', 'asset', null, { rows: rows.length, success, skipped, failed: errors.length });
     return send(res, 200, { success, skipped, failed: errors.length, errors });
   } catch (e) { return send(res, 500, { error: e.message }); }
 }
