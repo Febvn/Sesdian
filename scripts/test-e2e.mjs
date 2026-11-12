@@ -252,10 +252,10 @@ async function runTests() {
     const periodToggle = await page.locator('.sesd-period-toggle').isVisible();
     record('Period Toggle (Harian / Bulanan / Semua)', periodToggle);
 
-    // Export Buttons: PDF and CSV
-    const exportCsv = await page.locator('button[data-export]').isVisible();
+    // Export Buttons: PDF and Excel
+    const exportExcel = await page.locator('button[data-export]').isVisible();
     const exportPrint = await page.locator('button[data-print]').isVisible();
-    record('Export Buttons ("Export CSV" & "Cetak Laporan")', exportCsv && exportPrint);
+    record('Export Buttons ("Export Excel" & "Export PDF")', exportExcel && exportPrint);
 
     // 7. Test SES-4.2 Peminjaman & Verifikasi
     console.log('\n[7] Testing Peminjaman & Verifikasi:');

@@ -23,7 +23,7 @@ Ringkasan implementasi 6 fitur baru beserta langkah pengaktifan.
 - Halaman **`laporan.html`** (menu **Laporan**, untuk admin & verifikator).
 - Pilih periode (Harian/Mingguan/Bulanan) + rentang tanggal → grafik tren, ringkasan status,
   aset paling sering dipinjam, peminjam teraktif, dan tabel detail.
-- **Export CSV** (buka di Excel) dan **Cetak / PDF** (lewat dialog cetak browser).
+- **Export Excel** (.xlsx bertabel rapi, format sama dengan PDF) dan **Export PDF** (unduh langsung).
 - API: `GET /api/dashboard?view=reports&period=daily|weekly|monthly&start=YYYY-MM-DD&end=YYYY-MM-DD`.
 
 ## 2. Import Data Aset dari Excel

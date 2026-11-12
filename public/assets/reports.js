@@ -1,7 +1,7 @@
 /* ============================================================
    SESDIAN - reports (laporan). Runs only on data-page="laporan".
-   Daily / weekly / monthly window, summary + detail table, CSV export,
-   and a print/PDF layout (DAFTAR PEMINJAMAN BARANG INVENTARIS form).
+   Daily / weekly / monthly window, summary + detail table, and Excel (.xlsx)
+   + PDF exports sharing one layout (DAFTAR PEMINJAMAN BARANG INVENTARIS form).
    ============================================================ */
 (function () {
   'use strict';
@@ -203,18 +203,128 @@
     applyReportFilter();               // honour the active status segment
   }
 
-  function exportCsv() {
-    if (!lastData || !lastData.rows.length) { toast('Tidak ada data untuk diexport', 'error'); return; }
-    var head = ['No', 'Nama Peminjam', 'Nama Barang', 'Tgl Pinjam', 'Tgl Kembali', 'Tgl Pengembalian', 'Alasan', 'Admin', 'Verifikator'];
-    var lines = [head.join(',')];
-    lastData.rows.forEach(function (r, i) {
-      var row = [i + 1, r.borrower_name || '', r.asset_name || '', fmtDate(r.created_at), r.due_date ? fmtDate(r.due_date) : '',
-        r.returned_at ? fmtDate(r.returned_at) : '', r.notes || '', r.admin_name || '', r.verifikator_name || ''];
-      lines.push(row.map(function (c) { var s = String(c == null ? '' : c); return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; }).join(','));
+  /* ============ Export Excel (.xlsx) ============
+     Same layout as the PDF: centred title + period, dark header row with white
+     bold text, thin black grid on every cell, zebra rows, fixed column widths.
+     Uses ExcelJS (SheetJS community cannot write cell styles), loaded on demand
+     so the page does not pay for it until the button is pressed. */
+  var REPORT_TITLE = 'DAFTAR PEMINJAMAN BARANG INVENTARIS';
+  var REPORT_HEAD = ['No', 'Nama Peminjam', 'Nama Barang', 'Tgl Pinjam', 'Tgl Kembali', 'Tgl Pengembalian', 'Alasan', 'Nama Admin', 'Nama Verifikator'];
+  var EXCELJS_URL = 'https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js';
+  var excelJsLoading = null;
+  function ensureExcelJs() {
+    if (window.ExcelJS) return Promise.resolve(window.ExcelJS);
+    if (!excelJsLoading) excelJsLoading = new Promise(function (resolve, reject) {
+      var s = document.createElement('script');
+      s.src = EXCELJS_URL; s.async = true;
+      s.onload = function () { if (window.ExcelJS) resolve(window.ExcelJS); else { excelJsLoading = null; reject(new Error('Library Excel gagal dimuat')); } };
+      s.onerror = function () { excelJsLoading = null; s.remove(); reject(new Error('Library Excel gagal dimuat, periksa koneksi lalu coba lagi')); };
+      document.head.appendChild(s);
     });
-    var blob = new Blob(['﻿' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
-    var a = el('a', { href: URL.createObjectURL(blob), download: 'laporan-peminjaman-' + lastData.start + '_' + lastData.end + '.csv' });
-    document.body.appendChild(a); a.click(); a.remove();
+    return excelJsLoading;
+  }
+  function filteredReportRows() {
+    return lastData.rows.filter(function (r) { return state.status === 'all' || r.status === state.status; });
+  }
+  function assetLabel(r) { return (r.asset_name || '-') + (r.asset_code ? ' (' + r.asset_code + ')' : ''); }
+  function periodLabel(d) { return 'Periode ' + fmtDate(d.start) + ' s/d ' + fmtDate(d.end); }
+  // Real Excel date (sortable/filterable) on the same calendar day fmtDate shows.
+  function xlDate(s) {
+    if (!s) return '-';
+    var d = new Date(s); if (isNaN(d)) return String(s).slice(0, 10);
+    return new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  }
+
+  function buildReportWorkbook(ExcelJS, d, rows) {
+    var COLS = [   // width in Excel character units; wrap = long text that may span lines
+      { w: 6, align: 'center' }, { w: 28, wrap: true }, { w: 42, wrap: true },
+      { w: 13, align: 'center', date: true }, { w: 13, align: 'center', date: true }, { w: 18, align: 'center', date: true },
+      { w: 32, wrap: true }, { w: 20, wrap: true }, { w: 20, wrap: true },
+    ];
+    var FONT = 'Arial';
+    var LINE = { style: 'thin', color: { argb: 'FF000000' } };
+    var BORDER = { top: LINE, left: LINE, bottom: LINE, right: LINE };
+    var HEAD_ROW = 4, last = HEAD_ROW + rows.length, lastCol = 'I';
+
+    var wb = new ExcelJS.Workbook();
+    wb.creator = 'SESDIAN'; wb.created = new Date();
+    var ws = wb.addWorksheet('Laporan Peminjaman', {
+      views: [{ state: 'frozen', ySplit: HEAD_ROW, showGridLines: false }],
+      pageSetup: {
+        paperSize: 9, orientation: 'landscape', fitToPage: true, fitToWidth: 1, fitToHeight: 0,
+        horizontalCentered: true, printArea: 'A1:' + lastCol + last, printTitlesRow: HEAD_ROW + ':' + HEAD_ROW,
+        margins: { left: 0.4, right: 0.4, top: 0.5, bottom: 0.6, header: 0.3, footer: 0.3 },
+      },
+      headerFooter: { oddFooter: '&C&"Arial,Regular"&8Halaman &P dari &N' },
+    });
+    ws.columns = COLS.map(function (c) { return { width: c.w }; });
+
+    ws.mergeCells('A1:' + lastCol + '1');
+    var title = ws.getCell('A1');
+    title.value = REPORT_TITLE;
+    title.font = { name: FONT, size: 14, bold: true };
+    title.alignment = { horizontal: 'center', vertical: 'middle' };
+    ws.getRow(1).height = 26;
+
+    ws.mergeCells('A2:' + lastCol + '2');
+    var sub = ws.getCell('A2');
+    sub.value = periodLabel(d);
+    sub.font = { name: FONT, size: 11 };
+    sub.alignment = { horizontal: 'center', vertical: 'middle' };
+    ws.getRow(2).height = 18;
+    ws.getRow(3).height = 10;
+
+    var head = ws.getRow(HEAD_ROW);
+    head.values = REPORT_HEAD;
+    head.height = 30;
+    head.eachCell(function (c) {
+      c.font = { name: FONT, size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
+      c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF293241' } };
+      c.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+      c.border = BORDER;
+    });
+
+    rows.forEach(function (r, i) {
+      var values = [i + 1, r.borrower_name || '-', assetLabel(r), xlDate(r.created_at), xlDate(r.due_date),
+        xlDate(r.returned_at), r.notes || '-', r.admin_name || '-', r.verifikator_name || '-'];
+      var row = ws.getRow(HEAD_ROW + 1 + i);
+      row.values = values;
+      // Excel does not grow wrapped rows on its own for generated files, so size
+      // each row from its longest wrapped cell (≈1 char per width unit at 10pt).
+      var lines = 1;
+      COLS.forEach(function (c, ci) {
+        var cell = row.getCell(ci + 1);
+        cell.font = { name: FONT, size: 10 };
+        cell.border = BORDER;
+        cell.alignment = { horizontal: c.align || 'left', vertical: 'middle', wrapText: !!c.wrap, indent: c.align ? 0 : 1 };
+        if (c.date && values[ci] instanceof Date) cell.numFmt = 'd/m/yyyy';
+        if (i % 2 === 1) cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF5F7FA' } };
+        if (c.wrap) lines = Math.max(lines, String(values[ci]).split('\n').reduce(function (n, part) { return n + Math.max(1, Math.ceil(part.length / (c.w - 1))); }, 0));
+      });
+      row.height = Math.max(22, lines * 13 + 9);
+    });
+    return wb;
+  }
+
+  async function exportExcel() {
+    if (!lastData || !lastData.rows.length) { toast('Tidak ada data untuk diexport', 'error'); return; }
+    var rows = filteredReportRows();    // same status filter as the table and the PDF
+    if (!rows.length) { toast('Tidak ada data yang sesuai filter untuk diexport', 'error'); return; }
+    var btn = $('[data-export]'); if (btn) btn.disabled = true;
+    try {
+      var ExcelJS = await ensureExcelJs();
+      var buf = await buildReportWorkbook(ExcelJS, lastData, rows).xlsx.writeBuffer();
+      var blob = new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      var url = URL.createObjectURL(blob);
+      var a = el('a', { href: url, download: 'laporan-peminjaman-' + lastData.start + '_' + lastData.end + '.xlsx' });
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function () { URL.revokeObjectURL(url); }, 1500);
+      toast('Excel berhasil diunduh', 'success');
+    } catch (e) {
+      toast((e && e.message) || 'Gagal membuat file Excel', 'error');
+    } finally {
+      if (btn) btn.disabled = false;
+    }
   }
 
   // Export PDF – directly downloads a PDF file (no print dialog, no popup).
@@ -228,34 +338,29 @@
     // Title
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(14);
-    doc.text('DAFTAR PEMINJAMAN BARANG INVENTARIS', doc.internal.pageSize.getWidth() / 2, 18, { align: 'center' });
+    doc.text(REPORT_TITLE, doc.internal.pageSize.getWidth() / 2, 18, { align: 'center' });
 
     // Subtitle (period)
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(11);
-    doc.text('Periode ' + fmtDate(lastData.start) + ' s/d ' + fmtDate(lastData.end), doc.internal.pageSize.getWidth() / 2, 25, { align: 'center' });
+    doc.text(periodLabel(lastData), doc.internal.pageSize.getWidth() / 2, 25, { align: 'center' });
 
     // Table headers
-    var head = [['No', 'Nama Peminjam', 'Nama Barang', 'Tgl Pinjam', 'Tgl Kembali', 'Tgl Pengembalian', 'Alasan', 'Nama Admin', 'Nama Verifikator']];
+    var head = [REPORT_HEAD];
 
     // Table body – respect the active status filter
-    var body = [];
-    var visibleIdx = 0;
-    lastData.rows.forEach(function (r) {
-      var matchesFilter = state.status === 'all' || r.status === state.status;
-      if (!matchesFilter) return;
-      visibleIdx++;
-      body.push([
-        visibleIdx,
+    var body = filteredReportRows().map(function (r, i) {
+      return [
+        i + 1,
         r.borrower_name || '-',
-        (r.asset_name || '-') + (r.asset_code ? ' (' + r.asset_code + ')' : ''),
+        assetLabel(r),
         fmtDate(r.created_at),
         r.due_date ? fmtDate(r.due_date) : '-',
         r.returned_at ? fmtDate(r.returned_at) : '-',
         r.notes || '-',
         r.admin_name || '-',
         r.verifikator_name || '-'
-      ]);
+      ];
     });
 
     if (!body.length) { toast('Tidak ada data yang sesuai filter untuk diexport', 'error'); return; }
@@ -509,7 +614,7 @@
 
   function boot() {
     $$('[data-period]').forEach(function (b) { b.addEventListener('click', function () { applyPeriod(b.getAttribute('data-period')); }); });
-    $('[data-export]').addEventListener('click', exportCsv);
+    $('[data-export]').addEventListener('click', exportExcel);
     $('[data-print]').addEventListener('click', printPdf);
     setPeriod(state.period);
     renderPeriodControl();               // dates are now auto per preset; no manual Dari/Sampai
