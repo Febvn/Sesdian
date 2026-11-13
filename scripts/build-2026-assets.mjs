@@ -7,7 +7,7 @@
 //        node scripts/run-sql.mjs db/migrate-v6-aset-2026.sql
 //   3. docs/asset-image-credits.json — key -> sumber gambar (drive link / icon).
 //
-//   npm i --no-save xlsx sharp
+//   npm install   (xlsx dan sharp sudah terdaftar sebagai devDependencies)
 //   node scripts/build-2026-assets.mjs
 import fs from 'node:fs';
 import path from 'node:path';
@@ -17,7 +17,7 @@ import sharp from 'sharp';
 import { slug, svgCard } from './asset-icons.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const XLSX_FILE = path.join(ROOT, 'daftar-aset-2026 dan link gambar (1) FIX.xlsx');
+const XLSX_FILE = path.join(ROOT, 'arsip', 'daftar-aset-2026 dan link gambar (1) FIX.xlsx');
 const OUT_DIR = path.join(ROOT, 'public', 'assets', 'aset');
 const SQL_FILE = path.join(ROOT, 'db', 'migrate-v6-aset-2026.sql');
 const CREDITS_FILE = path.join(ROOT, 'docs', 'asset-image-credits.json');

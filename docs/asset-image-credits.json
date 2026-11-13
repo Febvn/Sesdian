@@ -1216,5 +1216,54 @@
     "name": "Bangunan Parkir Terbuka Semi Permanen",
     "brand": "Semi Permanen",
     "source": "https://drive.google.com/file/d/1ooxF3YMoiFgW-JqWOCTO5V5Iuj7FDYdj/view?usp=drive_link"
+  },
+  "station-wagon-toyota": {
+    "name": "Station Wagon",
+    "brand": "Toyota",
+    "source": "https://d1g6w7sntckt92.cloudfront.net/public/images/color_option_images/YSSwFgKxF4cI6784BlwqRN91DvIVpyPm0u8pE48e.png",
+    "query": "Station Wagon Toyota",
+    "via": "google-images"
+  },
+  "digital-radioaktif-dan-ct-sinar-x-berbasis-sinar-x-ortec": {
+    "name": "Digital Radioaktif dan CT Sinar X Berbasis Sinar X",
+    "brand": "ORTEC",
+    "source": "https://www.ortec-online.com/-/media/ametekortec/images/d/dx1.png?revision=0ef7d91b-6976-4d23-b47b-156b2c7118eb&la=en&hash=067FAB0CE39A51A32EF20FB6DFA9FDCD",
+    "query": "Digital Radioaktif dan CT Sinar X Berbasis Sinar X ORTEC",
+    "via": "google-images"
+  },
+  "televisi-lg": {
+    "name": "Televisi",
+    "brand": "LG",
+    "source": "https://www.lg.com/content/dam/channel/wcms/id/images/tv/32ls3300/gallery/medium01.jpg",
+    "query": "Televisi LG",
+    "via": "google-images"
+  },
+  "laminar-air-flow-cabinet-esco-airstream-biological-safety-cabinet": {
+    "name": "Laminar Air Flow Cabinet",
+    "brand": "ESCO AIRSTREAM BIOLOGICAL SAFETY CABINET",
+    "source": "https://www.escolifesciences.com/images/product-img/hd/airstream-class-ii-bsc-e-series-hd.png",
+    "query": "Laminar Air Flow Cabinet ESCO AIRSTREAM BIOLOGICAL SAFETY CABINET",
+    "via": "google-images"
+  },
+  "low-energy-survey-meter-surveymeter-at6130": {
+    "name": "Low Energy Survey Meter",
+    "brand": "Surveymeter AT6130",
+    "source": "https://nuclearaustralia.com.au/wp-content/uploads/2019/09/6130_1.png",
+    "query": "Low Energy Survey Meter Surveymeter AT6130",
+    "via": "google-images"
+  },
+  "lap-top-lenovo": {
+    "name": "Lap Top",
+    "brand": "Lenovo",
+    "source": "https://files.eci.id/documents/product/best/webips3c0idi7mkgy/1764831684-1.webp",
+    "query": "Lap Top Lenovo",
+    "via": "google-images"
+  },
+  "printer-peralatan-personal-komputer-epson": {
+    "name": "Printer (Peralatan Personal Komputer)",
+    "brand": "EPSON",
+    "source": "https://plazait.co.id/uploads/products/gallery/l3211-4.jpg",
+    "query": "Printer EPSON",
+    "via": "google-images"
   }
 }

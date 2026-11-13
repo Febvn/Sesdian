@@ -37,6 +37,14 @@
     var origin = location.origin + location.pathname.replace(/[^/]*$/, '');
     return asset.qr_code ? (origin + 'aset-detail.html?qr=' + encodeURIComponent(asset.qr_code)) : (origin + 'aset-detail.html?id=' + asset.id);
   }
+  // QR that opens the room's public catalog (matches app.js roomCatalogUrl).
+  function roomCatalogUrl(roomName) {
+    var origin = location.origin + location.pathname.replace(/[^/]*$/, '');
+    return origin + 'katalog.html?room=' + encodeURIComponent(roomName || '');
+  }
+
+  var BULAN_ID = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+  function fmtTanggal(v) { if (!v) return ''; var p = String(v).slice(0, 10).split('-'); if (p.length !== 3) return String(v); var m = parseInt(p[1], 10); return parseInt(p[2], 10) + ' ' + (BULAN_ID[m - 1] || '') + ' ' + p[0]; }
 
   // Parse the combined code field back into Kode Barang and NUP.
   // Kode barang is typically 10 digits, NUP is the remainder.
@@ -59,6 +67,10 @@
     var logoLeft = window.LOGO_LEFT || '';
     var logoRight = window.LOGO_RIGHT || '';
     var categoryText = asset.category ? ' (' + esc(asset.category) + ')' : '';
+    var acqText = fmtTanggal(asset.acquisition_date);
+    // Room QR points to the room's public catalog. Blank when unassigned.
+    var roomName = asset.room || '';
+    var roomQr = roomName ? qrDataUrl(roomCatalogUrl(roomName)) : '';
 
     return '<html><head><title>Label ' + esc(asset.code || code) + '</title>' +
       '<style>' +
@@ -73,10 +85,15 @@
         '.info { padding: 5px 8px; border-bottom: 1px solid #bbb; }' +
         '.info-row1 { display: flex; gap: 16px; font-size: 10px; font-weight: 700; }' +
         '.info-name { font-size: 10px; font-weight: 700; margin-top: 2px; }' +
-        '.bottom { display: flex; align-items: flex-end; padding: 4px 8px 6px; }' +
+        '.info-date { font-size: 9px; font-weight: 400; margin-top: 2px; color: #333; }' +
+        '.bottom { display: flex; align-items: flex-end; padding: 4px 8px 6px; gap: 8px; }' +
         '.bottom-left { flex: 1; }' +
+        '.room-qr-wrap { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }' +
+        '.room-qr { width: 54px; height: 54px; image-rendering: pixelated; border: 1px solid #bbb; flex-shrink: 0; }' +
+        '.room-qr-cap { font-size: 8px; line-height: 1.35; color: #333; }' +
+        '.room-qr-cap b { font-size: 9px; }' +
         '.bottom-code { font-size: 10px; font-weight: 700; }' +
-        '.qr-img { width: 80px; height: 80px; image-rendering: pixelated; }' +
+        '.qr-img { width: 80px; height: 80px; image-rendering: pixelated; flex-shrink: 0; }' +
         '@media print { body { margin: 0; } }' +
       '</style></head>' +
       '<body onload="window.print()">' +
@@ -94,9 +111,16 @@
             (parsed.nup ? '<span>NUP: ' + esc(parsed.nup) + '</span>' : '') +
           '</div>' +
           '<div class="info-name">' + esc(asset.name || '') + categoryText + '</div>' +
+          (acqText ? '<div class="info-date">Tanggal Perolehan: ' + esc(acqText) + '</div>' : '') +
         '</div>' +
         '<div class="bottom">' +
           '<div class="bottom-left">' +
+            (roomQr ?
+              '<div class="room-qr-wrap">' +
+                '<img class="room-qr" src="' + roomQr + '">' +
+                '<div class="room-qr-cap">Ruangan<br><b>' + esc(roomName) + '</b></div>' +
+              '</div>'
+            : '') +
             '<div class="bottom-code">' + esc(code) + '</div>' +
           '</div>' +
           '<img class="qr-img" src="' + dataUrl + '">' +

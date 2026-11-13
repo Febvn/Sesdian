@@ -11,8 +11,8 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap"
       rel="stylesheet"
     />
-    <script>(function(){try{var d=document.documentElement;if(localStorage.getItem('sesdian_theme')==='dark')d.setAttribute('data-theme','dark');var ts=localStorage.getItem('sesdian_textsize');if(ts==='small'||ts==='large')d.setAttribute('data-textsize',ts);if(localStorage.getItem('sesdian_rail')==='1')d.classList.add('sesd-rail-pref');}catch(e){}})();</script>
-    <link rel="stylesheet" href="assets/app.css?v=60" />
+    <script>(function(){try{var d=document.documentElement;if(localStorage.getItem('sesdian_theme')==='dark')d.setAttribute('data-theme','dark');var ts=localStorage.getItem('sesdian_textsize');if(ts==='small'||ts==='large')d.setAttribute('data-textsize',ts);if(localStorage.getItem('sesdian_rail')==='1')d.classList.add('sesd-rail-pref');if(/[?&]room=/.test(location.search))d.classList.add('sesd-room');}catch(e){}})();</script>
+    <link rel="stylesheet" href="assets/app.css?v=61" />
     <style>
       /* Catalog (guest) — Notion language, scoped to this page.
          Cards reuse the shared .sesd-aset-* primitives from app.css. */
@@ -58,7 +58,7 @@
       }
       .sesd-cat-chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; }
 
-      /* #8 — tidy, uniform responsive grid */
+      /* Tidy, uniform responsive grid */
       .sesd-cat-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(216px, 1fr));
@@ -174,12 +174,55 @@
         margin-top: 5px;
       }
 
+      /* ── Room catalog (?room=) vs public catalog: two distinct looks ──
+         The .sesd-room class is set on <html> before first paint by the head
+         script, so the info box never flashes and the title never swaps late. */
+      .sesd-cat-nav__title[data-title-room] { display: none; }
+      html.sesd-room .sesd-cat-nav__title[data-title-catalog] { display: none; }
+      html.sesd-room .sesd-cat-nav__title[data-title-room] { display: inline; }
+      html.sesd-room .sesd-cat-stats { display: none !important; }   /* room view has NO info box */
+
+      .sesd-room-header {
+        display: none;
+        align-items: center; gap: 16px;
+        padding: 1.4rem 1.6rem;
+        margin-bottom: 1.5rem;
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--border);
+        border-left: 4px solid var(--primary);
+        background:
+          radial-gradient(560px 200px at 100% 0%, rgba(0,117,222,0.09), transparent 70%),
+          var(--bg-card);
+        box-shadow: var(--card-shadow);
+      }
+      html.sesd-room .sesd-room-header { display: flex; }
+      .sesd-room-icon {
+        width: 58px; height: 58px; flex-shrink: 0;
+        border-radius: 16px;
+        background: linear-gradient(135deg, #0075de, #005bab);
+        color: #fff; display: flex; align-items: center; justify-content: center;
+      }
+      .sesd-room-icon svg { width: 28px; height: 28px; }
+      .sesd-room-eyebrow {
+        font-size: 0.7rem; font-weight: 800; text-transform: uppercase;
+        letter-spacing: 0.9px; color: var(--primary);
+      }
+      .sesd-room-name {
+        font-size: 1.55rem; font-weight: 800; color: var(--text);
+        letter-spacing: -0.02em; line-height: 1.15; margin: 3px 0;
+      }
+      .sesd-room-sub { font-size: 0.86rem; color: var(--text-muted); }
+
       @media (max-width: 560px) {
         .sesd-cat-stats { grid-template-columns: repeat(2, 1fr); gap: 0.6rem; }
         .sesd-cat-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 0.7rem; }
         .stat-info { padding: 0.8rem 0.9rem; }
         .stat-number { font-size: 1.4rem; }
         .stat-icon-wrap { width: 50px; min-width: 50px; }
+        .sesd-room-header { padding: 1.1rem 1.15rem; gap: 12px; }
+        .sesd-room-icon { width: 48px; height: 48px; }
+        .sesd-room-icon svg { width: 23px; height: 23px; }
+        .sesd-room-name { font-size: 1.25rem; }
       }
 
       /* Center the 3-dots loader when it's inside the grid */
@@ -196,7 +239,8 @@
       <div class="sesd-cat-nav__inner">
         <a href="katalog.html" aria-label="SESDIAN — Katalog" style="display:flex;align-items:center;gap:12px;text-decoration:none;">
           <img class="sesd-cat-nav__logo" src="assets/logosesdian.png" alt="SESDIAN" />
-          <span class="sesd-cat-nav__title">Katalog Publik</span>
+          <span class="sesd-cat-nav__title" data-title-catalog>Katalog Publik</span>
+          <span class="sesd-cat-nav__title" data-title-room>Katalog Ruangan</span>
         </a>
         <div style="flex: 1"></div>
         <div data-guest-controls></div>
@@ -205,6 +249,22 @@
     </header>
 
     <main class="sesd-cat-main">
+      <!-- room banner (shown only for ?room=, hidden otherwise; the room name is
+           filled from the URL immediately so it never flashes empty) -->
+      <div class="sesd-room-header">
+        <div class="sesd-room-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M3 11 12 3l9 8" /><path d="M5 10v10h14V10" /><path d="M9 20v-6h6v6" />
+          </svg>
+        </div>
+        <div>
+          <div class="sesd-room-eyebrow">Daftar Inventaris Ruangan</div>
+          <div class="sesd-room-name" data-room-name>Ruangan</div>
+          <div class="sesd-room-sub" data-room-sub>Barang yang tercatat berada di ruangan ini</div>
+        </div>
+      </div>
+      <script>(function(){try{var m=/[?&]room=([^&]*)/.exec(location.search);if(m){var n=decodeURIComponent(m[1].replace(/\+/g,' '));var e=document.querySelector('[data-room-name]');if(e&&n)e.textContent=n;document.title='SESDIAN - Ruangan '+n;}}catch(e){}})();</script>
+
       <!-- stat cards (populated by guest.js) -->
       <div class="sesd-cat-stats dashboard-stats-grid">
         <div class="stat-card katalog-stat-card delay-1" data-cat-stat="total_assets">
@@ -299,9 +359,9 @@
     </footer>
 
     <script defer src="assets/config.js?v=57"></script>
-    <script defer src="assets/db.js?v=62"></script>
-    <script defer src="assets/icons.js?v=59"></script>
-    <script defer src="assets/guest.js?v=57"></script>
+    <script defer src="assets/db.js?v=61"></script>
+    <script defer src="assets/icons.js?v=58"></script>
+    <script defer src="assets/guest.js?v=59"></script>
     <script defer src="assets/theme.js?v=57"></script>
   </body>
 </html>
