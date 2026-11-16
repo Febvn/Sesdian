@@ -4,7 +4,12 @@
   "private": true,
   "type": "module",
   "description": "SESDIAN asset management — static frontend + Neon-backed serverless API",
+  "main": "app.js",
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
+    "start": "node server.mjs",
     "dev": "node dev-server.mjs",
     "db:check": "node scripts/db-check.mjs",
     "db:run": "node scripts/run-sql.mjs",
@@ -20,6 +25,9 @@
     "@neondatabase/serverless": "^0.10.4"
   },
   "devDependencies": {
-    "playwright": "^1.64.1"
+    "playwright": "^1.64.1",
+    "puppeteer-core": "^25.3.0",
+    "sharp": "^0.35.3",
+    "xlsx": "^0.18.5"
   }
 }

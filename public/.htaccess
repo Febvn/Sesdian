@@ -1,0 +1,65 @@
+# ============================================================
+#  SESDIAN - Apache / LiteSpeed rules for Hostinger.
+#  Only needed when the web server sits in front of the Node app
+#  (Hostinger shared hosting). On a VPS behind nginx these same rules
+#  are configured in the nginx server block instead, and this file is
+#  simply ignored. Routing for /api/ is always left to Node.
+# ============================================================
+
+# ---------- HTTPS ----------
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # Force HTTPS (Hostinger terminates TLS at the proxy, hence the header check)
+  RewriteCond %{HTTPS} !=on
+  RewriteCond %{HTTP:X-Forwarded-Proto} !https
+  RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [R=301,L]
+
+  # The Node app owns every /api/ request; never rewrite those.
+  RewriteRule ^api/ - [L]
+
+  # cleanUrls: /dataaset serves dataaset.html (matches the old vercel.json)
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteCond %{REQUEST_FILENAME}.html -f
+  RewriteRule ^(.*)$ $1.html [L]
+
+  # trailingSlash: false — /dataaset/ redirects to /dataaset
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule ^(.+)/$ /$1 [R=308,L]
+</IfModule>
+
+# ---------- Caching ----------
+<IfModule mod_headers.c>
+  # /assets/* is versioned with ?v=N in the HTML, so it can be held for a year.
+  <FilesMatch "\.(js|mjs|css|woff2?|png|jpe?g|gif|svg|webp|ico)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+
+  # HTML carries those ?v=N references and must always be revalidated.
+  <FilesMatch "\.html$">
+    Header set Cache-Control "no-cache, must-revalidate"
+  </FilesMatch>
+
+  Header set X-Content-Type-Options "nosniff"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+# ---------- Compression ----------
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css text/plain
+  AddOutputFilterByType DEFLATE application/javascript text/javascript
+  AddOutputFilterByType DEFLATE application/json image/svg+xml
+</IfModule>
+
+# ---------- Correct types for fonts and modern images ----------
+<IfModule mod_mime.c>
+  AddType font/woff2 .woff2
+  AddType image/webp .webp
+  AddType text/javascript .mjs
+</IfModule>
+
+# Never expose environment files if the document root is ever misconfigured.
+<FilesMatch "^\.env">
+  Require all denied
+</FilesMatch>
