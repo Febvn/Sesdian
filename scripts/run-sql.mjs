@@ -1,6 +1,6 @@
 // Run a .sql file against your Neon database (DATABASE_URL from .env.local).
 //   node scripts/run-sql.mjs migrate-v3.sql
-//   node scripts/run-sql.mjs seed-aset-2025.sql
+//   node scripts/run-sql.mjs db/migrate-v6-aset-2026.sql
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';

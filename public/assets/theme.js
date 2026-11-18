@@ -40,7 +40,7 @@
   // file self-sufficient if the inline guard is ever missing on a page.
   applyTheme(getPreferred());
 
-  /* ── #7 — user text-size preference (small / medium / large) ── */
+  /* ── User text-size preference (small / medium / large) ── */
   var TEXTSIZE_KEY = 'sesdian_textsize';
   function getTextSize() {
     try { var t = localStorage.getItem(TEXTSIZE_KEY); if (t === 'small' || t === 'large' || t === 'medium') return t; } catch (e) {}
@@ -53,10 +53,10 @@
   }
   applyTextSize(getTextSize());   // apply as early as possible
 
-  /* ── #4 — current user + per-user avatar (stored client-side) ── */
+  /* ── Current user + per-user avatar (stored client-side) ── */
   function currentUserLS() {
     // API mode stores a JWT (with nip/name/role), not a 'sesdian_user' object —
-    // read identity from the token first so the header profile shows the NIP (#7).
+    // read identity from the token first so the header profile shows the NIP.
     try { var db = window.SESDIAN_DB; if (db && db.auth && db.auth.currentUser) { var u = db.auth.currentUser(); if (u && (u.nip || u.name)) return u; } } catch (e) {}
     try { return JSON.parse(localStorage.getItem('sesdian_user') || 'null'); } catch (e) { return null; }
   }
@@ -108,7 +108,7 @@
     return d.getDate() + ' ' + m[d.getMonth()] + ' ' + d.getFullYear();
   }
 
-  /* ── #7 — text-size segmented control (A small / medium / large) ── */
+  /* ── Text-size segmented control (A small / medium / large) ── */
   function buildTextSize() {
     var wrap = document.createElement('div');
     wrap.className = 'sesd-textsize';
@@ -133,7 +133,7 @@
     return wrap;
   }
 
-  /* ── #4 — apply the saved avatar to the header button + sidebar tile ── */
+  /* ── Apply the saved avatar to the header button + sidebar tile ── */
   function applyAvatarEverywhere(u) {
     var av = getAvatar(u);
     var prof = document.querySelector('.sesd-head-profile');
@@ -276,9 +276,9 @@
       } else {
         header.appendChild(cluster);
       }
-      wireProfile();      // #4 — make the profile button open the per-user menu
+      wireProfile();      // Make the profile button open the per-user menu
     } else if (controls && !document.getElementById('sesd-theme-toggle')) {
-      // #8 — guest pages (katalog): theme + text-size live in the page header,
+      // Guest pages (katalog): theme + text-size live in the page header,
       // mirroring the dashboard chrome, instead of a floating toggle.
       controls.insertBefore(buildTextSize(), controls.firstChild);
       controls.insertBefore(buildSwitch(), controls.firstChild);

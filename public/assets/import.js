@@ -47,14 +47,30 @@
     year: ['tahun', 'year'],
     condition: ['kondisi', 'condition'],
     asset_type: ['jenis aset', 'asset type', 'asset_type'],
+    acquisition_date: ['tanggal perolehan', 'tgl perolehan', 'tanggal_perolehan', 'acquisition_date', 'acquisition date'],
     stock_total: ['stok total', 'stok', 'stock', 'jumlah', 'stok_total', 'stock_total'],
   };
+  // Excel dates arrive as JS Date (cellDates:true) or a plain string; normalise
+  // to 'YYYY-MM-DD' using the local calendar day so it never drifts a day.
+  function toISODate(v) {
+    if (v == null || v === '') return '';
+    if (v instanceof Date && !isNaN(v.getTime())) {
+      var p = function (n) { return (n < 10 ? '0' : '') + n; };
+      return v.getFullYear() + '-' + p(v.getMonth() + 1) + '-' + p(v.getDate());
+    }
+    var s = String(v).trim();
+    var m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (m) return m[0];
+    var d = new Date(s);
+    if (!isNaN(d.getTime())) { var q = function (n) { return (n < 10 ? '0' : '') + n; }; return d.getFullYear() + '-' + q(d.getMonth() + 1) + '-' + q(d.getDate()); }
+    return '';
+  }
   function normalizeRow(raw) {
     var low = {};
     Object.keys(raw).forEach(function (k) { low[String(k).trim().toLowerCase()] = raw[k]; });
     var out = {};
     Object.keys(FIELDS).forEach(function (key) {
-      for (var i = 0; i < FIELDS[key].length; i++) { var h = FIELDS[key][i]; if (low[h] != null && String(low[h]).trim() !== '') { out[key] = String(low[h]).trim(); break; } }
+      for (var i = 0; i < FIELDS[key].length; i++) { var h = FIELDS[key][i]; if (low[h] != null && String(low[h]).trim() !== '') { out[key] = (key === 'acquisition_date') ? toISODate(low[h]) : String(low[h]).trim(); break; } }
     });
     // format 2026: kode unik = "Kode Barang" + "NUP" digabung
     if (!out.code && low['kode barang'] != null && String(low['kode barang']).trim() !== '') {
@@ -68,7 +84,7 @@
     var ov = el('div', { class: 'sesd-overlay' });
     var m = el('div', { class: 'sesd-modal', style: 'width:680px' });
     m.appendChild(el('h3', {}, 'Import Aset dari Excel'));
-    m.appendChild(el('p', { style: 'color:var(--text-muted);font-size:0.82rem;margin-bottom:0.75rem' }, 'Mengikuti format daftar aset 2026. Kolom inti: Kode Barang + NUP (menjadi kode unik), Nama Barang, Jenis BMN (kategori), Merk, Kondisi. Setiap baris = satu barang; baris dengan kode yang sudah ada otomatis dilewati.'));
+    m.appendChild(el('p', { style: 'color:var(--text-muted);font-size:0.82rem;margin-bottom:0.75rem' }, 'Mengikuti format daftar aset. Kolom inti: Kode Barang + NUP (menjadi kode unik), Nama Barang, Jenis BMN, Merk, Kondisi, dan Tanggal Perolehan. Setiap baris = satu barang; baris dengan kode yang sudah ada otomatis dilewati.'));
 
     var tmpl = el('a', { href: '#', style: 'font-size:0.8rem;font-weight:700;display:inline-block;margin-bottom:0.75rem' }, 'Unduh template CSV (contoh)');
     tmpl.addEventListener('click', function (e) { e.preventDefault(); downloadTemplate(); });
@@ -102,10 +118,10 @@
       try {
         var XLSX = await ensureXlsx();
         var buf = await input.files[0].arrayBuffer();
-        var wb = XLSX.read(buf, { type: 'array' });
+        var wb = XLSX.read(buf, { type: 'array', cellDates: true });
         var sheet = wb.Sheets[wb.SheetNames[0]];
         var raw = XLSX.utils.sheet_to_json(sheet, { defval: '' });
-        // #5 — reject files that don't follow the template (must have Kode + Nama columns)
+        // Reject files that don't follow the template (must have Kode + Nama columns)
         var headers = raw.length ? Object.keys(raw[0]).map(function (h) { return String(h).trim().toLowerCase(); }) : [];
         var hasCode = headers.some(function (h) { return FIELDS.code.indexOf(h) !== -1 || h === 'kode barang'; });
         var hasName = headers.some(function (h) { return FIELDS.name.indexOf(h) !== -1; });
@@ -139,7 +155,7 @@
   }
 
   function renderPreview(host, rows) {
-    var cols = ['code', 'name', 'category', 'brand', 'room', 'year', 'condition', 'type', 'asset_type', 'stock_total'];
+    var cols = ['code', 'name', 'category', 'brand', 'room', 'acquisition_date', 'condition', 'type', 'asset_type', 'stock_total'];
     var head = '<tr>' + cols.map(function (c) { return '<th style="padding:6px 8px;text-align:left;font-size:0.7rem;color:var(--text-muted);text-transform:uppercase;position:sticky;top:0;background:#f8faff">' + c + '</th>'; }).join('') + '</tr>';
     var body = rows.map(function (r) { return '<tr>' + cols.map(function (c) { return '<td style="padding:6px 8px;font-size:0.78rem;border-top:1px solid var(--border)">' + (r[c] != null ? String(r[c]) : '') + '</td>'; }).join('') + '</tr>'; }).join('');
     host.innerHTML = '<table style="width:100%;border-collapse:collapse;min-width:640px">' + head + body + '</table>';
@@ -148,17 +164,58 @@
   function downloadTemplate() {
     // mirrors the daftar aset 2026 format: kode unik = Kode Barang + NUP,
     // kategori = Jenis BMN, merek = Merk (contoh baris diambil dari file asli 2026)
-    var head = 'No,Jenis BMN,Kode Barang,NUP,Nama Barang,Merk,Tipe,Kondisi';
+    var head = 'No,Jenis BMN,Kode Barang,NUP,Nama Barang,Merk,Tipe,Kondisi,Tanggal Perolehan';
     var samples = [
-      '1,ALAT ANGKUTAN BERMOTOR,3020101003,1,Station Wagon,TOYOTA KIJANG,INNOVA TYPE J,Baik',
-      '2,ALAT ANGKUTAN BERMOTOR,3020102003,2,Mini Bus ( Penumpang 14 Orang Kebawah ),ISUZU PANTHER,BR54FTURBO H TOURING,Baik',
-      '3,MESIN PERALATAN NON TIK,3080117016,2,Lemari Asam,ESCO,EFA-4UDRVW-8,Baik',
-      '4,MESIN PERALATAN KHUSUS TIK,3100102002,5,Lap Top,ACER,ASPIRE 5,Baik',
+      '1,ALAT ANGKUTAN BERMOTOR,3020101003,1,Station Wagon,TOYOTA KIJANG,INNOVA TYPE J,Baik,2010-12-16',
+      '2,ALAT ANGKUTAN BERMOTOR,3020102003,2,Mini Bus ( Penumpang 14 Orang Kebawah ),ISUZU PANTHER,BR54FTURBO H TOURING,Baik,2011-08-01',
+      '3,MESIN PERALATAN NON TIK,3080117016,2,Lemari Asam,ESCO,EFA-4UDRVW-8,Baik,2019-11-05',
+      '4,MESIN PERALATAN KHUSUS TIK,3100102002,5,Lap Top,ACER,ASPIRE 5,Baik,2020-03-12',
     ];
     var blob = new Blob(['﻿' + head + '\r\n' + samples.join('\r\n') + '\r\n'], { type: 'text/csv;charset=utf-8;' });
     var a = el('a', { href: URL.createObjectURL(blob), download: 'template-import-aset-2026.csv' });
     document.body.appendChild(a); a.click(); a.remove();
   }
 
-  window.SESDIAN_IMPORT = { open: open };
+  // Export the ENTIRE asset database (admin) to a real .xlsx — mirrors the daftar
+  // aset columns plus stock/status/QR so the file round-trips through Import.
+  async function exportAll(btn) {
+    var orig = btn ? btn.innerHTML : null;
+    if (btn) { btn.disabled = true; btn.textContent = 'Menyiapkan…'; }
+    try {
+      var XLSX = await ensureXlsx();
+      var assets = await DB.assets();
+      assets = assets.slice().sort(function (a, b) { return String(a.name || '').localeCompare(String(b.name || '')) || String(a.code || '').localeCompare(String(b.code || '')); });
+      var rows = assets.map(function (a, i) {
+        return {
+          'No': i + 1,
+          'Kode': a.code || '',
+          'Nama Barang': a.name || '',
+          'Jenis BMN': a.category || '',
+          'Merek': a.brand || '',
+          'Kondisi': a.condition || '',
+          'Jenis': a.type || '',
+          'Tanggal Perolehan': a.acquisition_date ? String(a.acquisition_date).slice(0, 10) : '',
+          'Ruangan': a.room || '',
+          'Stok Total': a.stock_total,
+          'Stok Tersedia': a.stock_available,
+          'Stok Dipinjam': a.stock_borrowed,
+          'Status': a.status || '',
+          'Kode QR': a.qr_code || ''
+        };
+      });
+      var ws = XLSX.utils.json_to_sheet(rows);
+      ws['!cols'] = [{ wch: 5 }, { wch: 14 }, { wch: 34 }, { wch: 24 }, { wch: 22 }, { wch: 12 }, { wch: 9 }, { wch: 16 }, { wch: 18 }, { wch: 10 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 11 }];
+      var wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Daftar Aset');
+      var today = new Date().toISOString().slice(0, 10);
+      XLSX.writeFile(wb, 'daftar-aset-sesdian-' + today + '.xlsx');
+      toast('Daftar aset diekspor (' + rows.length + ' barang)', 'success');
+    } catch (e) {
+      toast((e && e.message) || 'Gagal mengekspor daftar aset', 'error');
+    } finally {
+      if (btn) { btn.disabled = false; btn.innerHTML = orig; }
+    }
+  }
+
+  window.SESDIAN_IMPORT = { open: open, exportAll: exportAll };
 })();

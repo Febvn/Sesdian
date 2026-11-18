@@ -12,7 +12,7 @@
       rel="stylesheet"
     />
     <script>(function(){try{var d=document.documentElement;if(localStorage.getItem('sesdian_theme')==='dark')d.setAttribute('data-theme','dark');var ts=localStorage.getItem('sesdian_textsize');if(ts==='small'||ts==='large')d.setAttribute('data-textsize',ts);if(localStorage.getItem('sesdian_rail')==='1')d.classList.add('sesd-rail-pref');}catch(e){}})();</script>
-    <link rel="stylesheet" href="assets/app.css?v=60" />
+    <link rel="stylesheet" href="assets/app.css?v=61" />
     <link rel="stylesheet" href="assets/preloader.css?v=57" />
     <style>
       @media (max-width: 640px) {
@@ -763,9 +763,6 @@
                     <span class="sesd-loading-inline"></span>
                   </p>
                 </div>
-                <button data-modal-open="ajukan" class="sesd-btn sesd-btn-lg sesd-btn-success">
-                  Ajukan Pinjam
-                </button>
               </div>
               <div class="animate-fade-up delay-1" style="margin-bottom: 1.25rem">
                 <div class="sesd-segfilter" role="tablist" aria-label="Filter status">
@@ -890,6 +887,19 @@
                           letter-spacing: 0.5px;
                         "
                       >
+                        Alasan
+                      </th>
+                      <th
+                        style="
+                          padding: 0.875rem 1rem;
+                          text-align: left;
+                          font-size: 0.75rem;
+                          font-weight: 700;
+                          color: var(--text-muted);
+                          text-transform: uppercase;
+                          letter-spacing: 0.5px;
+                        "
+                      >
                         Stat
                       </th>
                       <th
@@ -917,6 +927,20 @@
                         "
                       >
                         Tgl Ajuan
+                      </th>
+                      <th
+                        data-aksi-th
+                        style="
+                          padding: 0.875rem 1rem;
+                          text-align: left;
+                          font-size: 0.75rem;
+                          font-weight: 700;
+                          color: var(--text-muted);
+                          text-transform: uppercase;
+                          letter-spacing: 0.5px;
+                        "
+                      >
+                        Aksi
                       </th>
                     </tr>
                   </thead>
@@ -965,6 +989,17 @@
                           overflow: hidden;
                           text-overflow: ellipsis;
                           white-space: nowrap;
+                        "
+                      >
+                        -
+                      </td>
+                      <td
+                        data-bind="notes"
+                        style="
+                          padding: 0.875rem 1rem;
+                          font-size: 0.82rem;
+                          color: var(--text-muted);
+                          max-width: 200px;
                         "
                       >
                         -
@@ -1025,249 +1060,11 @@
         </main>
       </div>
     </div>
-    <div
-      data-modal="ajukan"
-      class="animate-fade-in"
-      style="
-        position: fixed;
-        inset: 0px;
-        background: rgba(15, 23, 42, 0.7);
-        display: none;
-        align-items: center;
-        justify-content: center;
-        z-index: 1000;
-        backdrop-filter: blur(6px);
-      "
-    >
-      <div
-        class="animate-bounce-in"
-        style="
-          background: rgb(255, 255, 255);
-          border-radius: 20px;
-          padding: 2rem;
-          width: 520px;
-          max-width: calc(100vw - 2rem);
-          max-height: 90vh;
-          overflow-y: auto;
-          box-shadow: rgba(0, 0, 0, 0.3) 0px 24px 64px;
-        "
-      >
-        <div
-          style="
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.5rem;
-          "
-        >
-          <div>
-            <h2 style="font-weight: 800; font-size: 1.25rem">
-              <span class="ic"
-                ><svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  width="1em"
-                  height="1em"
-                  aria-hidden="true"
-                >
-                  <path d="M3 12a9 9 0 0 1 15-6.7L21 8" />
-                  <path d="M21 3v5h-5" />
-                  <path d="M21 12a9 9 0 0 1-15 6.7L3 16" />
-                  <path d="M3 21v-5h5" /></svg
-              ></span>
-              Ajukan Peminjaman
-            </h2>
-            <p
-              style="
-                font-size: 0.8rem;
-                color: var(--text-muted);
-                margin-top: 2px;
-              "
-            >
-              Pilih aset yang ingin dipinjam
-            </p>
-          </div>
-          <button
-            data-modal-close="ajukan"
-            style="
-              background: rgb(241, 245, 249);
-              border-width: medium;
-              border-style: none;
-              border-color: currentcolor;
-              border-image: initial;
-              border-radius: 8px;
-              width: 32px;
-              height: 32px;
-              cursor: pointer;
-              font-size: 1rem;
-            "
-          >
-            <span class="ic"
-              ><svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                width="1em"
-                height="1em"
-                aria-hidden="true"
-              >
-                <path d="M6 6l12 12M18 6 6 18" /></svg
-            ></span>
-          </button>
-        </div>
-        <label
-          style="
-            font-size: 0.78rem;
-            font-weight: 700;
-            color: var(--text-muted);
-            display: block;
-            margin-bottom: 6px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-          "
-          >Pilih Aset</label
-        >
-        <div
-          data-asset-options
-          style="
-            border: 1.5px solid var(--border);
-            border-radius: 10px;
-            overflow: hidden auto;
-            margin-bottom: 1rem;
-            max-height: 220px;
-          "
-        >
-          <label
-            data-asset-template
-            style="
-              display: flex;
-              align-items: center;
-              gap: 12px;
-              padding: 0.75rem 1rem;
-              cursor: pointer;
-              border-bottom-width: medium;
-              border-bottom-style: none;
-              border-bottom-color: currentcolor;
-              background: transparent;
-              transition: background 0.15s;
-            "
-            ><input
-              data-asset-checkbox
-              type="checkbox"
-              style="width: 16px; height: 16px; accent-color: var(--primary)"
-            />
-            <div style="flex: 1 1 0%">
-              <div
-                data-bind="name"
-                style="font-weight: 600; font-size: 0.875rem"
-              >
-                Laptop
-              </div>
-              <div
-                style="
-                  font-size: 0.72rem;
-                  color: var(--text-muted);
-                  font-family: &quot;JetBrains Mono&quot;;
-                "
-              >
-                123 · Ruang Tata Usaha
-              </div>
-            </div>
-            <span
-              style="
-                font-size: 0.72rem;
-                background: rgb(220, 252, 231);
-                color: rgb(22, 101, 52);
-                padding: 0.15rem 0.5rem;
-                border-radius: 20px;
-                font-weight: 700;
-              "
-              >Tersedia</span
-            ></label
-          >
-        </div>
-        <label
-          style="
-            font-size: 0.78rem;
-            font-weight: 700;
-            color: var(--text-muted);
-            display: block;
-            margin-bottom: 6px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-          "
-          >Tanggal Kembali *</label
-        ><input
-          data-field="date"
-          min="2026-06-19"
-          type="date"
-          value=""
-          style="
-            width: 100%;
-            padding: 0.65rem 0.875rem;
-            border-radius: 10px;
-            border: 1.5px solid var(--border);
-            font-size: 0.9rem;
-            outline: none;
-            box-sizing: border-box;
-            margin-bottom: 0.75rem;
-          "
-        /><label
-          style="
-            font-size: 0.78rem;
-            font-weight: 700;
-            color: var(--text-muted);
-            display: block;
-            margin-bottom: 6px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-          "
-          >Catatan (opsional)</label
-        ><textarea
-          data-field="notes"
-          placeholder="Keperluan peminjaman..."
-          style="
-            width: 100%;
-            padding: 0.65rem 0.875rem;
-            border-radius: 10px;
-            border: 1.5px solid var(--border);
-            font-size: 0.9rem;
-            outline: none;
-            box-sizing: border-box;
-            height: 80px;
-            resize: vertical;
-            margin-bottom: 1.25rem;
-            font-family: inherit;
-          "
-        ></textarea>
-        <div style="display: flex; gap: 10px">
-          <button
-            data-action="submit-pinjam"
-            class="sesd-btn sesd-btn-success"
-            style="flex: 1 1 0%"
-          >
-            Ajukan</button
-          ><button
-            data-modal-close="ajukan"
-            class="sesd-btn sesd-btn-ghost"
-          >
-            Batal
-          </button>
-        </div>
-      </div>
-    </div>
     <script defer src="assets/config.js?v=57"></script>
-    <script defer src="assets/db.js?v=62"></script>
-    <script defer src="assets/icons.js?v=59"></script>
+    <script defer src="assets/db.js?v=61"></script>
+    <script defer src="assets/icons.js?v=58"></script>
     <script defer src="assets/preloader.js?v=57"></script>
-    <script defer src="assets/app.js?v=68"></script>
+    <script defer src="assets/app.js?v=67"></script>
       <script defer src="assets/theme.js?v=57"></script>
   </body>
 </html>

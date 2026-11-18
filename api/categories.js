@@ -1,7 +1,6 @@
 import { getSql } from './_db.js';
 import { requireAuth, requireAdmin, send, readJson } from './_auth.js';
 import { ensureSchema } from './_schema.js';
-import { logAudit } from './_audit.js';
 
 export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return send(res, 204, {});
@@ -17,37 +16,34 @@ export default async function handler(req, res) {
   }
 
   if (req.method === 'POST') {
-    const auth = requireAdmin(req, res); if (!auth) return;
+    if (!requireAdmin(req, res)) return;
     try {
       const b = await readJson(req);
       if (!b.name) return send(res, 400, { error: 'Nama kategori wajib diisi' });
       const rows = await sql`insert into categories (name, icon) values (${b.name}, ${b.icon || '📦'}) returning id`;
-      await logAudit(sql, auth, 'create', 'category', rows[0].id, { name: b.name });
       return send(res, 200, { id: rows[0].id });
     } catch (e) { return send(res, 500, { error: e.message }); }
   }
 
   if (req.method === 'PATCH') {
-    const auth = requireAdmin(req, res); if (!auth) return;
+    if (!requireAdmin(req, res)) return;
     try {
       const b = await readJson(req);
       const id = parseInt(b.id, 10);
       if (!id) return send(res, 400, { error: 'ID tidak valid' });
-      const rows = await sql`update categories set name = coalesce(${b.name}, name), icon = coalesce(${b.icon}, icon) where id = ${id} returning id, name`;
+      const rows = await sql`update categories set name = coalesce(${b.name}, name), icon = coalesce(${b.icon}, icon) where id = ${id} returning id`;
       if (!rows.length) return send(res, 404, { error: 'Kategori tidak ditemukan' });
-      await logAudit(sql, auth, 'update', 'category', id, { name: rows[0].name });
       return send(res, 200, { ok: true });
     } catch (e) { return send(res, 500, { error: e.message }); }
   }
 
   if (req.method === 'DELETE') {
-    const auth = requireAdmin(req, res); if (!auth) return;
+    if (!requireAdmin(req, res)) return;
     try {
       const b = await readJson(req);
       const id = parseInt(b.id || (req.query && req.query.id), 10);
       if (!id) return send(res, 400, { error: 'ID tidak valid' });
-      const gone = await sql`delete from categories where id = ${id} returning name`;
-      if (gone.length) await logAudit(sql, auth, 'delete', 'category', id, { name: gone[0].name });
+      await sql`delete from categories where id = ${id}`;
       return send(res, 200, { ok: true });
     } catch (e) { return send(res, 500, { error: e.message }); }
   }

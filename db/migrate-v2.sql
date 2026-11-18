@@ -12,17 +12,10 @@ ALTER TABLE assets ADD COLUMN IF NOT EXISTS updated_at timestamptz DEFAULT now()
 ALTER TABLE borrowings ADD COLUMN IF NOT EXISTS updated_at timestamptz DEFAULT now();
 ALTER TABLE users ADD COLUMN IF NOT EXISTS updated_at timestamptz DEFAULT now();
 
--- 3. Audit Log table (DB-03)
-CREATE TABLE IF NOT EXISTS audit_log (
-  id         bigserial PRIMARY KEY,
-  user_id    bigint REFERENCES users(id),
-  action     text NOT NULL,
-  entity     text NOT NULL,
-  entity_id  bigint,
-  detail     jsonb,
-  created_at timestamptz DEFAULT now()
-);
-CREATE INDEX IF NOT EXISTS idx_audit_entity ON audit_log(entity, entity_id);
+-- 3. (dihapus) Tabel audit_log tidak pernah dipakai kode aplikasi dan tidak
+--    pernah dibuat di database produksi. DROP di bawah sekadar berjaga-jaga
+--    bila tabelnya pernah dibuat manual dari berkas versi lama.
+DROP TABLE IF EXISTS audit_log;
 
 -- 4. Constraint stock >= 0 (DB-04)
 ALTER TABLE assets DROP CONSTRAINT IF EXISTS chk_stock_available;

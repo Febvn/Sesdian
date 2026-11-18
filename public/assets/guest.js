@@ -16,6 +16,8 @@
   }
   var ic = function (n) { return window.sesdIcon ? window.sesdIcon(n) : ''; };
   var page = function () { return document.body.getAttribute('data-page'); };
+  var BULAN_ID = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+  function fmtTanggal(v) { if (!v) return '-'; var p = String(v).slice(0, 10).split('-'); if (p.length !== 3) return String(v); return parseInt(p[2], 10) + ' ' + BULAN_ID[parseInt(p[1], 10) - 1] + ' ' + p[0]; }
   var PLACEHOLDER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='130'%3E%3Crect width='200' height='130' fill='%23e0e7ff'/%3E%3Cg fill='none' stroke='%236366f1' stroke-width='4'%3E%3Cpath d='M100 42 72 56v34l28 14 28-14V56z'/%3E%3Cpath d='M72 56l28 14 28-14M100 70v34'/%3E%3C/g%3E%3C/svg%3E";
 
   function toast(msg, type) {
@@ -128,25 +130,18 @@
         setTimeout(function() { numEl.style.opacity = '1'; }, i * 100);
       }
     });
-    // #10 — room catalog: persistent ?room_code=<code> / ?room_id=<id> / legacy ?room=<name>
-    var roomCodeFilter = qs('room_code');
-    var roomIdFilter = qs('room_id');
+    // Room catalog: ?room=<name> shows only that room's items (QR target).
+    // Distinct from the public catalog: no info box, a room banner instead
+    // (both toggled before first paint by the head script via html.sesd-room).
     var roomFilter = qs('room');
-    if (roomCodeFilter) {
-      var rObj = (rooms || []).filter(function (r) { return (r.code || '').toLowerCase() === roomCodeFilter.toLowerCase(); })[0];
-      if (rObj) {
-        assets = assets.filter(function (a) { return (a.room || '').toLowerCase() === (rObj.name || '').toLowerCase() || a.room_id == rObj.id; });
-        document.title = 'SESDIAN - Ruangan ' + (rObj.name || rObj.code);
-      }
-    } else if (roomIdFilter) {
-      var rObj2 = (rooms || []).filter(function (r) { return String(r.id) === String(roomIdFilter); })[0];
-      if (rObj2) {
-        assets = assets.filter(function (a) { return a.room_id == rObj2.id || (a.room || '').toLowerCase() === (rObj2.name || '').toLowerCase(); });
-        document.title = 'SESDIAN - Ruangan ' + (rObj2.name || rObj2.code);
-      }
-    } else if (roomFilter) {
+    if (roomFilter) {
       assets = assets.filter(function (a) { return (a.room || '').toLowerCase() === roomFilter.toLowerCase(); });
       document.title = 'SESDIAN - Ruangan ' + roomFilter;
+      var nameEl = $('[data-room-name]'); if (nameEl) nameEl.textContent = roomFilter;
+      var subEl = $('[data-room-sub]');
+      if (subEl) subEl.textContent = assets.length
+        ? (assets.length + ' barang tercatat berada di ruangan ini')
+        : 'Belum ada barang yang tercatat di ruangan ini';
     }
     var groups = groupCatalog(assets);
     var state = { q: '', cat: 'all' };
@@ -201,7 +196,7 @@
     root.appendChild(el('p', { style: 'color:var(--text-muted)' }, a.brand || ''));
 
     var grid = el('div', { style: 'display:grid;grid-template-columns:1fr 1fr;gap:0.6rem;margin:1rem 0' });
-    [['Kategori', a.category], ['Ruangan', a.room], ['Tahun', a.year], ['Kondisi', a.condition], ['Jenis', a.type], ['Tipe', a.asset_type]].forEach(function (kv) {
+    [['Jenis BMN', a.category], ['Ruangan', a.room], ['Tanggal Perolehan', fmtTanggal(a.acquisition_date)], ['Kondisi', a.condition], ['Jenis', a.type], ['Tipe', a.asset_type]].forEach(function (kv) {
       var box = el('div', { style: 'background:var(--bg);border-radius:10px;padding:0.6rem 0.75rem' });
       box.appendChild(el('div', { style: 'font-size:0.66rem;color:var(--text-muted);text-transform:uppercase;font-weight:700;letter-spacing:.5px' }, kv[0]));
       box.appendChild(el('div', { style: 'font-size:0.9rem;font-weight:600;margin-top:2px' }, (kv[1] != null && kv[1] !== '') ? String(kv[1]) : '-'));

@@ -1,7 +1,6 @@
 import { getSql } from './_db.js';
 import { requireAdmin, send, readJson } from './_auth.js';
 import { ensureSchema } from './_schema.js';
-import { logAudit } from './_audit.js';
 
 const ROLES = ['user', 'admin', 'verifikator'];
 
@@ -48,7 +47,6 @@ export default async function handler(req, res) {
         insert into users (nip, name, phone, role, password_hash)
         values (${nip}, '', ${phone || null}, ${role}, '')
         returning id, nip, name, role, false as claimed`;
-      await logAudit(sql, admin, 'create', 'user', rows[0].id, { nip: nip, role: role });
       return send(res, 200, { user: rows[0] });
     } catch (e) { return send(res, 500, { error: e.message }); }
   }
@@ -66,11 +64,13 @@ export default async function handler(req, res) {
       // riwayat peminjaman tetap tertaut pada akun ini.
       if (b.action === 'deactivate') {
         if (String(uid) === String(admin.sub)) return send(res, 400, { error: 'Tidak dapat menonaktifkan akun sendiri' });
-        const rows = await sql`update users set name = '', password_hash = '', avatar = null
+        // role ikut direset ke 'user': akun nonaktif bisa diklaim ulang siapa pun
+        // yang tahu NIP-nya, jadi peran admin/verifikator tidak boleh menempel di
+        // akun yang menunggu klaim. Admin dapat menaikkan perannya lagi setelahnya.
+        const rows = await sql`update users set name = '', password_hash = '', avatar = null, role = 'user'
           where id = ${uid}
           returning id, nip, name, coalesce(phone,'') as phone, role, created_at, false as claimed`;
         if (!rows.length) return send(res, 404, { error: 'User tidak ditemukan' });
-        await logAudit(sql, admin, 'deactivate', 'user', uid, { nip: rows[0].nip });
         return send(res, 200, { user: rows[0] });
       }
 
@@ -78,10 +78,8 @@ export default async function handler(req, res) {
       const role = b.role;
       if (ROLES.indexOf(role) === -1) return send(res, 400, { error: 'Data tidak valid' });
       if (String(uid) === String(admin.sub) && role !== 'admin') return send(res, 400, { error: 'Tidak dapat menurunkan akun sendiri' });
-      const before = await sql`select role from users where id = ${uid}`;
       const rows = await sql`update users set role = ${role} where id = ${uid} returning id, nip, name, role`;
       if (!rows.length) return send(res, 404, { error: 'User tidak ditemukan' });
-      await logAudit(sql, admin, 'role', 'user', uid, { nip: rows[0].nip, name: rows[0].name, from: before.length ? before[0].role : '', to: role });
       return send(res, 200, { user: rows[0] });
     } catch (e) { return send(res, 500, { error: e.message }); }
   }
@@ -102,8 +100,7 @@ export default async function handler(req, res) {
       const urow = await sql`select name from users where id = ${uid}`;
       const uname = urow.length ? (urow[0].name || '') : '';
       if (uname) await sql`update borrowings set borrower_name = ${uname} where user_id = ${uid} and (borrower_name is null or borrower_name = '')`;
-      const gone = await sql`delete from users where id = ${uid} returning nip`;
-      if (gone.length) await logAudit(sql, admin, 'delete', 'user', uid, { nip: gone[0].nip, name: uname });
+      await sql`delete from users where id = ${uid}`;
       return send(res, 200, { ok: true });
     } catch (e) { return send(res, 500, { error: e.message }); }
   }

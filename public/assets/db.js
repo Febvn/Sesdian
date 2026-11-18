@@ -46,7 +46,6 @@
     borrowings: [{ id: 1, asset_id: 1, borrower_name: 'Adi Septriansyah', qty: 1, status: 'pending', due_date: '2026-06-18', created_at: '2026-06-15T08:00:00Z' }],
     users: [{ id: 1, nip: '123456789012345678', name: 'Adi Septriansyah', role: 'admin' }, { id: 2, nip: '987654321098765432', name: 'Budi Santoso', role: 'user' }],
     settings: { wa_number: '' },
-    audit: [],
   };
   var catName = function (id) { var c = DEMO.categories.filter(function (x) { return x.id == id; })[0]; return c ? c.name : ''; };
   var roomName = function (id) { var r = DEMO.rooms.filter(function (x) { return x.id == id; })[0]; return r ? r.name : ''; };
@@ -107,7 +106,7 @@
   // scripts/generate-asset-images.mjs and the SQL key in the API joins.
   // /assets/* is served immutable for 1 year (vercel.json), so bump ASSET_IMG_V
   // whenever the webp files are regenerated or browsers will keep the old ones.
-  var ASSET_IMG_V = '4';
+  var ASSET_IMG_V = '5';
   function slugAsset(s) { return String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''); }
   // image identity = (nama, merk): units sharing name+brand share ONE image
   function assetImgKey(name, brand) { return slugAsset(String(name || '') + ' ' + String(brand || '')); }
@@ -147,22 +146,23 @@
     var d = b.created_at ? new Date(b.created_at) : null;
     return {
       id: b.id, asset_name: b.asset_name || '-', asset_code: b.asset_code || '',
-      asset_qr_code: b.asset_qr_code || '',
-      borrower: b.borrower_name || '-', borrower_avatar: b.borrower_avatar || '',
-      qty: b.qty, status: b.status,
+      borrower: b.borrower_name || '-', borrower_avatar: b.borrower_avatar || '', qty: b.qty, status: b.status,
+      notes: b.notes || '',
       due_date: b.due_date ? String(b.due_date).slice(0, 10) : '',
       request_date: d ? (d.getDate() + '/' + (d.getMonth() + 1) + '/' + d.getFullYear()) : '',
       // raw timestamps for the notification bell (event time per status)
       created_at: b.created_at || null, approved_at: b.approved_at || null,
       verified_at: b.verified_at || null, returned_at: b.returned_at || null,
-      is_overdue: !!b.is_overdue,
     };
   }
-
   async function borrowings() {
-    if (demo) return P(DEMO.borrowings.slice().map(fmtBorrow));
-    var res = await req('borrowings');
-    return (res.borrowings || []).map(fmtBorrow);
+    if (demo) {
+      return P(DEMO.borrowings.slice().sort(function (a, b) { return b.id - a.id; }).map(function (b) {
+        var a = DEMO.assets.filter(function (x) { return x.id === b.asset_id; })[0] || {};
+        return fmtBorrow(Object.assign({}, b, { asset_name: a.name, asset_code: a.code }));
+      }));
+    }
+    return (await req('borrowings')).borrowings.map(fmtBorrow);
   }
 
   async function dashboard() {
@@ -182,34 +182,14 @@
 
   async function requestBorrowing(o) {
     if (demo) {
-      var a = (DEMO.assets || []).filter(function (x) { return x.id == o.assetId; })[0];
-      var assetName = a ? a.name : 'Aset';
-      var assetCode = a ? a.code : '';
-      var user = (typeof auth !== 'undefined' && auth.currentUser && auth.currentUser()) || {};
-      var userName = user.name || 'Pengguna Demo';
-      var qty = Math.max(1, parseInt(o.qty || 1, 10));
-      var b = {
-        id: ++DEMO.seq,
-        asset_id: o.assetId,
-        asset_name: assetName,
-        asset_code: assetCode,
-        asset_qr_code: a ? (a.qr_code || '') : '',
-        borrower_name: userName,
-        qty: qty,
-        status: 'pending',
-        due_date: o.dueDate || null,
-        notes: o.notes || null,
-        created_at: new Date().toISOString()
-      };
-      if (a && a.stock_available >= qty) {
-        a.stock_available -= qty;
-        a.stock_borrowed = (a.stock_borrowed || 0) + qty;
-      }
-      DEMO.borrowings.unshift(b);
-      return P(b);
+      var q = Math.max(1, parseInt(o.qty || 1, 10));
+      var a = DEMO.assets.filter(function (x) { return x.id == o.assetId; })[0];
+      if (!a || a.stock_available < q) return Promise.reject(new Error('Stok tidak mencukupi'));
+      a.stock_available -= q; a.stock_borrowed += q;
+      var b = { id: ++DEMO.seq, asset_id: a.id, borrower_name: 'Pengguna Demo', qty: q, status: 'pending', due_date: o.dueDate || null, notes: o.notes || null, created_at: new Date(2026, 5, 18).toISOString() };
+      DEMO.borrowings.push(b); return P(b);
     }
-    var res = await req('borrowings', { method: 'POST', body: o });
-    return res.borrowing;
+    return (await req('borrowings', { method: 'POST', body: { assetId: o.assetId, qty: o.qty || 1, dueDate: o.dueDate || null, notes: o.notes || null } })).borrowing;
   }
 
   /* ====================== public catalog / detail (guest) ====================== */
@@ -261,6 +241,7 @@
           due_date: b.due_date,
           created_at: b.created_at,
           returned_at: b.returned_at || null,
+          notes: b.notes || '',
           asset_name: b.asset_name,
           asset_code: b.asset_code,
           admin_name: b.status === 'approved' || b.status === 'borrowed' || b.status === 'returned' ? 'Admin Demo' : '',
@@ -302,7 +283,7 @@
   // nonaktifkan: NIP tetap, nama & password direset agar pemilik NIP mengaktifkan
   // ulang seperti akun baru; baris akun (dan riwayat peminjamannya) tidak dihapus.
   async function deactivateUser(id) {
-    if (demo) { var u = DEMO.users.filter(function (x) { return x.id == id; })[0]; if (u) { u.name = ''; u.claimed = false; } return P(u); }
+    if (demo) { var u = DEMO.users.filter(function (x) { return x.id == id; })[0]; if (u) { u.name = ''; u.claimed = false; u.role = 'user'; } return P(u); }
     return (await req('users', { method: 'PATCH', body: { id: id, action: 'deactivate' } })).user;
   }
   /* ====================== self-service profile ====================== */
@@ -347,20 +328,22 @@
   async function deleteRoom(id) { if (demo) { DEMO.rooms = DEMO.rooms.filter(function (x) { return x.id != id; }); return P({ ok: true }); } return req('rooms', { method: 'DELETE', body: { id: id } }); }
 
   /* ====================== admin: borrowings status ====================== */
-  async function updateBorrowingStatus(id, status, extra) {
+  async function updateBorrowingStatus(id, status) {
     if (demo) {
-      var b = (DEMO.borrowings || []).filter(function (x) { return x.id == id; })[0];
-      var now = new Date().toISOString();
+      var b = DEMO.borrowings.filter(function (x) { return x.id == id; })[0];
       if (b) {
+        var RES = ['pending', 'approved', 'verified', 'borrowed', 'return_pending'];
+        var wasOut = RES.indexOf(b.status) !== -1, nowOut = RES.indexOf(status) !== -1;
+        var a = DEMO.assets.filter(function (x) { return x.id === b.asset_id; })[0];
+        if (a) {
+          if (wasOut && !nowOut) { a.stock_available += b.qty; a.stock_borrowed = Math.max(0, a.stock_borrowed - b.qty); }
+          else if (!wasOut && nowOut) { if (a.stock_available < b.qty) return Promise.reject(new Error('Stok tidak mencukupi')); a.stock_available -= b.qty; a.stock_borrowed += b.qty; }
+        }
         b.status = status;
-        if (status === 'approved') b.approved_at = now;
-        if (status === 'borrowed' || status === 'verified') b.verified_at = now;
-        if (status === 'returned') b.returned_at = now;
       }
-      return P({ ok: true, status: status });
+      return P({ ok: true });
     }
-    var body = Object.assign({ id: id, status: status }, extra || {});
-    return await req('borrowings', { method: 'PATCH', body: body });
+    return req('borrowings', { method: 'PATCH', body: { id: id, status: status } });
   }
 
   /* ====================== settings (WhatsApp) ====================== */
@@ -370,55 +353,6 @@
   async function notify(borrowingId, kind) {
     if (demo) { return P({ auto: false, wa: kind === 'return-request' ? DEMO.settings.wa_number : '', text: 'Notifikasi demo (' + kind + ')' }); }
     return req('notify', { method: 'POST', body: { borrowingId: borrowingId, kind: kind } });
-  }
-  // Tugas terjadwal (SES-4.3.2): run the overdue-reminder job now (staff only).
-  // Same job Vercel Cron runs daily; reminders are deduplicated per day server-side.
-  async function checkScheduledTasks() {
-    if (demo) {
-      var n = DEMO.borrowings.filter(function (b) { return ['borrowed', 'verified', 'return_pending', 'approved'].indexOf(b.status) !== -1 && b.due_date && b.due_date < new Date().toISOString().slice(0, 10); }).length;
-      return P({ ok: true, trigger: 'manual', auto: false, count: n, sent: 0, no_phone: n, already_reminded: 0 });
-    }
-    return req('notify', { method: 'POST', body: { action: 'cron' } });
-  }
-
-  /* ====================== inventarisasi ruangan (SES-4.3.1) ====================== */
-  // items: [{ asset_id, found, condition }] — one physical stock-take of a room
-  async function saveInventory(roomId, items) {
-    if (demo) {
-      var room = DEMO.rooms.filter(function (r) { return r.id == roomId; })[0] || {};
-      var found = 0, report = [];
-      items.forEach(function (it) {
-        var a = DEMO.assets.filter(function (x) { return x.id == it.asset_id; })[0]; if (!a) return;
-        if (a.room_id != roomId && !it.found) return;
-        var from = a.room_id != roomId ? roomName(a.room_id) : undefined;
-        if (it.found) { found++; a.room_id = room.id; }
-        if (it.condition) a.condition = it.condition;
-        report.push({ id: a.id, code: a.code, name: a.name, found: !!it.found, condition: a.condition, moved_from: from });
-      });
-      demoAudit('inventory', 'room', room.id, { room: room.name, room_code: room.code, total: report.length, found: found, missing: report.length - found, items: report });
-      return P({ ok: true, total: report.length, found: found, missing: report.length - found });
-    }
-    invalidateAssetsCache();
-    return req('rooms', { method: 'POST', body: { action: 'inventory', room_id: roomId, items: items } });
-  }
-
-  /* ====================== jejak audit (SES-4.3.3) ====================== */
-  function demoAudit(action, entity, entityId, detail) {
-    var p = currentUserRaw() || {};
-    DEMO.audit.unshift({ id: ++DEMO.seq, created_at: new Date().toISOString(), action: action, entity: entity, entity_id: entityId, detail: detail, user_name: p.name || 'Pengguna Demo', user_role: p.role || 'admin' });
-  }
-  // params: { start, end, entity, action, entity_id, limit, all }
-  async function auditTrail(params) {
-    params = params || {};
-    if (demo) {
-      var rows = DEMO.audit.filter(function (l) {
-        return (!params.entity || l.entity === params.entity) && (!params.action || l.action === params.action) &&
-          (!params.entity_id || String(l.entity_id) === String(params.entity_id));
-      }).slice(0, parseInt(params.limit, 10) || 1000);
-      return P({ start: params.start || null, end: params.end || null, total: rows.length, rows: rows });
-    }
-    var qs = Object.keys(params).filter(function (k) { return params[k]; }).map(function (k) { return k + '=' + encodeURIComponent(params[k]); }).join('&');
-    return req('dashboard?view=audit' + (qs ? ('&' + qs) : ''));
   }
 
   window.SESDIAN_DB = {
@@ -433,7 +367,5 @@
     createCategory: createCategory, updateCategory: updateCategory, deleteCategory: deleteCategory,
     createRoom: createRoom, updateRoom: updateRoom, deleteRoom: deleteRoom,
     updateBorrowingStatus: updateBorrowingStatus,
-    checkScheduledTasks: checkScheduledTasks,
-    saveInventory: saveInventory, auditTrail: auditTrail,
   };
 })();

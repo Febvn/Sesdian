@@ -46,7 +46,6 @@
     returned: { label: 'Kembali', bg: '#e2f6e7', fg: '#127a2b' },
     rejected: { label: 'Ditolak', bg: '#fbe4e4', fg: '#a02020' },
     cancelled: { label: 'Dibatalkan', bg: '#eceff3', fg: '#5b6472' },
-    expired: { label: 'Kedaluwarsa', bg: '#fee2e2', fg: '#991b1b' },
   };
 
   /* ---------------- toast ---------------- */
@@ -253,7 +252,7 @@
       e.textContent = user.role || 'user';
       setTimeout(function() { e.style.opacity = '1'; }, 250);
     });
-    // #7 — show the NIP consistently. Any opt-in [data-user-nip] element gets it,
+    // Show the NIP consistently. Any opt-in [data-user-nip] element gets it,
     // and the sidebar account card's sub-line surfaces the NIP so the left-sidebar
     // identity matches the top-right header (both carry the NIP).
     var nipText = user.nip ? ('NIP ' + user.nip) : '';
@@ -386,44 +385,44 @@
           }
         });
         renderList('[data-recent-template]', d.recent);
-        wireRecentToolbar();          // #11 — replace "Lihat Semua" with search + filter
+        wireRecentToolbar();          // Replace "Lihat Semua" with search + filter
       } else if (p === 'dataaset') {
         var assets = await DB.assets();
         var groups = groupAssets(assets);                        // collapse identical items into tidy cards
-        renderAssetGrid(groups);                                 // clean Notion cards (#6 empty chips, #7 stock X/Y, #8 status badge)
+        renderAssetGrid(groups);                                 // clean Notion cards (empty chips, stock X/Y, status badge)
         var sum = function (k) { return assets.reduce(function (t, a) { return t + (a[k] || 0); }, 0); };
         var aStats = { total_assets: assets.length, total_stock: sum('stock_total'), stock_available: sum('stock_available'), stock_borrowed: sum('stock_borrowed'), maintenance: assets.filter(function (a) { return a.status === 'maintenance'; }).length };
         Object.keys(aStats).forEach(function (k) { var e = $('[data-stat="' + k + '"]'); if (e) e.textContent = aStats[k]; });
         var sub = $('[data-asset-subtitle]'); if (sub) sub.textContent = groups.length + ' jenis · ' + assets.length + ' unit · ' + aStats.total_stock + ' total stok';
       } else if (p === 'kategoriaset') {
         var cats = await DB.categories();
-        var catSub = $('[data-cat-subtitle]'); if (catSub) catSub.textContent = cats.length + ' kategori';
+        var catSub = $('[data-cat-subtitle]'); if (catSub) catSub.textContent = cats.length + ' jenis BMN';
         renderList('[data-template]', cats, function (n, r) { n.setAttribute('data-id', r.id); if (IS_ADMIN) enhanceSimpleCard(n, r, 'category'); });
       } else if (p === 'ruangan') {
         var roomsSub = $('[data-room-subtitle]');
         renderList('[data-template]', await DB.rooms().then(function (rs) { if (roomsSub) roomsSub.textContent = rs.length + ' ruangan terdaftar'; return rs; }), function (n, r) {
           n.setAttribute('data-id', r.id);
           n.style.cursor = 'pointer';
-          n.addEventListener('click', function (e) { if (e.target.closest('.sesd-admin-actions')) return; openRoomDetail(r); });   // #9 — view/edit room contents
+          n.addEventListener('click', function (e) { if (e.target.closest('.sesd-admin-actions')) return; openRoomDetail(r); });   // View/edit room contents
           if (IS_ADMIN) enhanceSimpleCard(n, r, 'room');
         });
       } else if (p === 'daftarpinjam') {
-        // #9 — full borrowing history (Riwayat). The API scopes rows per role:
+        // Full borrowing history (Riwayat). The API scopes rows per role:
         // a user sees only their own loans (so the page finally works for users);
         // admin/verifikator see everyone's and can search by borrower name.
         var allbs = await DB.borrowings();
         var bs = allbs;
         var bSub = $('[data-borrow-subtitle]'); if (bSub) bSub.textContent = allbs.length + ' total transaksi';
         ensureAksiHeader();
-        renderList('[data-template]', bs, function (n, r) { n.setAttribute('data-status', r.status); enhanceBorrowingRow(n, r); });
+        renderList('[data-template]', bs, function (n, r) {
+          n.setAttribute('data-status', r.status); enhanceBorrowingRow(n, r);
+          var nc = $('[data-bind="notes"]', n); if (nc && !r.notes) nc.textContent = '-';
+        });
         var counts = { all: allbs.length, pending: 0, approved: 0, rejected: 0, returned: 0 };
         allbs.forEach(function (b) { if (counts[b.status] != null) counts[b.status]++; });
         // "Semua" segment is default-active in the markup, so the FULL history shows
         // by default; just fill the per-status count badges.
         Object.keys(counts).forEach(function (k) { var e = $('[data-count="' + k + '"]'); if (e) e.textContent = counts[k]; });
-        if ($('[data-asset-template]')) {
-          renderList('[data-asset-template]', await DB.assets(), function (n, r) { var cb = $('[data-asset-checkbox]', n) || $('input[type="checkbox"]', n); if (cb) cb.value = String(r.id); });
-        }
       } else if (p === 'verifikasi') {
         var allb = await DB.borrowings();
         // Role-aware queue: the admin's verification work is verif 1 (pending) and
@@ -444,6 +443,7 @@
             wrap.appendChild(el('span', { style: 'font-weight:600;color:var(--text)' }, r.borrower || '-'));
             bc.appendChild(wrap);
           }
+          var nc = $('[data-bind="notes"]', n); if (nc && !r.notes) nc.textContent = '-';
         });
         var qc = $('[data-count="approved"]'); if (qc) qc.textContent = queue.length;
         var done = allb.filter(function (b) { return b.status === 'verified' || b.status === 'borrowed' || b.status === 'returned'; }).length;
@@ -566,7 +566,7 @@
     yes.addEventListener('click', async function () { yes.disabled = true; try { await onYes(); close(); } catch (e) { toast((e && e.message) || 'Gagal', 'error'); yes.disabled = false; } });
   }
 
-  // #8 — generic second-confirmation dialog ("apakah anda yakin? ya/tidak") used
+  // Generic second-confirmation dialog ("apakah anda yakin? ya/tidak") used
   // for every verification action (approve, verify, return, reject, ...).
   function confirmAction(opts, onYes) {
     // must be allowed ON TOP of another modal (e.g. the "Sedang Dipinjam" list
@@ -875,27 +875,29 @@
     }).catch(function () {});
     function field(labelText, control) { var w = el('div', { class: 'sesd-field' }); w.appendChild(el('label', {}, labelText)); w.appendChild(control); return w; }
 
-    var nameW = buildNameField(rec && rec.name, names, nameMap);          // #6 — autocomplete + status icon
+    var nameW = buildNameField(rec && rec.name, names, nameMap);          // Autocomplete + status icon
     m.appendChild(field('Nama Aset', nameW.wrap));
     var codeInput = el('input', { type: 'text', placeholder: 'Kode unik untuk barang ini' }); if (rec && rec.code) codeInput.value = rec.code;
     m.appendChild(field('Kode', codeInput));
-    var catDD = buildDropdown({                                           // #8 — styled category dropdown + add/delete
-      value: rec && rec.category_id, placeholder: 'Pilih kategori',
+    var catDD = buildDropdown({                                           // Styled category dropdown + add/delete
+      value: rec && rec.category_id, placeholder: 'Pilih jenis BMN',
       options: cats.map(function (c) { return { value: c.id, label: c.name }; }),
-      addPlaceholder: 'Nama kategori baru',
+      addPlaceholder: 'Nama jenis BMN baru',
       onAdd: function (name, done) {
-        if (cats.some(function (c) { return (c.name || '').trim().toLowerCase() === name.toLowerCase(); })) { toast('Kategori sudah ada', 'error'); done(); return; }
-        DB.createCategory({ name: name }).then(function (res) { var id = res && (res.id != null ? res.id : (res.category && res.category.id)); cats.push({ id: id, name: name }); toast('Kategori ditambahkan', 'success'); reloadData(); done({ value: id, label: name }); }).catch(function (e) { toast((e && e.message) || 'Gagal', 'error'); done(); });
+        if (cats.some(function (c) { return (c.name || '').trim().toLowerCase() === name.toLowerCase(); })) { toast('Jenis BMN sudah ada', 'error'); done(); return; }
+        DB.createCategory({ name: name }).then(function (res) { var id = res && (res.id != null ? res.id : (res.category && res.category.id)); cats.push({ id: id, name: name }); toast('Jenis BMN ditambahkan', 'success'); reloadData(); done({ value: id, label: name }); }).catch(function (e) { toast((e && e.message) || 'Gagal', 'error'); done(); });
       },
       onDelete: function (o, done) {
-        confirmAction({ title: 'Hapus Kategori', message: 'Hapus kategori "' + o.label + '"? Aset yang memakainya menjadi tanpa kategori.', variant: 'danger', confirmLabel: 'Ya, hapus' }, async function () {
-          await DB.deleteCategory(o.value); cats = cats.filter(function (c) { return c.id !== o.value; }); toast('Kategori dihapus', 'success'); reloadData(); done();
+        confirmAction({ title: 'Hapus Jenis BMN', message: 'Hapus jenis BMN "' + o.label + '"? Aset yang memakainya menjadi tanpa jenis BMN.', variant: 'danger', confirmLabel: 'Ya, hapus' }, async function () {
+          await DB.deleteCategory(o.value); cats = cats.filter(function (c) { return c.id !== o.value; }); toast('Jenis BMN dihapus', 'success'); reloadData(); done();
         });
       },
     });
-    m.appendChild(field('Kategori', catDD.wrap));
+    m.appendChild(field('Jenis BMN', catDD.wrap));
     var brandInput = el('input', { type: 'text' }); if (rec && rec.brand) brandInput.value = rec.brand;
     m.appendChild(field('Merek', brandInput));
+    var acqInput = el('input', { type: 'date', max: todayISO() }); if (rec && rec.acquisition_date) acqInput.value = String(rec.acquisition_date).slice(0, 10);
+    m.appendChild(field('Tanggal Perolehan', acqInput));
     var roomDD = buildDropdown({ value: rec && rec.room_id, placeholder: 'Tanpa ruangan', options: [{ value: '', label: 'Tanpa ruangan' }].concat(rms.map(function (r) { return { value: r.id, label: r.name }; })) });
     m.appendChild(field('Ruangan (opsional)', roomDD.wrap));
     var jenisDD = buildDropdown({ value: (rec && rec.type) || 'BMN', options: [{ value: 'BMN', label: 'BMN' }, { value: 'Non-BMN', label: 'Non-BMN' }] });
@@ -915,6 +917,7 @@
     save.addEventListener('click', async function () {
       var name = (nameW.get() || '').trim(), code = (codeInput.value || '').trim();
       if (!name || !code) { toast('Nama dan kode wajib diisi', 'error'); return; }
+      if (!acqInput.value) { toast('Tanggal perolehan wajib diisi', 'error'); acqInput.focus(); return; }
       save.disabled = true; save.textContent = 'Menyimpan...';
       await assetsReady;   // pastikan daftar aset siap untuk cek kode unik
       var codeK = code.toLowerCase();
@@ -926,6 +929,7 @@
           room_id: roomDD.get() ? parseInt(roomDD.get(), 10) : null,
           brand: (brandInput.value || '').trim() || null,
           type: jenisDD.get() || 'BMN', condition: kondisiDD.get() || 'Baik',
+          acquisition_date: acqInput.value || null,
           stock_total: 1, status: statusDD.get() || 'tersedia',
         };
         if (rec) await DB.updateAsset(rec.id, payload); else await DB.createAsset(payload);
@@ -937,38 +941,38 @@
       } catch (e) { toast((e && e.message) || 'Gagal menyimpan', 'error'); save.disabled = false; save.textContent = rec ? 'Simpan' : 'Tambah'; }
     });
   }
-  // #8 — manage categories (add / delete) without a dedicated page.
+  // Manage categories (add / delete) without a dedicated page.
   async function openCategoryManager() {
     if (modalOpen()) return;
     var cats = [];
     try { cats = await DB.categories(); } catch (e) {}
     var ov = overlay(), m = el('div', { class: 'sesd-modal', style: 'width:420px' });
-    m.appendChild(el('h3', {}, 'Kelola Kategori'));
-    m.appendChild(el('p', { style: 'color:var(--text-muted);font-size:.85rem;margin:-6px 0 12px' }, 'Tambah kategori baru atau hapus yang tidak dipakai.'));
+    m.appendChild(el('h3', {}, 'Kelola Jenis BMN'));
+    m.appendChild(el('p', { style: 'color:var(--text-muted);font-size:.85rem;margin:-6px 0 12px' }, 'Tambah jenis BMN baru atau hapus yang tidak dipakai.'));
     var list = el('div', { style: 'display:flex;flex-direction:column;gap:6px;max-height:300px;overflow:auto;margin-bottom:12px' });
     function row(c) {
       var r = el('div', { style: 'display:flex;align-items:center;gap:8px;padding:.5rem .7rem;border:1px solid var(--border);border-radius:10px' });
       r.appendChild(el('span', { style: 'flex:1;font-weight:600;font-size:.85rem' }, c.name));
       var del = el('button', { class: 'sesd-btn sesd-btn-sm sesd-btn-danger', html: ic('trash') });
       del.addEventListener('click', function () {
-        confirmAction({ title: 'Hapus Kategori', message: 'Hapus kategori "' + c.name + '"? Aset yang memakainya akan menjadi tanpa kategori.', variant: 'danger', confirmLabel: 'Ya, hapus' }, async function () {
-          await DB.deleteCategory(c.id); cats = cats.filter(function (x) { return x.id !== c.id; }); draw(); toast('Kategori dihapus', 'success'); reloadData();
+        confirmAction({ title: 'Hapus Jenis BMN', message: 'Hapus jenis BMN "' + c.name + '"? Aset yang memakainya akan menjadi tanpa jenis BMN.', variant: 'danger', confirmLabel: 'Ya, hapus' }, async function () {
+          await DB.deleteCategory(c.id); cats = cats.filter(function (x) { return x.id !== c.id; }); draw(); toast('Jenis BMN dihapus', 'success'); reloadData();
         });
       });
       r.appendChild(del); return r;
     }
-    function draw() { list.innerHTML = ''; if (!cats.length) list.appendChild(el('div', { style: 'color:var(--text-muted);font-size:.85rem;padding:.5rem' }, 'Belum ada kategori.')); else cats.forEach(function (c) { list.appendChild(row(c)); }); }
+    function draw() { list.innerHTML = ''; if (!cats.length) list.appendChild(el('div', { style: 'color:var(--text-muted);font-size:.85rem;padding:.5rem' }, 'Belum ada jenis BMN.')); else cats.forEach(function (c) { list.appendChild(row(c)); }); }
     draw(); m.appendChild(list);
     var addWrap = el('div', { style: 'display:flex;gap:8px' });
-    var addInput = el('input', { type: 'text', placeholder: 'Nama kategori baru', style: 'flex:1' });
+    var addInput = el('input', { type: 'text', placeholder: 'Nama jenis BMN baru', style: 'flex:1' });
     var addBtn = el('button', { class: 'sesd-btn sesd-btn-primary', html: ic('check') + ' Tambah' });
     function doAdd() {
       var name = addInput.value.trim(); if (!name) return;
-      if (cats.some(function (c) { return (c.name || '').trim().toLowerCase() === name.toLowerCase(); })) { toast('Kategori sudah ada', 'error'); return; }
+      if (cats.some(function (c) { return (c.name || '').trim().toLowerCase() === name.toLowerCase(); })) { toast('Jenis BMN sudah ada', 'error'); return; }
       withLoading(addBtn, async function () {
         var res = await DB.createCategory({ name: name });
         cats.push({ id: res && (res.id != null ? res.id : (res.category && res.category.id)), name: name });
-        addInput.value = ''; draw(); toast('Kategori ditambahkan', 'success'); reloadData();
+        addInput.value = ''; draw(); toast('Jenis BMN ditambahkan', 'success'); reloadData();
       });
     }
     addBtn.addEventListener('click', doAdd);
@@ -1006,7 +1010,7 @@
     m.appendChild(el('h3', { style: 'font-size:1.3rem;font-weight:800;margin:2px 0' }, r.name || ''));
     m.appendChild(el('p', { style: 'color:var(--text-muted);font-size:.85rem;margin-bottom:1rem' }, r.brand || ''));
     var grid = el('div', { style: 'display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-bottom:1rem' });
-    [['Kategori', r.category], ['Ruangan', r.room], ['Tahun', r.year], ['Kondisi', r.condition], ['Jenis', r.type], ['Tipe', r.asset_type]].forEach(function (kv) {
+    [['Jenis BMN', r.category], ['Ruangan', r.room], ['Tanggal Perolehan', fmtTanggal(r.acquisition_date)], ['Kondisi', r.condition], ['Jenis', r.type], ['Tipe', r.asset_type]].forEach(function (kv) {
       var box = el('div', { style: 'background:var(--bg);border-radius:10px;padding:.6rem .75rem' });
       box.appendChild(el('div', { style: 'font-size:.66rem;color:var(--text-muted);text-transform:uppercase;font-weight:700;letter-spacing:.5px' }, kv[0]));
       box.appendChild(el('div', { style: 'font-size:.85rem;font-weight:600;margin-top:2px' }, (kv[1] != null && kv[1] !== '') ? String(kv[1]) : '-'));
@@ -1133,7 +1137,7 @@
       line1.appendChild(el('span', { style: 'font-family:"JetBrains Mono",monospace;font-size:.75rem;font-weight:700' }, u.code || '-'));
       if (u.brand) line1.appendChild(el('span', { style: 'font-size:.78rem;font-weight:600;color:var(--text)' }, u.brand));
       info.appendChild(line1);
-      info.appendChild(el('div', { style: 'font-size:.7rem;color:var(--text-muted)' }, (u.condition || 'Baik') + ' · ' + (isMaint ? 'Maintenance' : (avail ? 'Tersedia' : 'Dipinjam')) + (u.qr_code ? (' · ' + u.qr_code) : '')));
+      info.appendChild(el('div', { style: 'font-size:.7rem;color:var(--text-muted)' }, (u.condition || 'Baik') + ' · ' + (isMaint ? 'Maintenance' : (avail ? 'Tersedia' : 'Dipinjam')) + (u.qr_code ? (' · ' + u.qr_code) : '') + (u.acquisition_date ? (' · diperoleh ' + fmtTanggal(u.acquisition_date)) : '')));
       row.appendChild(info);
       var qrBtn = el('button', { class: 'sesd-btn sesd-btn-sm sesd-btn-ghost', html: ic('tag') + ' QR' });
       qrBtn.addEventListener('click', function (e) { e.stopPropagation(); if (window.SESDIAN_QR) { ov.remove(); window.SESDIAN_QR.showFor(u); } else { toast('Modul QR belum siap', 'error'); } });
@@ -1152,14 +1156,19 @@
     dateWrap.appendChild(el('label', { style: 'font-size:.72rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px' }, 'Tanggal Jatuh Tempo Kembali (wajib)'));
     var dateInput = el('input', { type: 'date', value: '', min: todayISO(), style: 'width:100%;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:10px;font-size:.875rem;outline:none;box-sizing:border-box' });
     dateWrap.appendChild(dateInput); m.appendChild(dateWrap);
+    var reasonWrap = el('div', { style: 'margin-top:.85rem' });
+    reasonWrap.appendChild(el('label', { style: 'font-size:.72rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px' }, 'Alasan Peminjaman (opsional)'));
+    var reasonInput = el('textarea', { placeholder: 'Contoh: dipakai untuk rapat koordinasi tanggal 15', style: 'width:100%;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:10px;font-size:.875rem;outline:none;box-sizing:border-box;height:64px;resize:vertical;font-family:inherit' });
+    reasonWrap.appendChild(reasonInput); m.appendChild(reasonWrap);
     var foot = el('div', { style: 'display:flex;gap:8px;margin-top:1rem' });
     ajukan.addEventListener('click', async function () {
       var ids = Object.keys(selected);
       if (!ids.length) { toast('Pilih unit yang ingin dipinjam', 'error'); return; }
       if (!dateInput.value) { toast('Tanggal jatuh tempo kembali wajib diisi', 'error'); dateInput.focus(); return; }
       ajukan.disabled = true;
+      var reason = reasonInput.value.trim() || null;
       try {
-        for (var i = 0; i < ids.length; i++) await DB.requestBorrowing({ assetId: parseInt(ids[i], 10), qty: 1, dueDate: dateInput.value, notes: null });
+        for (var i = 0; i < ids.length; i++) await DB.requestBorrowing({ assetId: parseInt(ids[i], 10), qty: 1, dueDate: dateInput.value, notes: reason });
         toast('Pengajuan ' + ids.length + ' unit terkirim', 'success');
         ov.remove();
         if (page() === 'ajukanpinjam') setTimeout(function () { location.href = 'daftarpinjam.html'; }, 600); else reloadData();
@@ -1180,6 +1189,7 @@
     info.appendChild(el('div', { style: 'font-weight:700;font-size:0.9rem' }, b.asset_name || '-'));
     var st = STATUS[b.status] ? STATUS[b.status].label : b.status;
     info.appendChild(el('div', { style: 'font-size:0.72rem;color:var(--text-muted)' }, (b.asset_code ? b.asset_code + ' · ' : '') + st + (b.due_date ? ' · jatuh tempo ' + String(b.due_date).slice(0, 10) : '')));
+    if (b.notes) info.appendChild(el('div', { style: 'font-size:0.72rem;color:var(--text-muted);font-style:italic;margin-top:2px' }, 'Alasan: ' + b.notes));
     row.appendChild(info);
     if (staff) {
       var verify = el('button', { class: 'sesd-btn sesd-btn-sm sesd-btn-success' }, b.status === 'return_pending' ? 'Verifikasi Dikembalikan' : 'Tandai Dikembalikan');
@@ -1251,9 +1261,9 @@
 
   function openCategoryForm(rec) {
     overlayForm({
-      title: rec ? 'Edit Kategori' : 'Tambah Kategori', submitLabel: rec ? 'Simpan' : 'Tambah',
+      title: rec ? 'Edit Jenis BMN' : 'Tambah Jenis BMN', submitLabel: rec ? 'Simpan' : 'Tambah',
       fields: [
-        { name: 'name', label: 'Nama Kategori', value: rec && rec.name },
+        { name: 'name', label: 'Nama Jenis BMN', value: rec && rec.name },
         { name: 'icon', label: 'Ikon', type: 'select', value: iconFor(rec && rec.icon) || 'package',
           options: ['package', 'monitor', 'chair', 'car', 'wrench', 'file', 'tag', 'archive', 'home', 'building', 'phone'].map(function (k) { return { value: k, label: k }; }) },
       ],
@@ -1279,11 +1289,9 @@
   }
   function roomCatalogUrl(room) {
     var origin = location.origin + location.pathname.replace(/[^/]*$/, '');
-    if (room && room.code) return origin + 'katalog.html?room_code=' + encodeURIComponent(room.code);
-    if (room && room.id) return origin + 'katalog.html?room_id=' + encodeURIComponent(room.id);
-    return origin + 'katalog.html?room=' + encodeURIComponent(room ? (room.name || '') : '');
+    return origin + 'katalog.html?room=' + encodeURIComponent(room.name || '');
   }
-  // #10 — QR that opens the room's public catalog (what's inside the room).
+  // QR that opens the room's public catalog (what's inside the room).
   async function showRoomQR(room) {
     if (!window.SESDIAN_QR) { toast('Modul QR belum siap', 'error'); return; }
     // opens ON TOP of the room-detail modal, so only block a duplicate QR dialog
@@ -1315,7 +1323,7 @@
       w.document.close();
     });
   }
-  // #9 — room detail: everyone sees what's in the room; admin adds/removes items.
+  // Room detail: everyone sees what's in the room; admin adds/removes items.
   async function openRoomDetail(room) {
     if (modalOpen()) return;
     // build the modal immediately (with a loader) so rapid clicks can't open
@@ -1343,12 +1351,6 @@
     var qrBtn = el('button', { class: 'sesd-btn sesd-btn-sm sesd-btn-ghost', html: ic('tag') + ' QR Ruangan' });
     qrBtn.addEventListener('click', function () { showRoomQR(room); });
     actions.appendChild(qrBtn);
-    // stock-taking is a staff task (admin + verifikator); the save endpoint enforces it too
-    if (IS_STAFF) {
-      var auditBtn = el('button', { class: 'sesd-btn sesd-btn-sm sesd-btn-success', html: ic('clipboard') + ' Audit Fisik & Pindai' });
-      auditBtn.addEventListener('click', function () { close(); openRoomAuditModal(room); });
-      actions.appendChild(auditBtn);
-    }
     var editBtn = null, addBox = null, addSearch = null, poolWrap = null;
     if (IS_ADMIN) {
       editBtn = el('button', { class: 'sesd-btn sesd-btn-sm sesd-btn-primary', html: ic('pencil') + ' Edit Isi' });
@@ -1436,7 +1438,7 @@
     edit.addEventListener('click', function (e) { e.stopPropagation(); kind === 'category' ? openCategoryForm(rec) : openRoomForm(rec); });
     del.addEventListener('click', function (e) {
       e.stopPropagation();
-      confirmDelete((kind === 'category' ? 'kategori "' : 'ruangan "') + rec.name + '"', async function () {
+      confirmDelete((kind === 'category' ? 'jenis BMN "' : 'ruangan "') + rec.name + '"', async function () {
         if (kind === 'category') await DB.deleteCategory(rec.id); else await DB.deleteRoom(rec.id);
         toast('Dihapus', 'success'); reloadData();
       });
@@ -1450,21 +1452,16 @@
     tr.appendChild(el('th', { 'data-aksi-th': '', style: th0 ? th0.getAttribute('style') : 'padding:0.875rem 1rem;text-align:left' }, 'Aksi'));
   }
   function todayISO() { var d = new Date(); var p = function (n) { return (n < 10 ? '0' : '') + n; }; return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()); }
+  var BULAN_ID = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+  function fmtTanggal(v) { if (!v) return '-'; var p = String(v).slice(0, 10).split('-'); if (p.length !== 3) return String(v); return parseInt(p[2], 10) + ' ' + BULAN_ID[parseInt(p[1], 10) - 1] + ' ' + p[0]; }
   function isOverdue(rec) { return ['pending', 'approved', 'borrowed'].indexOf(rec.status) !== -1 && rec.due_date && rec.due_date < todayISO(); }
-  function openWaLink(wa, text) {
-    if (wa) window.open('https://wa.me/' + wa + '?text=' + encodeURIComponent(text || ''), '_blank');
-  }
+  function openWaLink(wa, text) { if (wa) window.open('https://wa.me/' + wa + '?text=' + encodeURIComponent(text || ''), '_blank'); }
   async function doNotify(rec, kind, okMsg) {
     try {
       var r = await DB.notify(rec.id, kind);
-      if (r && !r.auto) {
-        if (r.wa) openWaLink(r.wa, r.text);
-        else { toast('Nomor WhatsApp tujuan belum tersedia', 'error'); return; }
-      }
-      toast(okMsg || 'Notifikasi dicatat', 'success');
-    } catch (e) {
-      toast((e && e.message) || 'Gagal mengirim notifikasi', 'error');
-    }
+      if (r && !r.auto) { if (r.wa) openWaLink(r.wa, r.text); else { toast('Nomor WhatsApp tujuan belum tersedia', 'error'); return; } }
+      toast(okMsg, 'success');
+    } catch (e) { toast((e && e.message) || 'Gagal mengirim notifikasi', 'error'); }
   }
   var STATUS_CONFIRM = {
     approved:       { title: 'Setujui Peminjaman',      message: 'Apakah Anda yakin menyetujui peminjaman ini? (Verifikasi 1)', variant: 'success', confirmLabel: 'Ya, setujui' },
@@ -1473,21 +1470,15 @@
     return_pending: { title: 'Konfirmasi Pengembalian',  message: 'Ajukan pengembalian barang ini ke admin?',                     variant: 'primary', confirmLabel: 'Ya, kembalikan' },
     rejected:       { title: 'Tolak Permintaan',         message: 'Apakah Anda yakin menolak permintaan ini?',                    variant: 'danger',  confirmLabel: 'Ya, tolak' },
     cancelled:      { title: 'Batalkan Pengajuan',       message: 'Batalkan pengajuan peminjaman ini? Stok akan dikembalikan dan pengajuan tidak dapat dilanjutkan.', variant: 'danger', confirmLabel: 'Ya, batalkan' },
-    expired:        { title: 'Tandai Kedaluwarsa',       message: 'Tandai peminjaman ini sebagai kedaluwarsa?',                                   variant: 'danger',  confirmLabel: 'Ya, tandai' },
   };
-  // #8 — every status change asks for a second confirmation before it runs.
+  // Every status change asks for a second confirmation before it runs.
   function changeStatus(rec, status) {
     var c = STATUS_CONFIRM[status] || { title: 'Konfirmasi', message: 'Apakah Anda yakin ingin melanjutkan?' };
     confirmAction(c, async function () {
-      try {
-        await DB.updateBorrowingStatus(rec.id, status);
-        toast('Status diperbarui', 'success');
-        if (status === 'returned') { DB.notify(rec.id, 'returned').then(function (r) { if (r && !r.auto && r.wa) openWaLink(r.wa, r.text); }).catch(function () {}); }
-        else if (status === 'return_pending') { DB.notify(rec.id, 'return-request').catch(function () {}); }
-        reloadData();
-      } catch (err) {
-        toast((err && err.message) || 'Gagal memperbarui status', 'error');
-      }
+      await DB.updateBorrowingStatus(rec.id, status); toast('Status diperbarui', 'success');
+      if (status === 'returned') { DB.notify(rec.id, 'returned').then(function (r) { if (r && !r.auto && r.wa) openWaLink(r.wa, r.text); }).catch(function () {}); } // best-effort, silent
+      else if (status === 'return_pending') { DB.notify(rec.id, 'return-request').catch(function () {}); }                                                                  // notify admin (auto-send if gateway set)
+      reloadData();
     });
   }
   function enhanceBorrowingRow(row, rec) {
@@ -1506,8 +1497,8 @@
       else if (rec.status === 'return_pending') { btns.push(['Verifikasi Pengembalian', 'success', function () { changeStatus(rec, 'returned'); }], ['Tolak', 'danger', function () { changeStatus(rec, 'borrowed'); }]); }
       else if (IS_ADMIN && rec.status === 'approved') { cell._note = 'Menunggu verifikator'; }
       if (isOverdue(rec) && (rec.status === 'borrowed' || rec.status === 'verified')) btns.unshift(['Ingatkan WA', 'warning', function () { return doNotify(rec, 'remind', 'Pengingat dikirim ke peminjam'); }]);
-    } else if (rec.status === 'pending' || rec.status === 'approved') {
-      // peminjam dapat membatalkan pengajuan sendiri sebelum serah terima dilakukan
+    } else if (rec.status === 'pending') {
+      // peminjam bisa membatalkan sendiri selagi masih menunggu persetujuan admin (tanpa lewat admin)
       btns.push(['Batalkan', 'danger', function () { changeStatus(rec, 'cancelled'); }]);
     } else if (rec.status === 'borrowed' || rec.status === 'verified') {
       btns.push(['Konfirmasi Pengembalian', 'primary', function () { changeStatus(rec, 'return_pending'); }]);
@@ -1563,7 +1554,7 @@
       roleTd.appendChild(roleBadge(u.role));
       tr.appendChild(roleTd);
       var actTd = el('td', { style: td });
-      var wrap = el('div', { class: 'sesd-role-actions' });   // #2 — one cohesive, equally-rounded control group
+      var wrap = el('div', { class: 'sesd-role-actions' });   // One cohesive, equally-rounded control group
       var sel = el('select', { class: 'sesd-role-select', 'aria-label': 'Ubah peran ' + u.name, style: 'border-radius:12px!important;-webkit-appearance:none!important;appearance:none!important' });
       ['user', 'verifikator', 'admin'].forEach(function (r) { var o = el('option', { value: r }, ROLE_META[r][0]); if (u.role === r) o.selected = true; sel.appendChild(o); });
       sel.addEventListener('change', async function () { sel.disabled = true; try { await DB.setUserRole(u.id, sel.value); toast('Role diperbarui', 'success'); renderUsers(); } catch (e) { toast((e && e.message) || 'Gagal', 'error'); renderUsers(); } });
@@ -1574,7 +1565,7 @@
         off.addEventListener('click', function () {
           confirmAction({
             title: 'Nonaktifkan akun ini?',
-            message: 'NIP ' + u.nip + ' tetap tersimpan, tetapi nama dan password direset. Pemilik NIP harus mengaktifkan ulang dengan mengatur nama dan password sendiri, seperti saat NIP baru didaftarkan. Riwayat peminjaman akun ini tetap tersimpan.',
+            message: 'NIP ' + u.nip + ' tetap tersimpan, tetapi nama dan password direset dan peran kembali menjadi User. Pemilik NIP harus mengaktifkan ulang dengan mengatur nama dan password sendiri, seperti saat NIP baru didaftarkan. Riwayat peminjaman akun ini tetap tersimpan.',
             variant: 'warning', confirmLabel: 'Ya, nonaktifkan', cancelLabel: 'Batal'
           }, async function () { await DB.deactivateUser(u.id); toast('Akun dinonaktifkan, pemilik NIP diminta mengaktifkan ulang', 'success'); renderUsers(); });
         });
@@ -1588,7 +1579,7 @@
     });
   }
 
-  /* ====================== #6 — Profile page ====================== */
+  /* ====================== Profile page ====================== */
   function avatarKeyFor(u) { return 'sesdian_avatar_' + ((u && (u.nip || u.name)) || 'anon'); }
   function getAvatarLS(u) { try { return localStorage.getItem(avatarKeyFor(u)) || ''; } catch (e) { return ''; } }
   function setAvatarLS(u, d) { try { localStorage.setItem(avatarKeyFor(u), d); } catch (e) {} }
@@ -1793,42 +1784,21 @@
     var navContainer = ref.parentNode.parentNode;
     var sec = el('div', { 'data-role-nav': '', style: 'margin-bottom:0.25rem' });
     sec.appendChild(sectionHeader('MANAJEMEN'));
-    sec.appendChild(makeNavLink('verifikasi.html', 'check_circle', 'Verifikasi', 'Persetujuan ke-2'));
-    sec.appendChild(makeNavLink('ruangan.html', 'clipboard', 'Inventarisasi Ruangan', 'Audit fisik & QR'));
     sec.appendChild(makeNavLink('laporan.html', 'chart', 'Laporan', 'Harian · bulanan'));
-    sec.appendChild(makeNavLink('audit.html', 'shield', 'Jejak Audit', 'Log aktivitas'));
-    // runs now the same overdue-reminder job Vercel Cron runs every day at 08.00 WIB
-    var cronLink = makeNavLink('#', 'clock', 'Tugas Terjadwal', 'Pengingat jatuh tempo');
-    cronLink.addEventListener('click', async function (e) {
-      e.preventDefault();
-      try {
-        toast('Menjalankan pengecekan tugas terjadwal...', 'info');
-        var res = await DB.checkScheduledTasks();
-        if (res && res.count > 0) {
-          var msg = 'Tugas terjadwal: ' + res.count + ' peminjaman melewati jatuh tempo';
-          if (res.auto) msg += ' · ' + res.sent + ' pengingat WA terkirim' + (res.already_reminded ? ', ' + res.already_reminded + ' sudah diingatkan hari ini' : '') + (res.no_phone ? ', ' + res.no_phone + ' tanpa nomor HP' : '');
-          else msg += ' · WA otomatis belum aktif (FONNTE_TOKEN), kirim lewat tombol Ingatkan WA di Daftar Pinjam';
-          toast(msg, 'warning');
-        } else {
-          toast('Tugas terjadwal: seluruh peminjaman berjalan normal', 'success');
-        }
-      } catch (err) {
-        toast('Gagal memeriksa tugas terjadwal: ' + (err.message || err), 'error');
-      }
-    });
-    sec.appendChild(cronLink);
+    sec.appendChild(makeNavLink('verifikasi.html', 'check_circle', 'Verifikasi', 'Persetujuan ke-2'));
+    if (IS_ADMIN) sec.appendChild(makeNavLink('users.html', 'users', 'Kelola User', 'User & admin'));
     navContainer.appendChild(sec);
   }
 
   /* ---------------- dynamic app shell (for new pages that opt in) ----------------
      A page using <aside data-shell></aside> + a sticky <div data-topbar></div>
      gets the standard sidebar + topbar built here, so it needs no copied markup. */
-  var PAGE_TITLES = { dashboard: 'Dashboard', dataaset: 'Data Aset', kategoriaset: 'Kategori Aset', ruangan: 'Ruangan', daftarpinjam: 'Daftar Pinjam', dipinjam: 'Sedang Dipinjam', ajukanpinjam: 'Ajukan Pinjam', verifikasi: 'Verifikasi', laporan: 'Laporan Peminjaman', audit: 'Jejak Audit', profil: 'Profil Saya' };
+  var PAGE_TITLES = { dashboard: 'Dashboard', dataaset: 'Data Aset', kategoriaset: 'Jenis BMN', ruangan: 'Ruangan', daftarpinjam: 'Daftar Pinjam', ajukanpinjam: 'Ajukan Pinjam', dipinjam: 'Sedang Dipinjam', users: 'Kelola User', verifikasi: 'Verifikasi', laporan: 'Laporan', profil: 'Profil Saya' };
   // Per-page chrome icons (topbar breadcrumb). NAV_ICONS keys map a sidebar link's
   // href → the same icon, so the menu and the header always agree (fixes the old
   // hard-coded "home" icon that showed on every page — see REDESIGN-GUIDE #2/#5).
-  var PAGE_ICONS = { dashboard: 'zap', dataaset: 'package', kategoriaset: 'tag', ruangan: 'home', daftarpinjam: 'refresh', dipinjam: 'clock', ajukanpinjam: 'clipboard', verifikasi: 'check_circle', laporan: 'chart', audit: 'shield', katalog: 'search', profil: 'user' };
-  var NAV_ICONS = { 'dashboard.html': 'zap', 'dataaset.html': 'package', 'kategoriaset.html': 'tag', 'ruangan.html': 'home', 'daftarpinjam.html': 'refresh', 'dipinjam.html': 'clock', 'ajukanpinjam.html': 'clipboard', 'verifikasi.html': 'check_circle', 'laporan.html': 'chart', 'audit.html': 'shield', 'katalog.html': 'search' };
+  var PAGE_ICONS = { dashboard: 'zap', dataaset: 'package', kategoriaset: 'tag', ruangan: 'home', daftarpinjam: 'refresh', ajukanpinjam: 'clipboard', dipinjam: 'clock', users: 'users', verifikasi: 'check_circle', laporan: 'chart', katalog: 'search', profil: 'user' };
+  var NAV_ICONS = { 'dashboard.html': 'zap', 'dataaset.html': 'package', 'kategoriaset.html': 'tag', 'ruangan.html': 'home', 'daftarpinjam.html': 'refresh', 'ajukanpinjam.html': 'clipboard', 'dipinjam.html': 'clock', 'users.html': 'users', 'verifikasi.html': 'check_circle', 'laporan.html': 'chart', 'katalog.html': 'search' };
   function pageIcon(p) { return (window.SESDIAN_ICONS && window.SESDIAN_ICONS[PAGE_ICONS[p] || 'home']) || ''; }
   // "Sedang Dipinjam" link for everyone (added into the PEMINJAMAN section).
   function injectBorrowedNav() {
@@ -1885,7 +1855,7 @@
     left.innerHTML = '<span class="ic" style="color:var(--text-muted);display:inline-flex;flex-shrink:0">' + pageIcon(page()) +
       '</span><span style="color:var(--text);font-weight:600;font-size:0.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' +
       (PAGE_TITLES[page()] || '') + '</span>';
-    // #3 — header stays pinned and casts a subtle shadow once the page scrolls.
+    // Header stays pinned and casts a subtle shadow once the page scrolls.
     if (!header._sesdScroll) {
       header._sesdScroll = true;
       var mainEl = $('main');
@@ -1902,14 +1872,13 @@
     installBrandLogo();
     normalizeSidebarIcons();
     normalizeTopbar();
-    // #8 — the Kategori Aset page is gone (managed from the Data Aset toolbar);
+    // The Kategori Aset page is gone (managed from the Data Aset toolbar);
     // drop its nav link on the static-shell pages that still hard-code it.
     $$('aside a[href="kategoriaset.html"]').forEach(function (a) { a.remove(); });
   }
 
   function injectAdminBars() {
     var p = page();
-    if (!IS_ADMIN && p !== 'ruangan') return;
     var content = $$('main > div').pop(); if (!content) return;
     var inner = content.firstElementChild || content;
     function bar(buttons) {
@@ -1918,7 +1887,7 @@
         var btn = el('button', { class: 'sesd-btn sesd-btn-lg sesd-btn-' + (b.variant || 'primary'), html: (b.icon ? ic(b.icon) + ' ' : '') + b.label });
         btn.addEventListener('click', b.onClick); wrap.appendChild(btn);
       });
-      // #3 — dock the action buttons to the right of the page title instead of
+      // Dock the action buttons to the right of the page title instead of
       // stacking them above the management area.
       var h1 = inner.querySelector('h1');
       if (h1) {
@@ -1950,63 +1919,11 @@
     if (p === 'dataaset') bar([
       { label: 'Tambah Aset', icon: 'package', onClick: function () { openAssetForm(null); } },
       { label: 'Import Excel', variant: 'success', icon: 'archive', onClick: function () { if (window.SESDIAN_IMPORT) window.SESDIAN_IMPORT.open(); else toast('Modul import belum siap', 'error'); } },
-      { label: 'Ekspor Data', variant: 'primary', icon: 'clipboard', onClick: function () { exportAssetsData(); } },
+      { label: 'Export Excel', variant: 'danger', icon: 'file', onClick: function () { if (window.SESDIAN_IMPORT && window.SESDIAN_IMPORT.exportAll) window.SESDIAN_IMPORT.exportAll(this); else toast('Modul export belum siap', 'error'); } },
     ]);
-    else if (p === 'kategoriaset') bar([{ label: 'Tambah Kategori', onClick: function () { openCategoryForm(null); } }]);
-    else if (p === 'ruangan') bar([
-      IS_ADMIN && { label: 'Tambah Ruangan', icon: 'home', onClick: function () { openRoomForm(null); } },
-      { label: 'Scan & Audit Inventarisasi', variant: 'primary', icon: 'camera', onClick: function () { openRoomScanAuditModal(); } },
-    ].filter(Boolean));
+    else if (p === 'kategoriaset') bar([{ label: 'Tambah Jenis BMN', onClick: function () { openCategoryForm(null); } }]);
+    else if (p === 'ruangan') bar([{ label: 'Tambah Ruangan', onClick: function () { openRoomForm(null); } }]);
     else if (p === 'users') bar([{ label: 'Tambah User', icon: 'user', onClick: function () { openUserForm(); } }]);
-  }
-
-
-  /* ---------------- export data aset (Charter SES-4.1.2) ---------------- */
-  async function exportAssetsData() {
-    try {
-      toast('Menyiapkan berkas ekspor data aset...', 'info');
-      var list = await DB.assets();
-      if (!list || !list.length) {
-        toast('Tidak ada data aset untuk diekspor', 'error');
-        return;
-      }
-      var headers = ['ID', 'Kode Barang', 'QR Code', 'Nama Aset', 'Merek', 'Kategori', 'Ruangan', 'Tahun', 'Kondisi', 'Tipe', 'Status', 'Stok Total', 'Stok Tersedia', 'Stok Dipinjam'];
-      var rows = [headers.join(',')];
-      list.forEach(function (a) {
-        var clean = function (v) {
-          var s = String(v == null ? '' : v).replace(/"/g, '""');
-          return '"' + s + '"';
-        };
-        rows.push([
-          clean(a.id),
-          clean(a.code),
-          clean(a.qr_code || ''),
-          clean(a.name),
-          clean(a.brand || ''),
-          clean(a.category || ''),
-          clean(a.room || ''),
-          clean(a.year || ''),
-          clean(a.condition || ''),
-          clean(a.type || ''),
-          clean(a.status || 'tersedia'),
-          clean(a.stock_total || 0),
-          clean(a.stock_available || 0),
-          clean(a.stock_borrowed || 0)
-        ].join(','));
-      });
-      var csvContent = '\uFEFF' + rows.join('\r\n');
-      var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      var dStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-      var aEl = document.createElement('a');
-      aEl.href = URL.createObjectURL(blob);
-      aEl.download = 'data-aset-sesdian-' + dStr + '.csv';
-      document.body.appendChild(aEl);
-      aEl.click();
-      aEl.remove();
-      toast('Data aset berhasil diekspor (' + list.length + ' baris)', 'success');
-    } catch (e) {
-      toast('Gagal mengekspor data: ' + ((e && e.message) || e), 'error');
-    }
   }
 
   /* ---------------- password toggle ---------------- */
@@ -2101,19 +2018,24 @@
   /* ---------------- ajukan pinjam submit ---------------- */
   function nameOf(node) { var e = node && node.querySelector ? node.querySelector('[data-bind="name"]') : null; return e ? e.textContent : ''; }
   async function notifyWa(names, date) {
-    // Fitur notifikasi WA otomatis dinonaktifkan
-    return;
+    try {
+      var s = await DB.getSettings();
+      if (!s || !s.wa_number || s.wa_auto) return;     // server auto-sends, or no number set
+      var who = (USER && USER.name) || 'pengguna';
+      var msg = 'Halo Admin, saya ' + who + ' mengajukan peminjaman: ' + names.join(', ') + (date ? ('. Jatuh tempo ' + date) : '') + '.';
+      window.open('https://wa.me/' + s.wa_number + '?text=' + encodeURIComponent(msg), '_blank');
+    } catch (e) {}
   }
   /* ajukan pinjam: grouped by item type (like Data Aset), pick a quantity per
      type. Each unit is still a separate borrowing in the DB. */
   // Ajukan Pinjam page: grouped cards (like Data Aset). Click a card -> detail
   // modal where the exact unit(s) to borrow are picked. The old right-side
   // "Detail Peminjaman" panel is hidden since borrowing now happens in the modal.
-  /* ---- Data Aset grid: built fully in JS so we control empty chips (#6),
-          the X/Y stock format (#7) and a meaningful availability badge (#8).
-          Theme-aware via CSS classes (no hard-coded colours) — see #4. ---- */
+  /* ---- Data Aset grid: built fully in JS so we control empty chips,
+          the X/Y stock format and a meaningful availability badge.
+          Theme-aware via CSS classes (no hard-coded colours). ---- */
   function assetChip(iconName, text) {
-    if (text == null || String(text).trim() === '') return null;   // #6 — never render an empty chip
+    if (text == null || String(text).trim() === '') return null;   // Never render an empty chip
     var chip = el('span', { class: 'sesd-aset-chip' });
     chip.innerHTML = ic(iconName);
     chip.appendChild(el('span', {}, String(text)));
@@ -2160,11 +2082,11 @@
         var ch = assetChip(c[0], c[1]); if (ch) chips.appendChild(ch);
       });
       if (chips.children.length) body.appendChild(chips);
-      if (g.condition) body.appendChild(el('span', { class: 'sesd-aset-cond' }, g.condition));  // #1 — keep STOK as the last (bottom-pinned) element
+      if (g.condition) body.appendChild(el('span', { class: 'sesd-aset-cond' }, g.condition));  // Keep STOK as the last (bottom-pinned) element
       var stock = el('div', { class: 'sesd-aset-stock' });
       var sr = el('div', { class: 'sesd-aset-stock-row' });
       sr.appendChild(el('span', { class: 'sesd-aset-stock-label' }, 'STOK'));
-      var num = el('span', { class: 'sesd-aset-stock-num' });       // #7 — "16/16" with a slash
+      var num = el('span', { class: 'sesd-aset-stock-num' });       // "16/16" with a slash
       num.appendChild(el('span', { class: 'is-avail' }, String(avail)));
       num.appendChild(el('span', { class: 'is-sep' }, '/'));
       num.appendChild(el('span', { class: 'is-total' }, String(total)));
@@ -2239,761 +2161,6 @@
     } catch (e) { if (e && e.status === 401) { location.replace('login.html'); return; } toast((e && e.message) || 'Gagal mengirim pengajuan', 'error'); }
   }
 
-  var _jsQRLoading = null;
-  function ensureJsQR() {
-    if (window.jsQR) return Promise.resolve(window.jsQR);
-    if (_jsQRLoading) return _jsQRLoading;
-    _jsQRLoading = new Promise(function (resolve, reject) {
-      var s = document.createElement('script');
-      s.src = 'https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js';
-      s.onload = function () { resolve(window.jsQR); };
-      s.onerror = function () { reject(new Error('Gagal memuat engine pembaca QR')); };
-      document.head.appendChild(s);
-    });
-    return _jsQRLoading;
-  }
-
-  function parseScannedCode(raw) {
-    if (!raw) return '';
-    var s = String(raw).trim();
-    if (s.indexOf('qr=') !== -1) {
-      var m = s.match(/[?&]qr=([^&#]+)/);
-      if (m && m[1]) return decodeURIComponent(m[1]).trim();
-    }
-    if (s.indexOf('id=') !== -1) {
-      var m2 = s.match(/[?&]id=([^&#]+)/);
-      if (m2 && m2[1]) return decodeURIComponent(m2[1]).trim();
-    }
-    if (s.indexOf('code=') !== -1) {
-      var m3 = s.match(/[?&]code=([^&#]+)/);
-      if (m3 && m3[1]) return decodeURIComponent(m3[1]).trim();
-    }
-    // printed room QR (see roomCatalogUrl): katalog.html?room_code= / room_id= / room=
-    var m4 = s.match(/[?&]room(?:_code|_id)?=([^&#]+)/);
-    if (m4 && m4[1]) return decodeURIComponent(m4[1].replace(/\+/g, ' ')).trim();
-    return s;
-  }
-
-  /* ---------------- Pemindaian Serah Terima dan Pengembalian (SES-4.2.2) ---------------- */
-  function openScanHandoverModal() {
-    if (modalOpen()) return;
-    var ov = overlay(), m = el('div', { class: 'sesd-modal', style: 'width:520px;max-width:calc(100vw - 2rem)' });
-    var stream = null;
-    var animId = null;
-    var scanning = true;
-
-    var head = el('div', { style: 'display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem' });
-    head.appendChild(el('h3', { style: 'margin:0;font-size:1.15rem;display:flex;align-items:center;gap:8px' }, ic('camera') + ' Scan Serah Terima & Pengembalian'));
-    var closeBtn = el('button', { class: 'sesd-btn sesd-btn-ghost sesd-btn-sm', style: 'padding:4px 8px;font-size:1.1rem' }, '×');
-    head.appendChild(closeBtn);
-    m.appendChild(head);
-
-    m.appendChild(el('p', { style: 'color:var(--text-muted);font-size:0.8rem;margin:-6px 0 14px' }, 'Arahkan kamera ke QR Code label barang atau masukkan Kode Barang / QR secara manual untuk memproses serah terima dan pengembalian (F-18 & F-20).'));
-
-    var viewWrap = el('div', { style: 'position:relative;background:#0b1120;border-radius:12px;height:190px;display:flex;align-items:center;justify-content:center;overflow:hidden;margin-bottom:1rem;border:2px solid var(--border)' });
-    var video = el('video', { autoplay: 'autoplay', playsinline: 'playsinline', muted: 'muted', style: 'width:100%;height:100%;object-fit:cover;display:none' });
-    var aim = el('div', { style: 'position:absolute;width:130px;height:130px;border:2px solid #10b981;border-radius:10px;box-shadow:0 0 16px rgba(16,185,129,0.35);pointer-events:none;transition:border-color 0.2s, box-shadow 0.2s' });
-    aim.appendChild(el('div', { style: 'width:100%;height:2px;background:#10b981;box-shadow:0 0 8px #10b981;animation:sesd-scan-laser 2s infinite ease-in-out' }));
-    var camHint = el('div', { style: 'color:rgba(255,255,255,0.7);font-size:0.75rem;text-align:center;padding:0.75rem;pointer-events:none' }, 'Mengaktifkan sensor kamera...');
-
-    viewWrap.appendChild(video);
-    viewWrap.appendChild(aim);
-    viewWrap.appendChild(camHint);
-    m.appendChild(viewWrap);
-
-    var canvas = document.createElement('canvas');
-    var ctx = canvas.getContext('2d');
-
-    function scanLoop() {
-      if (!scanning) return;
-      if (video.readyState === video.HAVE_ENOUGH_DATA) {
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        if (window.jsQR) {
-          try {
-            var imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            var qrRes = window.jsQR(imgData.data, imgData.width, imgData.height, { inversionAttempts: 'dontInvert' });
-            if (qrRes && qrRes.data) {
-              var rawFound = String(qrRes.data || '').trim();
-              if (rawFound) {
-                scanning = false;
-                aim.style.borderColor = '#3b82f6';
-                aim.style.boxShadow = '0 0 20px rgba(59,130,246,0.6)';
-                input.value = rawFound;
-                checkCode(rawFound);
-                return;
-              }
-            }
-          } catch (e) {}
-        }
-      }
-      animId = requestAnimationFrame(scanLoop);
-    }
-
-    ensureJsQR().then(function () {
-      if (video.style.display === 'block') {
-        animId = requestAnimationFrame(scanLoop);
-      }
-    }).catch(function (e) {
-      console.warn('jsQR load warning:', e);
-    });
-
-    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-      navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } }).then(function (s) {
-        stream = s;
-        video.srcObject = s;
-        video.style.display = 'block';
-        camHint.style.display = 'none';
-        video.play().catch(function () {});
-        animId = requestAnimationFrame(scanLoop);
-      }).catch(function () {
-        camHint.textContent = 'Kamera tidak aktif atau izin ditolak. Silakan masukkan kode aset di bawah.';
-      });
-    } else {
-      camHint.textContent = 'Kamera tidak didukung peramban. Silakan ketik kode aset di bawah.';
-    }
-
-    var inputWrap = el('div', { style: 'display:flex;gap:8px;margin-bottom:1rem' });
-    var input = el('input', { type: 'text', placeholder: 'Ketik atau scan kode aset / QR (mis. 305010400111)...', style: 'flex:1;padding:0.65rem 0.85rem;border-radius:10px;border:1.5px solid var(--border);font-size:0.875rem;outline:none' });
-    var checkBtn = el('button', { class: 'sesd-btn sesd-btn-primary' }, 'Cari');
-    inputWrap.appendChild(input);
-    inputWrap.appendChild(checkBtn);
-    m.appendChild(inputWrap);
-
-    var resultBox = el('div', { style: 'min-height:96px;background:var(--bg-mid);border-radius:12px;padding:0.85rem;border:1px solid var(--border);display:flex;flex-direction:column;justify-content:center' });
-    resultBox.appendChild(el('div', { style: 'color:var(--text-muted);font-size:0.8rem;text-align:center' }, 'Arahkan QR ke kamera atau ketik kode unit untuk memverifikasi.'));
-    m.appendChild(resultBox);
-
-    async function checkCode(rawInput) {
-      var query = parseScannedCode(rawInput);
-      if (!query) {
-        resultBox.innerHTML = '';
-        resultBox.appendChild(el('div', { style: 'color:var(--danger);font-size:0.82rem;font-weight:600;text-align:center' }, 'Silakan masukkan kode aset atau pindai QR Code yang valid.'));
-        scanning = true;
-        animId = requestAnimationFrame(scanLoop);
-        return;
-      }
-
-      resultBox.innerHTML = '';
-      resultBox.appendChild(el('div', { style: 'color:var(--text-muted);font-size:0.8rem;text-align:center' }, 'Mencocokkan unit dan memeriksa transaksi peminjaman...'));
-
-      try {
-        var qLower = query.toLowerCase();
-        var allAssets = await DB.assets();
-        // Exact unit match (code, qr_code, or id)
-        var matchedAsset = allAssets.filter(function (a) {
-          var c = String(a.code || '').trim().toLowerCase();
-          var qr = String(a.qr_code || '').trim().toLowerCase();
-          var idStr = String(a.id);
-          return c === qLower || qr === qLower || idStr === qLower;
-        })[0];
-
-        var allBorrowings = await DB.borrowings();
-
-        // Find borrowings associated with the asset
-        var relatedBorrowings = allBorrowings.filter(function (b) {
-          var bc = String(b.asset_code || '').trim().toLowerCase();
-          var bqr = String(b.asset_qr_code || '').trim().toLowerCase();
-          if (matchedAsset) {
-            var mc = String(matchedAsset.code || '').trim().toLowerCase();
-            var mqr = String(matchedAsset.qr_code || '').trim().toLowerCase();
-            if (bc === mc || (mqr && bqr === mqr) || (mqr && bc === mqr)) return true;
-          }
-          return bc === qLower || bqr === qLower;
-        });
-
-        // Filter for ACTIVE actionable borrowings (approved for handover, borrowed/return_pending for return)
-        var activeMatch = relatedBorrowings.filter(function (b) {
-          return b.status === 'approved' || b.status === 'borrowed' || b.status === 'return_pending' || b.status === 'verified';
-        })[0];
-
-        resultBox.innerHTML = '';
-
-        if (!matchedAsset && !relatedBorrowings.length) {
-          resultBox.appendChild(el('div', { style: 'color:var(--danger);font-size:0.82rem;font-weight:600;text-align:center' }, 'Unit aset dengan kode atau QR "' + query + '" tidak ditemukan di sistem.'));
-          scanning = true;
-          animId = requestAnimationFrame(scanLoop);
-          return;
-        }
-
-        var assetName = (matchedAsset && matchedAsset.name) || (relatedBorrowings[0] && relatedBorrowings[0].asset_name) || 'Aset';
-        var assetCode = (matchedAsset && matchedAsset.code) || (relatedBorrowings[0] && relatedBorrowings[0].asset_code) || query;
-        var assetQr = (matchedAsset && matchedAsset.qr_code) || '';
-
-        if (!activeMatch) {
-          var lastInactive = relatedBorrowings[0];
-          var stLabel = lastInactive && STATUS[lastInactive.status] ? STATUS[lastInactive.status].label : (lastInactive ? lastInactive.status : 'Tersedia');
-          var warnCard = el('div', { style: 'text-align:center' });
-          warnCard.appendChild(el('div', { style: 'font-weight:700;font-size:0.92rem;color:var(--text)' }, assetName));
-          warnCard.appendChild(el('div', { style: 'font-size:0.75rem;color:var(--text-muted);margin:2px 0 6px' }, assetCode + (assetQr ? ' · ' + assetQr : '')));
-          warnCard.appendChild(el('div', { style: 'font-size:0.8rem;color:var(--warning);font-weight:600' }, 'Unit cocok, namun tidak ada transaksi aktif yang menunggu serah terima atau pengembalian (Status: ' + stLabel + ').'));
-          resultBox.appendChild(warnCard);
-          scanning = true;
-          animId = requestAnimationFrame(scanLoop);
-          return;
-        }
-
-        // Active match found! Display verified unit match card
-        var card = el('div');
-        var matchBadge = el('div', { style: 'display:inline-flex;align-items:center;gap:6px;background:#e8f5ec;color:#187a2f;font-weight:700;font-size:0.72rem;padding:2px 8px;border-radius:12px;margin-bottom:6px' });
-        matchBadge.innerHTML = ic('check_circle') + ' Unit Terverifikasi Cocok';
-        card.appendChild(matchBadge);
-
-        card.appendChild(el('div', { style: 'font-weight:700;font-size:0.95rem;color:var(--text)' }, assetName));
-        card.appendChild(el('div', { style: 'font-size:0.75rem;color:var(--text-muted);margin-top:2px' }, assetCode + ' · Peminjam: ' + (activeMatch.borrower || '-')));
-        var st = STATUS[activeMatch.status] ? STATUS[activeMatch.status].label : activeMatch.status;
-        card.appendChild(el('div', { style: 'font-size:0.75rem;font-weight:600;color:var(--primary);margin-top:4px' }, 'Status Transaksi: ' + st));
-
-        var actWrap = el('div', { style: 'margin-top:0.75rem;display:flex;gap:8px' });
-        if (activeMatch.status === 'approved') {
-          var btnHandover = el('button', { class: 'sesd-btn sesd-btn-sm sesd-btn-success', style: 'flex:1' }, 'Verifikasi & Serah Terima Barang');
-          btnHandover.addEventListener('click', async function () {
-            btnHandover.disabled = true;
-            btnHandover.textContent = 'Memproses...';
-            try {
-              await DB.updateBorrowingStatus(activeMatch.id, 'borrowed', { scanned_code: query });
-              toast('Barang berhasil diserahterimakan ke ' + (activeMatch.borrower || 'peminjam'), 'success');
-              cleanup();
-              reloadData();
-            } catch (err) {
-              btnHandover.disabled = false;
-              btnHandover.textContent = 'Verifikasi & Serah Terima Barang';
-              toast((err && err.message) || 'Gagal memproses serah terima', 'error');
-            }
-          });
-          actWrap.appendChild(btnHandover);
-        } else if (activeMatch.status === 'borrowed' || activeMatch.status === 'return_pending' || activeMatch.status === 'verified') {
-          var btnReturn = el('button', { class: 'sesd-btn sesd-btn-sm sesd-btn-primary', style: 'flex:1' }, 'Verifikasi Pengembalian Barang');
-          btnReturn.addEventListener('click', async function () {
-            btnReturn.disabled = true;
-            btnReturn.textContent = 'Memproses...';
-            try {
-              await DB.updateBorrowingStatus(activeMatch.id, 'returned', { scanned_code: query });
-              toast('Pengembalian barang berhasil diverifikasi', 'success');
-              cleanup();
-              reloadData();
-            } catch (err) {
-              btnReturn.disabled = false;
-              btnReturn.textContent = 'Verifikasi Pengembalian Barang';
-              toast((err && err.message) || 'Gagal memverifikasi pengembalian', 'error');
-            }
-          });
-          actWrap.appendChild(btnReturn);
-        }
-        card.appendChild(actWrap);
-        resultBox.appendChild(card);
-      } catch (e) {
-        resultBox.innerHTML = '';
-        resultBox.appendChild(el('div', { style: 'color:var(--danger);font-size:0.8rem' }, 'Gagal memeriksa transaksi: ' + (e && e.message)));
-        scanning = true;
-        animId = requestAnimationFrame(scanLoop);
-      }
-    }
-
-    checkBtn.addEventListener('click', function () { checkCode(input.value); });
-    input.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); checkCode(input.value); } });
-
-    function cleanup() {
-      scanning = false;
-      if (animId) cancelAnimationFrame(animId);
-      if (stream) { stream.getTracks().forEach(function (t) { t.stop(); }); stream = null; }
-      ov.remove();
-    }
-    closeBtn.addEventListener('click', cleanup);
-    ov.addEventListener('click', function (e) { if (e.target === ov) cleanup(); });
-
-    ov.appendChild(m);
-    document.body.appendChild(ov);
-    setTimeout(function () { input.focus(); }, 100);
-  }
-
-
-  /* ---------------- Inventarisasi Ruangan Berbasis Pemindaian (SES-4.3.1) ---------------- */
-  async function openRoomAuditModal(room) {
-    if (modalOpen()) return;
-    var ov = overlay();
-    var m = el('div', { class: 'sesd-modal', style: 'width:680px;max-width:calc(100vw - 2rem);max-height:92vh;overflow:auto' });
-
-    var head = el('div', { style: 'display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.75rem' });
-    var titleBox = el('div');
-    var auditTitle = el('h3', { style: 'margin:0;font-size:1.2rem;display:flex;align-items:center;gap:8px', html: ic('clipboard') });
-    auditTitle.appendChild(document.createTextNode(' Inventarisasi Fisik: ' + (room.name || 'Ruangan')));
-    titleBox.appendChild(auditTitle);
-    titleBox.appendChild(el('div', { style: 'font-size:0.78rem;color:var(--text-muted);margin-top:2px' }, (room.code ? room.code + ' · ' : '') + 'Penanggung Jawab: ' + (room.pic || '-')));
-    // the room's previous saved stock-take (kept in the audit trail)
-    var lastInv = el('div', { style: 'font-size:0.74rem;color:var(--text-muted);margin-top:4px' }, 'Memuat riwayat inventarisasi...');
-    titleBox.appendChild(lastInv);
-    DB.auditTrail({ entity: 'room', action: 'inventory', entity_id: room.id, limit: 1, all: '1' }).then(function (r) {
-      var last = r && r.rows && r.rows[0];
-      if (!last) { lastInv.textContent = 'Belum pernah diinventarisasi.'; return; }
-      var d = last.detail || {};
-      lastInv.textContent = 'Inventarisasi terakhir: ' + new Date(last.created_at).toLocaleString('id-ID') + ' oleh ' + (last.user_name || '-') +
-        ' · ' + (d.found || 0) + ' ada, ' + (d.missing || 0) + ' tidak ditemukan';
-    }).catch(function () { lastInv.textContent = ''; });
-    head.appendChild(titleBox);
-    var closeBtn = el('button', { class: 'sesd-btn sesd-btn-ghost sesd-btn-sm', style: 'padding:4px 8px;font-size:1.1rem' }, '×');
-    head.appendChild(closeBtn);
-    m.appendChild(head);
-
-    var loader = el('div', { class: 'sesd-page-loader', style: 'min-height:120px', html: '<span></span><span></span><span></span>' });
-    m.appendChild(loader);
-    ov.appendChild(m);
-    document.body.appendChild(ov);
-
-    function cleanup() {
-      if (scannerActive) stopScanner();
-      ov.remove();
-    }
-    closeBtn.addEventListener('click', cleanup);
-    ov.addEventListener('click', function (e) { if (e.target === ov) cleanup(); });
-
-    var allAssets = [];
-    try { allAssets = await DB.assets(); } catch (e) {}
-    loader.remove();
-
-    var roomAssets = allAssets.filter(function (a) { return String(a.room_id) === String(room.id); });
-    var auditState = {};
-    roomAssets.forEach(function (a) {
-      auditState[a.id] = { verified: false, condition: a.condition || 'Baik', time: null };
-    });
-
-    var progWrap = el('div', { style: 'background:var(--bg-mid);border:1px solid var(--border);border-radius:12px;padding:0.85rem;margin-bottom:1rem' });
-    var progHeader = el('div', { style: 'display:flex;justify-content:space-between;align-items:center;margin-bottom:6px' });
-    var progTitle = el('span', { style: 'font-size:0.8rem;font-weight:700;color:var(--text)' }, 'Rekonsiliasi Fisik Aset');
-    var progCount = el('span', { style: 'font-size:0.8rem;font-weight:700;color:var(--primary)' }, '0 / ' + roomAssets.length + ' (0%)');
-    progHeader.appendChild(progTitle);
-    progHeader.appendChild(progCount);
-    progWrap.appendChild(progHeader);
-
-    var barTrack = el('div', { style: 'background:#e2e8f0;border-radius:999px;height:8px;overflow:hidden' });
-    var barFill = el('div', { style: 'background:#10b981;height:100%;width:0%;transition:width 0.3s ease' });
-    barTrack.appendChild(barFill);
-    progWrap.appendChild(barTrack);
-    m.appendChild(progWrap);
-
-    function updateProgress() {
-      var total = roomAssets.length;
-      var checked = roomAssets.filter(function (a) { return auditState[a.id] && auditState[a.id].verified; }).length;
-      var pct = total ? Math.round((checked / total) * 100) : 0;
-      progCount.textContent = checked + ' / ' + total + ' (' + pct + '%)';
-      barFill.style.width = pct + '%';
-    }
-
-    var scanSection = el('div', { style: 'margin-bottom:1rem;background:#f8faff;border:1px solid #bfdbfe;border-radius:12px;padding:0.75rem' });
-    var scanRow = el('div', { style: 'display:flex;gap:8px' });
-    var scanInput = el('input', { type: 'text', placeholder: 'Pindai barcode / QR atau ketik kode barang...', style: 'flex:1;padding:0.6rem 0.8rem;font-size:0.85rem;border-radius:8px;border:1px solid var(--border);outline:none' });
-    var scanBtn = el('button', { class: 'sesd-btn sesd-btn-primary sesd-btn-sm' }, 'Cari');
-    var toggleCamBtn = el('button', { class: 'sesd-btn sesd-btn-ghost sesd-btn-sm', style: 'display:inline-flex;align-items:center;gap:6px', html: ic('camera') + ' Kamera' });
-    scanRow.appendChild(scanInput);
-    scanRow.appendChild(scanBtn);
-    scanRow.appendChild(toggleCamBtn);
-    scanSection.appendChild(scanRow);
-
-    var camWrap = el('div', { style: 'position:relative;background:#000;border-radius:10px;height:160px;margin-top:8px;display:none;overflow:hidden;align-items:center;justify-content:center' });
-    var video = el('video', { autoplay: 'autoplay', playsinline: 'playsinline', muted: 'muted', style: 'width:100%;height:100%;object-fit:cover' });
-    var aim = el('div', { style: 'position:absolute;width:110px;height:110px;border:2px solid #10b981;border-radius:8px;pointer-events:none' });
-    camWrap.appendChild(video);
-    camWrap.appendChild(aim);
-    scanSection.appendChild(camWrap);
-
-    var camStream = null;
-    var camAnim = null;
-    var scannerActive = false;
-    var canvas = document.createElement('canvas');
-    var ctx = canvas.getContext('2d');
-
-    function startScanner() {
-      ensureJsQR().then(function () {
-        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-          toast('Kamera tidak didukung pada peramban ini', 'error');
-          return;
-        }
-        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } }).then(function (s) {
-          camStream = s;
-          video.srcObject = s;
-          camWrap.style.display = 'flex';
-          scannerActive = true;
-          toggleCamBtn.textContent = 'Tutup Kamera';
-          scanLoop();
-        }).catch(function (err) {
-          toast('Gagal mengakses kamera: ' + err.message, 'error');
-        });
-      });
-    }
-
-    function stopScanner() {
-      scannerActive = false;
-      if (camAnim) cancelAnimationFrame(camAnim);
-      if (camStream) { camStream.getTracks().forEach(function (t) { t.stop(); }); camStream = null; }
-      camWrap.style.display = 'none';
-      toggleCamBtn.innerHTML = ic('camera') + ' Kamera';
-    }
-
-    toggleCamBtn.addEventListener('click', function () {
-      if (scannerActive) stopScanner();
-      else startScanner();
-    });
-
-    function scanLoop() {
-      if (!scannerActive) return;
-      if (video.readyState === video.HAVE_ENOUGH_DATA) {
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        if (window.jsQR) {
-          try {
-            var imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            var qr = window.jsQR(imgData.data, imgData.width, imgData.height);
-            if (qr && qr.data) {
-              var found = String(qr.data).trim();
-              if (found) {
-                scanInput.value = found;
-                processScannedItem(found);
-                stopScanner();
-                return;
-              }
-            }
-          } catch (e) {}
-        }
-      }
-      camAnim = requestAnimationFrame(scanLoop);
-    }
-
-    m.appendChild(scanSection);
-
-    var alertBox = el('div', { style: 'display:none;margin-bottom:0.75rem;padding:0.75rem;border-radius:10px;font-size:0.82rem' });
-    m.appendChild(alertBox);
-
-    function processScannedItem(rawCode) {
-      var query = parseScannedCode(rawCode).toLowerCase();
-      if (!query) return;
-
-      var matchInRoom = roomAssets.filter(function (a) {
-        return (a.code || '').toLowerCase() === query ||
-               (a.qr_code || '').toLowerCase() === query ||
-               String(a.id) === query;
-      })[0];
-
-      if (matchInRoom) {
-        alertBox.style.display = 'none';
-        auditState[matchInRoom.id].verified = true;
-        auditState[matchInRoom.id].time = new Date().toLocaleTimeString('id-ID');
-        updateProgress();
-        drawTable();
-        toast('Aset "' + matchInRoom.name + '" berhasil diverifikasi di ruangan ini!', 'success');
-        return;
-      }
-
-      var matchOther = allAssets.filter(function (a) {
-        return (a.code || '').toLowerCase() === query ||
-               (a.qr_code || '').toLowerCase() === query ||
-               String(a.id) === query;
-      })[0];
-
-      if (matchOther) {
-        alertBox.style.display = 'block';
-        alertBox.style.background = '#fef3c7';
-        alertBox.style.border = '1px solid #f59e0b';
-        alertBox.style.color = '#92400e';
-        alertBox.innerHTML = '';
-        var warnText = el('div', { style: 'font-weight:700;margin-bottom:4px' }, 'Aset Ditemukan dari Ruangan Lain: ' + matchOther.name);
-        var subText = el('div', { style: 'font-size:0.75rem;margin-bottom:8px' }, 'Tercatat di: ' + (matchOther.room || 'Tanpa Ruangan') + ' (' + (matchOther.code || matchOther.qr_code || '') + ')');
-        // reconciled into this room on "Simpan Rekonsiliasi" (server moves it there)
-        var moveBtn = el('button', { class: 'sesd-btn sesd-btn-sm sesd-btn-warning' }, 'Pindahkan ke Ruangan ' + room.name);
-        moveBtn.addEventListener('click', function () {
-          roomAssets.push(matchOther);
-          auditState[matchOther.id] = { verified: true, condition: matchOther.condition || 'Baik', time: new Date().toLocaleTimeString('id-ID'), movedFrom: matchOther.room || 'Tanpa Ruangan' };
-          alertBox.style.display = 'none';
-          updateProgress();
-          drawTable();
-          toast('Aset ditandai pindah ke ' + room.name + ' — tersimpan saat Simpan Rekonsiliasi', 'success');
-        });
-        alertBox.appendChild(warnText);
-        alertBox.appendChild(subText);
-        alertBox.appendChild(moveBtn);
-        return;
-      }
-
-      alertBox.style.display = 'block';
-      alertBox.style.background = '#fee2e2';
-      alertBox.style.border = '1px solid #ef4444';
-      alertBox.style.color = '#991b1b';
-      alertBox.textContent = 'Unit dengan kode/QR "' + query + '" tidak ditemukan di dalam sistem.';
-    }
-
-    scanBtn.addEventListener('click', function () { processScannedItem(scanInput.value); });
-    scanInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); processScannedItem(scanInput.value); } });
-
-    var tableWrap = el('div', { class: 'sesd-scroll', style: 'max-height:360px;overflow:auto;border:1px solid var(--border);border-radius:12px;margin-bottom:1rem' });
-    m.appendChild(tableWrap);
-
-    function drawTable() {
-      tableWrap.innerHTML = '';
-      if (!roomAssets.length) {
-        tableWrap.appendChild(el('div', { style: 'padding:2rem;text-align:center;color:var(--text-muted);font-size:0.85rem' }, 'Belum ada aset terdaftar pada ruangan ini.'));
-        return;
-      }
-      var tbl = el('table', { style: 'width:100%;border-collapse:collapse;min-width:540px' });
-      var thead = el('thead', { style: 'background:#f8faff;position:sticky;top:0;z-index:2' });
-      thead.innerHTML = '<tr><th style="padding:8px 12px;text-align:left;font-size:0.75rem;color:var(--text-muted)">STATUS</th><th style="padding:8px 12px;text-align:left;font-size:0.75rem;color:var(--text-muted)">NAMA ASET</th><th style="padding:8px 12px;text-align:left;font-size:0.75rem;color:var(--text-muted)">KODE / QR</th><th style="padding:8px 12px;text-align:left;font-size:0.75rem;color:var(--text-muted)">KONDISI</th></tr>';
-      tbl.appendChild(thead);
-
-      var tbody = el('tbody');
-      roomAssets.forEach(function (a) {
-        var tr = el('tr', { style: 'border-top:1px solid var(--border)' });
-        var st = auditState[a.id] || { verified: false, condition: 'Baik' };
-
-        var tdSt = el('td', { style: 'padding:8px 12px;width:130px' });
-        var chkLabel = el('label', { style: 'display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.78rem' });
-        var chk = el('input', { type: 'checkbox' });
-        chk.checked = st.verified;
-        chk.addEventListener('change', function () {
-          st.verified = chk.checked;
-          st.time = chk.checked ? new Date().toLocaleTimeString('id-ID') : null;
-          updateProgress();
-          drawTable();
-        });
-        chkLabel.appendChild(chk);
-        chkLabel.appendChild(el('span', { style: 'font-weight:600;color:' + (st.verified ? '#10b981' : 'var(--text-muted)') }, st.verified ? 'Ada' : 'Belum'));
-        tdSt.appendChild(chkLabel);
-        if (st.time) tdSt.appendChild(el('div', { style: 'font-size:0.65rem;color:var(--text-muted);margin-left:20px' }, st.time));
-        tr.appendChild(tdSt);
-
-        var tdName = el('td', { style: 'padding:8px 12px' });
-        tdName.appendChild(el('div', { style: 'font-weight:600;font-size:0.85rem' }, a.name || '-'));
-        tdName.appendChild(el('div', { style: 'font-size:0.72rem;color:var(--text-muted)' }, a.brand || '-'));
-        if (st.movedFrom) tdName.appendChild(el('span', { style: 'display:inline-block;margin-top:3px;background:#fef3c7;color:#92400e;padding:1px 6px;border-radius:4px;font-size:0.65rem;font-weight:600' }, 'Pindahan dari ' + st.movedFrom));
-        tr.appendChild(tdName);
-
-        var tdCode = el('td', { style: 'padding:8px 12px;font-family:"JetBrains Mono",monospace;font-size:0.75rem' });
-        tdCode.appendChild(el('div', {}, a.code || '-'));
-        if (a.qr_code) tdCode.appendChild(el('span', { style: 'background:#e0e7ff;color:#4338ca;padding:1px 5px;border-radius:4px;font-size:0.65rem' }, a.qr_code));
-        tr.appendChild(tdCode);
-
-        var tdCond = el('td', { style: 'padding:8px 12px' });
-        var selCond = el('select', { style: 'padding:3px 6px;border-radius:6px;border:1px solid var(--border);font-size:0.78rem' });
-        // same values as the asset form; "tidak ditemukan" is the unchecked status, not a condition
-        ['Baik', 'Rusak Ringan', 'Rusak Berat'].forEach(function (c) {
-          var opt = el('option', { value: c }, c);
-          if (c === st.condition) opt.selected = true;
-          selCond.appendChild(opt);
-        });
-        selCond.addEventListener('change', function () {
-          st.condition = selCond.value;
-        });
-        tdCond.appendChild(selCond);
-        tr.appendChild(tdCond);
-
-        tbody.appendChild(tr);
-      });
-      tbl.appendChild(tbody);
-      tableWrap.appendChild(tbl);
-    }
-    updateProgress();
-    drawTable();
-
-    var foot = el('div', { style: 'display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end' });
-    var exportBtn = el('button', { class: 'sesd-btn sesd-btn-ghost sesd-btn-sm' }, 'Ekspor CSV');
-    exportBtn.addEventListener('click', function () {
-      var rows = [['Kode', 'QR', 'Nama', 'Merek', 'Status Audit', 'Kondisi Fisik', 'Waktu Cek', 'Keterangan'].join(',')];
-      roomAssets.forEach(function (a) {
-        var s = auditState[a.id];
-        rows.push([
-          '"' + (a.code || '') + '"',
-          '"' + (a.qr_code || '') + '"',
-          '"' + (a.name || '') + '"',
-          '"' + (a.brand || '') + '"',
-          '"' + (s && s.verified ? 'Ada' : 'Belum Terverifikasi') + '"',
-          '"' + (s && s.condition ? s.condition : a.condition || 'Baik') + '"',
-          '"' + (s && s.time ? s.time : '-') + '"',
-          '"' + (s && s.movedFrom ? 'Pindahan dari ' + s.movedFrom : '') + '"'
-        ].join(','));
-      });
-      var blob = new Blob(['\uFEFF' + rows.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
-      var aEl = document.createElement('a');
-      aEl.href = URL.createObjectURL(blob);
-      aEl.download = 'opname-' + (room.code || 'ruangan') + '-' + new Date().toISOString().slice(0, 10) + '.csv';
-      document.body.appendChild(aEl);
-      aEl.click();
-      aEl.remove();
-      toast('Berkas opname berhasil diekspor', 'success');
-    });
-
-    var saveBtn = el('button', { class: 'sesd-btn sesd-btn-success sesd-btn-sm' }, 'Simpan Rekonsiliasi');
-    var missingConfirmed = false;
-    saveBtn.addEventListener('click', async function () {
-      var missing = roomAssets.filter(function (a) { return !(auditState[a.id] && auditState[a.id].verified); }).length;
-      // unchecked units are recorded as "tidak ditemukan": ask once before saving
-      if (missing && !missingConfirmed) {
-        missingConfirmed = true;
-        alertBox.style.display = 'block';
-        alertBox.style.background = '#fef3c7';
-        alertBox.style.border = '1px solid #f59e0b';
-        alertBox.style.color = '#92400e';
-        alertBox.textContent = missing + ' unit belum dipindai dan akan dicatat sebagai "Tidak Ditemukan". Klik Simpan Rekonsiliasi sekali lagi untuk menyimpan.';
-        return;
-      }
-      saveBtn.disabled = true;
-      saveBtn.textContent = 'Menyimpan...';
-      try {
-        var items = roomAssets.map(function (a) {
-          var s = auditState[a.id] || {};
-          return { asset_id: a.id, found: !!s.verified, condition: s.condition || a.condition || 'Baik' };
-        });
-        var r = await DB.saveInventory(room.id, items);
-        toast('Inventarisasi tersimpan: ' + r.found + ' ada, ' + r.missing + ' tidak ditemukan' + (r.moved ? ', ' + r.moved + ' dipindahkan' : ''), 'success');
-        cleanup();
-        reloadData();
-      } catch (err) {
-        toast('Gagal menyimpan hasil: ' + err.message, 'error');
-        saveBtn.disabled = false;
-        saveBtn.textContent = 'Simpan Rekonsiliasi';
-      }
-    });
-
-    var closeFootBtn = el('button', { class: 'sesd-btn sesd-btn-ghost sesd-btn-sm' }, 'Tutup');
-    closeFootBtn.addEventListener('click', cleanup);
-
-    foot.appendChild(exportBtn);
-    foot.appendChild(saveBtn);
-    foot.appendChild(closeFootBtn);
-    m.appendChild(foot);
-  }
-
-  function openRoomScanAuditModal() {
-    if (modalOpen()) return;
-    var ov = overlay(), m = el('div', { class: 'sesd-modal', style: 'width:500px;max-width:calc(100vw - 2rem)' });
-    var stream = null;
-    var animId = null;
-    var scanning = true;
-
-    var head = el('div', { style: 'display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem' });
-    head.appendChild(el('h3', { style: 'margin:0;font-size:1.15rem;display:flex;align-items:center;gap:8px', html: ic('camera') + ' Pindai QR Ruangan / Aset' }));
-    var closeBtn = el('button', { class: 'sesd-btn sesd-btn-ghost sesd-btn-sm', style: 'padding:4px 8px;font-size:1.1rem' }, '×');
-    head.appendChild(closeBtn);
-    m.appendChild(head);
-
-    m.appendChild(el('p', { style: 'color:var(--text-muted);font-size:0.8rem;margin:-6px 0 14px' }, 'Arahkan kamera ke QR Ruangan atau pilih ruangan untuk memulai audit fisik.'));
-
-    var viewWrap = el('div', { style: 'position:relative;background:#0b1120;border-radius:12px;height:180px;display:flex;align-items:center;justify-content:center;overflow:hidden;margin-bottom:1rem;border:2px solid var(--border)' });
-    var video = el('video', { autoplay: 'autoplay', playsinline: 'playsinline', muted: 'muted', style: 'width:100%;height:100%;object-fit:cover;display:none' });
-    var aim = el('div', { style: 'position:absolute;width:120px;height:120px;border:2px solid #10b981;border-radius:10px;box-shadow:0 0 16px rgba(16,185,129,0.35);pointer-events:none' });
-    aim.appendChild(el('div', { style: 'width:100%;height:2px;background:#10b981;box-shadow:0 0 8px #10b981;animation:sesd-scan-laser 2s infinite ease-in-out' }));
-    var camHint = el('div', { style: 'color:rgba(255,255,255,0.7);font-size:0.75rem;text-align:center;padding:0.75rem;pointer-events:none' }, 'Mengaktifkan sensor kamera...');
-
-    viewWrap.appendChild(video);
-    viewWrap.appendChild(aim);
-    viewWrap.appendChild(camHint);
-    m.appendChild(viewWrap);
-
-    var canvas = document.createElement('canvas');
-    var ctx = canvas.getContext('2d');
-
-    function scanLoop() {
-      if (!scanning) return;
-      if (video.readyState === video.HAVE_ENOUGH_DATA) {
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        if (window.jsQR) {
-          try {
-            var imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            var qrRes = window.jsQR(imgData.data, imgData.width, imgData.height);
-            if (qrRes && qrRes.data) {
-              var rawFound = String(qrRes.data || '').trim();
-              if (rawFound) {
-                scanning = false;
-                checkCode(rawFound);
-                return;
-              }
-            }
-          } catch (e) {}
-        }
-      }
-      animId = requestAnimationFrame(scanLoop);
-    }
-
-    ensureJsQR().then(function () {
-      if (video.style.display === 'block') {
-        animId = requestAnimationFrame(scanLoop);
-      }
-    });
-
-    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-      navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } }).then(function (s) {
-        stream = s;
-        video.srcObject = s;
-        video.style.display = 'block';
-        camHint.style.display = 'none';
-        video.play().catch(function () {});
-        animId = requestAnimationFrame(scanLoop);
-      }).catch(function () {
-        camHint.textContent = 'Kamera tidak aktif. Silakan pilih atau ketik kode ruangan di bawah.';
-      });
-    }
-
-    var inputWrap = el('div', { style: 'display:flex;gap:8px;margin-bottom:1rem' });
-    var input = el('input', { type: 'text', placeholder: 'Ketik kode ruangan (mis. RK-01) atau scan...', style: 'flex:1;padding:0.65rem 0.85rem;border-radius:10px;border:1.5px solid var(--border);font-size:0.875rem;outline:none' });
-    var checkBtn = el('button', { class: 'sesd-btn sesd-btn-primary' }, 'Buka Audit');
-    inputWrap.appendChild(input);
-    inputWrap.appendChild(checkBtn);
-    m.appendChild(inputWrap);
-
-    async function checkCode(rawInput) {
-      var query = parseScannedCode(rawInput).toLowerCase();
-      if (!query) return;
-
-      var allRooms = await DB.rooms();
-      var matchedRoom = allRooms.filter(function (r) {
-        return (r.code || '').toLowerCase() === query ||
-               (r.name || '').toLowerCase() === query ||
-               String(r.id) === query;
-      })[0];
-
-      if (matchedRoom) {
-        cleanup();
-        openRoomAuditModal(matchedRoom);
-        return;
-      }
-
-      var allAssets = await DB.assets();
-      var matchedAsset = allAssets.filter(function (a) {
-        return (a.code || '').toLowerCase() === query ||
-               (a.qr_code || '').toLowerCase() === query;
-      })[0];
-
-      if (matchedAsset && matchedAsset.room_id) {
-        var aRoom = allRooms.filter(function (r) { return r.id == matchedAsset.room_id; })[0];
-        if (aRoom) {
-          cleanup();
-          openRoomAuditModal(aRoom);
-          return;
-        }
-      }
-
-      toast('Ruangan tidak ditemukan untuk kode "' + query + '"', 'error');
-      scanning = true;
-      animId = requestAnimationFrame(scanLoop);
-    }
-
-    checkBtn.addEventListener('click', function () { checkCode(input.value); });
-    input.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); checkCode(input.value); } });
-
-    function cleanup() {
-      scanning = false;
-      if (animId) cancelAnimationFrame(animId);
-      if (stream) { stream.getTracks().forEach(function (t) { t.stop(); }); stream = null; }
-      ov.remove();
-    }
-    closeBtn.addEventListener('click', cleanup);
-    ov.addEventListener('click', function (e) { if (e.target === ov) cleanup(); });
-
-    ov.appendChild(m);
-    document.body.appendChild(ov);
-    setTimeout(function () { input.focus(); }, 100);
-  }
-
   /* ---------------- actions ---------------- */
   async function withLoading(btnEl, fn) {
     if (!btnEl || btnEl.tagName !== 'BUTTON') return await fn();
@@ -3012,7 +2179,6 @@
         else if (act === 'register') withLoading(e, doRegister);
         else if (act === 'logout') withLoading(e, doLogout);
         else if (act === 'toggle-password') togglePassword(e);
-        else if (act === 'scan-handover') openScanHandoverModal();
         else if (act === 'submit-pinjam') withLoading(e, submitPinjam);
       });
     });
@@ -3078,7 +2244,7 @@
     backdrop.addEventListener('click', toggle);
   }
 
-  /* #3 — collapsible sidebar. The header toggle rails the sidebar to an icon-only
+  /* Collapsible sidebar. The header toggle rails the sidebar to an icon-only
      strip on desktop (persisted), and closes the drawer on mobile. Works on both
      static-shell pages (which ship a "‹" button) and dynamic-shell pages (where we
      create the button). */
@@ -3109,7 +2275,7 @@
       var label = t ? ((t.firstElementChild ? t.firstElementChild.textContent : t.textContent) || '').trim() : '';
       if (label) a.title = label;
     });
-    // #1 — tag every section header so rail mode can drop the separators cleanly
+    // Tag every section header so rail mode can drop the separators cleanly
     $$('aside [style*="letter-spacing: 1.5px"], aside [style*="letter-spacing:1.5px"]').forEach(function (lbl) {
       if (lbl.parentNode) lbl.parentNode.classList.add('sesd-navsec');
     });
@@ -3129,7 +2295,7 @@
     });
   }
 
-  // #7 — dashboard greeting: time-of-day + role-aware copy for all three actors
+  // Dashboard greeting: time-of-day + role-aware copy for all three actors
   function setupGreeting() {
     var hiEl = $('[data-greet-hi]'), subEl = $('[data-greet-sub]');
     if (!hiEl && !subEl) return;
@@ -3158,7 +2324,7 @@
   }
 
   function translateBreadcrumbs() {
-    var map = { dashboard: 'Dashboard', dataaset: 'Data Aset', kategoriaset: 'Kategori Aset', ruangan: 'Ruangan', daftarpinjam: 'Daftar Pinjam', ajukanpinjam: 'Ajukan Pinjam', users: 'Kelola User' };
+    var map = { dashboard: 'Dashboard', dataaset: 'Data Aset', kategoriaset: 'Jenis BMN', ruangan: 'Ruangan', daftarpinjam: 'Daftar Pinjam', ajukanpinjam: 'Ajukan Pinjam', users: 'Kelola User' };
     var p = page();
     if (map[p]) {
       byText(new RegExp('^' + p + '$', 'i'), 'span').forEach(function(e) { e.textContent = map[p]; });
@@ -3168,7 +2334,7 @@
   /* ---------------- boot ---------------- */
   // expose the single page loader so page-specific scripts (reports.js) can use it
   window.SESDIAN_LOADER = { show: showPageLoader, hide: hidePageLoader };
-  /* ====================== #11 — mobile card tables ======================
+  /* ====================== mobile card tables ======================
      On phones every table row becomes a self-contained card whose cells carry
      their column name (from the matching <th>) as a data-label. Generic: works
      for every table, template-rendered or JS-rendered. Re-run after each render. */
@@ -3185,7 +2351,7 @@
     });
   }
 
-  /* ====================== #11 — table toolbar (search + filter) ======================
+  /* ====================== table toolbar (search + filter) ======================
      Replaces the "Lihat Semua" button above the dashboard recent table with a live
      search box and a filter-icon dropdown (status). */
   function wireRecentToolbar() {
@@ -3284,7 +2450,7 @@
     host.appendChild(legend);
   }
 
-  /* ====================== #3 — notifications (bell) ====================== */
+  /* ====================== notifications (bell) ====================== */
   function timeAgo(ts) {
     var s = Math.floor((Date.now() - ts) / 1000);
     if (s < 60) return 'baru saja';
@@ -3363,7 +2529,7 @@
     });
     function refresh() { buildNotifList().then(function (l) { items = l; if (!menu) paintBadge(); }); }
     refresh();
-    // #1 — poll so new borrow requests reach the admin without a manual reload,
+    // Poll so new borrow requests reach the admin without a manual reload,
     // and refresh whenever the tab regains focus.
     setInterval(refresh, 30000);
     window.addEventListener('focus', refresh);
@@ -3382,7 +2548,7 @@
     showPageLoader();
     buildShell();                 // fill dynamic sidebar/topbar on pages that opt in
     fillIdentity(USER);
-    // #1 — pull fresh identity (name + photo) from the server so profile edits made
+    // Pull fresh identity (name + photo) from the server so profile edits made
     // on one device show everywhere; non-blocking, best-effort.
     if (USER && DB.profile) DB.profile().then(function (p) {
       if (!p) return;
@@ -3393,8 +2559,8 @@
     injectBorrowedNav();          // "Sedang Dipinjam" link for all authed users
     if (IS_STAFF) injectRoleNav();
     setupGreeting();              // dashboard greeting (role-aware)
-    normalizeChrome();            // brand logo + per-page sidebar/topbar icons (#1/#2/#5)
-    if (IS_STAFF) injectAdminBars();     // admin: all bars · verifikator: only the inventory scan on Ruangan
+    normalizeChrome();            // brand logo + per-page sidebar/topbar icons
+    if (IS_ADMIN) injectAdminBars();
     // Kerangka halaman (chevron sidebar, tanggal, breadcrumb, layout mobile) tidak
     // butuh data DB — pasang SEBELUM menunggu load supaya tampilan saat loading
     // sudah sama persis dengan tampilan sesudah data masuk.
@@ -3407,8 +2573,8 @@
     document.body.classList.add('sesd-ready');   // reveal once DB data is rendered (no hardcoded flash)
     wireActions(); wireNav(); wireModal(); wireSearch(); wireFilters(); fallbacks(); setupNotice();
     reapplyFilters();
-    wireNotifBell();              // #3 — functional notification bell (badge + dropdown)
-    labelizeTables();             // #11 — mobile card-table labels
+    wireNotifBell();              // Functional notification bell (badge + dropdown)
+    labelizeTables();             // Mobile card-table labels
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);

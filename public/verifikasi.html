@@ -12,7 +12,7 @@
       rel="stylesheet"
     />
     <script>(function(){try{var d=document.documentElement;if(localStorage.getItem('sesdian_theme')==='dark')d.setAttribute('data-theme','dark');var ts=localStorage.getItem('sesdian_textsize');if(ts==='small'||ts==='large')d.setAttribute('data-textsize',ts);if(localStorage.getItem('sesdian_rail')==='1')d.classList.add('sesd-rail-pref');}catch(e){}})();</script>
-    <link rel="stylesheet" href="assets/app.css?v=60" />
+    <link rel="stylesheet" href="assets/app.css?v=61" />
     <link rel="stylesheet" href="assets/preloader.css?v=57" />
   </head>
   <body
@@ -54,17 +54,7 @@
             "
           ></div>
           <div style="padding: 1.75rem">
-            <div class="animate-fade-up sesd-pinjam-header" style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.25rem;flex-wrap:wrap;gap:12px">
-              <div>
-                <h1 style="font-size:1.5rem;font-weight:800;margin-bottom:4px">Verifikasi Peminjaman</h1>
-                <p style="color:var(--text-muted);font-size:0.875rem">Verifikasi kedua (oleh verifikator) untuk peminjaman yang sudah disetujui admin.</p>
-              </div>
-              <button data-action="scan-handover" class="sesd-btn sesd-btn-primary" style="display:inline-flex;align-items:center;gap:8px">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="1.1em" height="1.1em"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M7 17h.01M17 17h.01M7 7h.01M17 7h.01"/></svg>
-                Scan Serah Terima & Pengembalian
-              </button>
-            </div>
-            <div style="display:none">
+            <div class="animate-fade-up" style="margin-bottom: 1.25rem">
               <h1 style="font-size: 1.5rem; font-weight: 800; margin-bottom: 4px">
                 Verifikasi Peminjaman
               </h1>
@@ -130,8 +120,10 @@
                     <th style="padding: 0.875rem 1rem; text-align: left; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px">Aset</th>
                     <th style="padding: 0.875rem 1rem; text-align: left; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px">Peminjam</th>
                     <th style="padding: 0.875rem 1rem; text-align: left; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px">Jumlah</th>
+                    <th style="padding: 0.875rem 1rem; text-align: left; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px">Alasan</th>
                     <th style="padding: 0.875rem 1rem; text-align: left; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px">Status</th>
                     <th style="padding: 0.875rem 1rem; text-align: left; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px">Jatuh Tempo</th>
+                    <th data-aksi-th style="padding: 0.875rem 1rem; text-align: left; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px">Aksi</th>
                   </tr>
                 </thead>
                 <tbody data-list="verif">
@@ -147,6 +139,7 @@
                     </td>
                     <td data-bind="borrower" style="padding: 0.875rem 1rem; font-size: 0.875rem; color: var(--text-muted)">-</td>
                     <td data-bind="qty" style="padding: 0.875rem 1rem; font-size: 0.875rem">-</td>
+                    <td data-bind="notes" style="padding: 0.875rem 1rem; font-size: 0.82rem; color: var(--text-muted); max-width: 220px">-</td>
                     <td style="padding: 0.875rem 1rem">
                       <span
                         style="display: inline-flex; align-items: center; gap: 6px; background: rgb(219, 234, 254); color: rgb(30, 64, 175); padding: 0.25rem 0.65rem; border-radius: 20px; font-size: 0.75rem; font-weight: 700"
@@ -165,10 +158,10 @@
       </div>
     </div>
     <script defer src="assets/config.js?v=57"></script>
-    <script defer src="assets/db.js?v=62"></script>
-    <script defer src="assets/icons.js?v=59"></script>
+    <script defer src="assets/db.js?v=61"></script>
+    <script defer src="assets/icons.js?v=58"></script>
     <script defer src="assets/preloader.js?v=57"></script>
-    <script defer src="assets/app.js?v=68"></script>
+    <script defer src="assets/app.js?v=67"></script>
       <script defer src="assets/theme.js?v=57"></script>
   </body>
 </html>

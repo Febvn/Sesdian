@@ -40,6 +40,7 @@ export default async function handler(req, res) {
             select a.id, a.code, a.name, coalesce(a.brand,'') as brand, a.year,
                    coalesce(a.condition,'Baik') as condition, coalesce(a.type,'BMN') as type,
                    coalesce(a.asset_type,'') as asset_type, a.image, a.qr_code,
+                   to_char(a.acquisition_date,'YYYY-MM-DD') as acquisition_date,
                    a.stock_total, a.stock_available, a.stock_borrowed,
                    coalesce(c.name,'') as category, coalesce(r.name,'') as room,
                    ai.name_key as jenis_key, extract(epoch from ai.updated_at)::bigint as jenis_ver
@@ -52,6 +53,7 @@ export default async function handler(req, res) {
             select a.id, a.code, a.name, coalesce(a.brand,'') as brand, a.year,
                    coalesce(a.condition,'Baik') as condition, coalesce(a.type,'BMN') as type,
                    coalesce(a.asset_type,'') as asset_type, a.image, a.qr_code,
+                   to_char(a.acquisition_date,'YYYY-MM-DD') as acquisition_date,
                    a.stock_total, a.stock_available, a.stock_borrowed,
                    coalesce(c.name,'') as category, coalesce(r.name,'') as room,
                    ai.name_key as jenis_key, extract(epoch from ai.updated_at)::bigint as jenis_ver
@@ -68,6 +70,7 @@ export default async function handler(req, res) {
         id: a.id, code: a.code, name: a.name, brand: a.brand, year: a.year,
         condition: a.condition, type: a.type, asset_type: a.asset_type,
         image: a.image, qr_code: a.qr_code, category: a.category, room: a.room,
+        acquisition_date: a.acquisition_date,
         jenis_key: a.jenis_key, jenis_ver: a.jenis_ver,
       };
       if (authed) {
