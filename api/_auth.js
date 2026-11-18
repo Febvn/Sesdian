@@ -4,10 +4,10 @@
 import crypto from 'node:crypto';
 
 // Fail closed: never sign/verify with a predictable key. JWT_SECRET must be set
-// (Vercel env var). Without it, token ops throw and endpoints return 500.
+// (environment variable server). Without it, token ops throw and endpoints return 500.
 function secret() {
   var s = process.env.JWT_SECRET;
-  if (!s) throw new Error('JWT_SECRET belum diset (Vercel env var).');
+  if (!s) throw new Error('JWT_SECRET belum diset (environment variable server).');
   return s;
 }
 

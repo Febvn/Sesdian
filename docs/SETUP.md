@@ -68,14 +68,7 @@ File `.env.local` sudah dibuat dengan credentials Anda.
 ### 3. Jalankan Development Server
 
 ```bash
-npx vercel dev
-```
-
-atau install Vercel CLI globally:
-
-```bash
-npm install -g vercel
-vercel dev
+npm run dev
 ```
 
 ### 4. Akses Aplikasi
@@ -84,32 +77,20 @@ Buka browser: http://localhost:3000
 
 ---
 
-## Deployment ke Vercel
+## Deployment ke Server Produksi (Domain Resmi)
 
-### Option 1: Via Vercel CLI
+Domain resmi produksi: **https://sesdian-lpg.bppmhkp.id/**
 
-```bash
-# Login ke Vercel
-vercel login
+Panduan lengkap penerapan menggunakan Node.js (`server.mjs`), Nginx reverse proxy, PM2, atau Hostinger hPanel tersedia di [HOSTINGER-DEPLOY.md](HOSTINGER-DEPLOY.md).
 
-# Deploy
-vercel
-
-# Set environment variables
-vercel env add DATABASE_URL
-vercel env add JWT_SECRET
-# Optional: vercel env add FONNTE_TOKEN
-```
-
-### Option 2: Via Vercel Dashboard
-
-1. Push code ke GitHub
-2. Import project di https://vercel.com/new
-3. Tambahkan environment variables di Settings → Environment Variables:
-   - `DATABASE_URL` = [connection string Anda]
-   - `JWT_SECRET` = [secret key Anda]
-   - `FONNTE_TOKEN` = [optional, token WhatsApp]
-4. Deploy
+Ringkasan langkah produksi:
+1. Clone repositori ke server dan pasang dependensi produksi (`npm install --omit=dev`).
+2. Siapkan file `.env` atau environment variables panel hosting:
+   - `DATABASE_URL` = [connection string Neon PostgreSQL]
+   - `JWT_SECRET` = [kunci rahasia JWT produksi]
+   - `FONNTE_TOKEN` = [opsional, token WhatsApp]
+3. Jalankan aplikasi melalui `npm start` (PM2) atau startup file `app.js` (Passenger/hPanel).
+4. Arahkan domain resmi `sesdian-lpg.bppmhkp.id` ke server dengan sertifikat SSL aktif.
 
 ---
 

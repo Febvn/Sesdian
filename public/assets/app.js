@@ -2226,7 +2226,7 @@
   function setupNotice() {
     if (REAL) return;
     if (!(page() === 'login' || page() === 'register')) return;
-    setTimeout(function () { toast('Mode demo - backend Neon aktif setelah deploy ke Vercel + set DATABASE_URL', 'info'); }, 700);
+    setTimeout(function () { toast('Mode demo - backend Neon aktif setelah deploy ke server (https://sesdian-lpg.bppmhkp.id/) + set DATABASE_URL', 'info'); }, 700);
   }
 
   function setupMobileLayout() {

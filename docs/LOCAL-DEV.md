@@ -12,8 +12,8 @@ cp .env.example .env.local
 Isi `.env.local`:
 - **DATABASE_URL** — Neon dashboard → project kamu → **Connection Details** → salin
   *connection string* (yang **Pooled** juga boleh). Pastikan ada `?sslmode=require`.
-- **JWT_SECRET** — string acak panjang. Untuk login yang sama dengan produksi, salin
-  `JWT_SECRET` dari Environment Variables project Vercel kamu.
+- **JWT_SECRET** — string acak panjang. Untuk login yang sama dengan produksi (`https://sesdian-lpg.bppmhkp.id/`), salin
+  `JWT_SECRET` dari Environment Variables server produksi.
 
 > `.env.local` sudah di-`.gitignore` — kredensial tidak akan ikut ter-commit.
 
