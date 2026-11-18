@@ -216,13 +216,13 @@ test('OWASP A10: Server-Side Request Forgery (SSRF) - Pembatasan Domain dan Peno
 
   const isSafeLocalOrigin = (urlStr) => {
     try {
-      const u = new URL(urlStr, 'https://sesdianppmhkp.vercel.app');
-      return u.hostname === 'sesdianppmhkp.vercel.app' || u.hostname === 'localhost';
+      const u = new URL(urlStr, 'https://sesdian-lpg.bppmhkp.id');
+      return u.hostname === 'sesdian-lpg.bppmhkp.id' || u.hostname === 'localhost';
     } catch {
       return false;
     }
   };
 
   assert.equal(isSafeLocalOrigin(ssrfTarget), false);
-  assert.equal(isSafeLocalOrigin('https://sesdianppmhkp.vercel.app/api/assets'), true);
+  assert.equal(isSafeLocalOrigin('https://sesdian-lpg.bppmhkp.id/api/assets'), true);
 });

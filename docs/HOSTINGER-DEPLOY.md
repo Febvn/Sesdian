@@ -41,7 +41,7 @@ npm install -g pm2
 
 ```bash
 cd /var/www
-git clone https://github.com/Protoflicker/AssetManagement.git sesdian
+git clone https://github.com/Febvn/Sesdian.git sesdian
 cd sesdian
 npm install --omit=dev
 ```
@@ -74,7 +74,7 @@ Buat `/etc/nginx/sites-available/sesdian`:
 ```nginx
 server {
     listen 80;
-    server_name domain-anda.id www.domain-anda.id;
+    server_name sesdian-lpg.bppmhkp.id www.sesdian-lpg.bppmhkp.id;
 
     # unggah foto aset dan impor Excel butuh body lebih besar dari default 1MB
     client_max_body_size 8m;
@@ -96,7 +96,7 @@ Aktifkan lalu pasang sertifikat:
 ln -s /etc/nginx/sites-available/sesdian /etc/nginx/sites-enabled/
 nginx -t && systemctl reload nginx
 apt install -y certbot python3-certbot-nginx
-certbot --nginx -d domain-anda.id -d www.domain-anda.id
+certbot --nginx -d sesdian-lpg.bppmhkp.id -d www.sesdian-lpg.bppmhkp.id
 ```
 
 ### 6. Memperbarui aplikasi
@@ -138,9 +138,10 @@ pernah menyentuh `/api/` karena routing API sepenuhnya milik Node.
    berbeda dari produksi lama.
 2. **Katalog publik** di `/katalog` tampil beserta foto asetnya.
 3. **Kode QR yang sudah tercetak.** Stiker yang menempel di barang dan ruangan
-   masih menyimpan alamat `sesdianppmhkp.vercel.app`. Jangan hapus proyek Vercel
-   lama; ubah menjadi pengalihan permanen ke domain baru, lalu cetak ulang stiker
-   secara bertahap. Rincian ada di Bab X dokumen serah terima.
+   masih menyimpan alamat lama `sesdianppmhkp.vercel.app`. Jangan hapus proyek Vercel
+   lama; ubah menjadi pengalihan permanen (HTTP 301) ke domain resmi baru
+   `https://sesdian-lpg.bppmhkp.id/`, lalu cetak ulang stiker secara bertahap.
+   Rincian ada di Bab X dokumen serah terima.
 4. **Notifikasi WhatsApp**, bila `FONNTE_TOKEN` dipakai.
 5. Perbarui alamat situs di buku manual dan template label QR setelah stabil.
 

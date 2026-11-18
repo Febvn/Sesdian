@@ -1,19 +1,20 @@
 # SESDIAN - Asset Management
 
-Lightweight asset-management app: a static, zero-build frontend (vanilla HTML/CSS/JS) backed by a Neon Postgres database through small Vercel serverless functions. The frontend stays instant; the backend gives real auth, roles, and data persistence.
+Sistem Digital Inventarisasi Aset Negara (SESDIAN) untuk Balai Penerapan Pengujian Mutu Hasil Perikanan (BPPMKP).
 
-> Replaces the original Laravel + React build that shipped a ~1.1 MB JS bundle per page.
+- **Domain Resmi Produksi**: [https://sesdian-lpg.bppmhkp.id/](https://sesdian-lpg.bppmhkp.id/)
+- **Arsitektur**: Static frontend (vanilla HTML/CSS/JS) + backend mandiri Node.js (`server.mjs`) / serverless functions (`api/*.js`) terhubung ke basis data PostgreSQL Neon.
 
 ## Architecture
 ```
-Browser  -->  /api/* (Vercel serverless, Node)  -->  Neon Postgres
- public/        register, login, me, settings        users, settings
- *.html         categories, rooms, assets            categories, rooms
- assets/app.js  borrowings (list/create/approve)     assets, borrowings
+Browser  -->  https://sesdian-lpg.bppmhkp.id/ (/api/*, Node.js)  -->  Neon Postgres
+ public/        register, login, me, settings                          users, settings
+ *.html         categories, rooms, assets                              categories, rooms
+ assets/app.js  borrowings (list/create/approve)                       assets, borrowings
  assets/db.js   users (list/role)
 ```
 - Auth: JWT (HS256) signed server-side; passwords hashed with scrypt; token in localStorage, sent as a Bearer header. `JWT_SECRET` is required (no fallback).
-- The Neon connection string lives only in the Vercel env var `DATABASE_URL`, never in the browser. Every data endpoint checks the token; writes check admin.
+- The Neon connection string lives only in the environment variable `DATABASE_URL`, never in the browser. Every data endpoint checks the token; writes check admin.
 - DB-first: pages render entirely from the database (or an in-memory demo set); the static templates are hidden, so no seed data flashes before the DB loads.
 
 ## Roles
@@ -39,38 +40,40 @@ Browser  -->  /api/* (Vercel serverless, Node)  -->  Neon Postgres
 
 ## Project layout
 ```
-public/             the static site (served by Vercel)
+public/             the static site (https://sesdian-lpg.bppmhkp.id/)
   *.html            pages
   assets/app.css    design tokens + animations
   assets/app.js     runtime: auth, rendering, search/filter, admin UI, toasts
   assets/db.js      data layer (calls /api, manages the JWT, demo dataset)
   assets/config.js  BACKEND mode + optional API base (no secrets)
   favicon.svg
-api/                serverless functions
+api/                serverless & Node API handlers
   register, login, me, categories, rooms, assets, borrowings, users, settings
   _auth.js _db.js _wa.js   (shared helpers, not routed)
 db/                 SQL: schema, migrations, seed data
   neon-schema.sql     full schema + seed (fresh install)
   migrate*.sql        incremental, non-destructive migrations (existing DB)
   seed-aset-2025.sql  asset data seed
-docs/               guides (setup, local dev, features, etc.)
-dev-server.mjs      local dev server (serves public/ + runs api/ against Neon)
-scripts/            db:check / db:run helpers (see docs/LOCAL-DEV.md)
-package.json        declares @neondatabase/serverless (installed by Vercel)
-vercel.json         outputDirectory: public, clean URLs
+docs/               guides (HOSTINGER-DEPLOY.md, setup, manual-book, dll.)
+server.mjs          standalone Node server (serves public/ + runs api/ in-process)
+app.js              startup entry point for Passenger / hPanel Node hosting
+dev-server.mjs      local dev server (runs server.mjs in development mode)
+package.json        declares scripts (start, dev, test) and server dependencies
 ```
 
-## Setup
-1. Create a Neon database (https://neon.tech) and copy the connection string.
-2. Fresh DB: run `db/neon-schema.sql` in the Neon SQL Editor, then `db/migrate-v3.sql`.
-   Existing DB (already has data): run `db/migrate.sql` then `db/migrate-v3.sql`
-   (they only add columns/tables; nothing is dropped).
-   To run locally instead, see `docs/LOCAL-DEV.md`.
-3. Deploy to Vercel and add environment variables:
-   - `DATABASE_URL`  (required) - your Neon connection string
-   - `JWT_SECRET`    (required) - a long random string, e.g. `openssl rand -hex 32`
-   - `FONNTE_TOKEN`  (optional) - enables automatic WhatsApp sending
-   - `CRON_SECRET`   (required for the daily overdue reminder) - a long random string
+## Setup & Deployment
+Untuk penerapan ke server dan domain resmi (`https://sesdian-lpg.bppmhkp.id/`), lihat panduan lengkap di [docs/HOSTINGER-DEPLOY.md](docs/HOSTINGER-DEPLOY.md).
+
+1. Siapkan database PostgreSQL Neon (https://neon.tech) dan catat connection string `DATABASE_URL`.
+2. Pasang environment variable pada server:
+   - `DATABASE_URL`  (wajib) - connection string Neon
+   - `JWT_SECRET`    (wajib) - kunci rahasia HMAC-SHA256
+   - `FONNTE_TOKEN`  (opsional) - gateway WhatsApp otomatis
+3. Jalankan server produksi:
+   ```bash
+   npm install --omit=dev
+   npm start
+   ```
 4. Log in with your existing account; since it is the only account and there is
    no admin yet, it is promoted to admin automatically. New sign-ups are users.
 
